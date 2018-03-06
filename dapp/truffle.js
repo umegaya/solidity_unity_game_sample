@@ -1,4 +1,11 @@
 module.exports = {
-  // See <http://truffleframework.com/docs/advanced/configuration>
-  // to customize your Truffle configuration!
+  networks: {
+    development: {
+      //assume user uses ganache ethereum client with default setting
+      host: "localhost",
+      port: 9545, 
+      network_id: "*", // Match any network id
+      gas: 4600000,
+    }
+  }
 };

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package neko;
+
+import "Solidity.proto";
+
+message Cat {
+    solidity.uint16 hp = 1;
+    solidity.uint16 attack = 2;
+    solidity.uint16 defense = 3;
+    uint32 exp = 5;
+    message Skill {
+        solidity.uint16 id = 1;
+        solidity.uint16 exp = 2;
+    }
+    repeated Skill skills = 6;
+    string name = 7;
+    bool sex = 8;
+}
