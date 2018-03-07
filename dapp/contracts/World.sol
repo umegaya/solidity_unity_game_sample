@@ -94,10 +94,14 @@ contract World is Restrictable, Constants {
     if (fee > token_.balanceOf(msg.sender)) {
       return fee;
     }
-    require(inventory_.breed(name, msg.sender, cat_id, target, target_cat_id));
+    require(inventory_.breed(name, msg.sender, cat_id, target, target_cat_id, -1));
     require(token_.transferFrom(msg.sender, administrator_, fee));
     return 0;
   }
+  //estimate breed fee
+  function estimateBreedFee(uint cat_id, address target, uint target_cat_id) public returns (uint) {
+    return inventory_.estimateBreedFee(msg.sender, cat_id, target, target_cat_id, -1) * currentRateInWei();
+  }  
   //set your cat for sale. if specify 0 to price, make corresponding cat not for sale.
   function setForSale(uint index, uint price) public returns (bool){
     return inventory_.setForSale(msg.sender, index, price);
@@ -119,6 +123,6 @@ contract World is Restrictable, Constants {
     return (base_price * currentRateInWei() / 10, cat_id);
   }
   function estimateBreedFee(address sender, uint cat_id, address target, uint target_cat_id) internal returns (uint) {
-    return inventory_.estimateBreedFee(sender, cat_id, target, target_cat_id) * currentRateInWei();
+    return inventory_.estimateBreedFee(sender, cat_id, target, target_cat_id, -1) * currentRateInWei();
   }
 }

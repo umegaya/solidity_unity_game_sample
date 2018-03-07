@@ -6,6 +6,7 @@ import "./libs/pb/Cat_pb.sol";
 import "./libs/PRNG.sol";
 import "./libs/math/Math.sol";
 import "./NekoUtil.sol";
+import "./Constants.sol";
 
 contract Inventory is StorageAccessor, Restrictable {
   //defs
@@ -63,32 +64,41 @@ contract Inventory is StorageAccessor, Restrictable {
         var (c, clen) = loadBytes(id);
         cat = pb_neko_Cat.decode(StorageHelper.toBytes(c, clen));
         found = true;
+        return;
       }
     }
     found = false;
   }
   function estimateBreedFee(address breeder, uint breeder_cat_id,
-    address breedee, uint breedee_cat_id) public view returns (uint) {
-    var kitty = createKitty(breeder, breeder_cat_id, breedee, breedee_cat_id);
-    return NekoUtil.evaluateCat(kitty);               
+    address breedee, uint breedee_cat_id, int debug_rate) public view returns (uint) {
+    var kitty = createKitty(breeder, breeder_cat_id, breedee, breedee_cat_id, debug_rate);
+    return NekoUtil.evaluateCat(kitty);
   }
   function createKitty(
     address a, uint a_cat_id, 
-    address b, uint b_cat_id) internal returns (pb_neko_Cat.Data kitty) {
-    var (ca, found_a) = getCat(a, a_cat_id);
-    require(found_a);
+    address b, uint b_cat_id, int rate) internal returns (pb_neko_Cat.Data kitty) {
+    bool tmp;
+    pb_neko_Cat.Data memory ca;
+    (ca, tmp) = getCat(a, a_cat_id);
+    require(tmp);
 
-    var (cb, found_b) = getCat(b, b_cat_id);
-    require(found_b);
+    pb_neko_Cat.Data memory cb;
+    (cb, tmp) = getCat(b, b_cat_id);
+    require(tmp); //*/
 
-    uint rate = Math.max256(a_cat_id, b_cat_id) % 16 - Math.min256(a_cat_id, b_cat_id) % 16;
+    if (rate < 0) {
+      tmp = false;
+      rate = int(Math.max256(a_cat_id % 16, b_cat_id % 16) - Math.min256(a_cat_id % 16, b_cat_id % 16));
+    } else {
+      tmp = true;
+    }//*/
 
     PRNG.Data memory rnd;
-    kitty.hp = uint16(NekoUtil.mixParam(rnd, ca.hp, cb.hp, rate, 10));
-    kitty.attack = uint16(NekoUtil.mixParam(rnd, ca.attack, cb.attack, rate, 3));
-    kitty.defense = uint16(NekoUtil.mixParam(rnd, ca.defense, cb.defense, rate, 3));
-    var a_skill_inherit = rnd.gen2(0, ca.skills.length);
-    var total_skill = a_skill_inherit + rnd.gen2(0, cb.skills.length);
+    kitty.hp = uint16(NekoUtil.mixParam(rnd, ca.hp, cb.hp, rate, tmp ? 0 : 10));
+    kitty.attack = uint16(NekoUtil.mixParam(rnd, ca.attack, cb.attack, rate, tmp ? 0 : 3));
+    kitty.defense = uint16(NekoUtil.mixParam(rnd, ca.defense, cb.defense, rate, tmp ? 0 : 3));
+    var a_skill_inherit = tmp ? 1 : rnd.gen2(0, ca.skills.length);
+    var total_skill = a_skill_inherit + (tmp ? 1 : rnd.gen2(0, cb.skills.length));
     kitty.skills = new pb_neko_Cat_Skill.Data[](total_skill);
     for (uint i = 0; i < a_skill_inherit; i++) {
       kitty.skills[i] = ca.skills[i];
@@ -128,8 +138,9 @@ contract Inventory is StorageAccessor, Restrictable {
   }
   function breed(string name, 
     address breeder, uint breeder_cat_id,
-    address breedee, uint breedee_cat_id) public writer returns (bool) {
-    var kitty = createKitty(breeder, breeder_cat_id, breedee, breedee_cat_id);
+    address breedee, uint breedee_cat_id,
+    int debug_rate) public writer returns (bool) {
+    var kitty = createKitty(breeder, breeder_cat_id, breedee, breedee_cat_id, debug_rate);
     kitty.name = name;
     addFixedCat(breeder, kitty);
     return true;

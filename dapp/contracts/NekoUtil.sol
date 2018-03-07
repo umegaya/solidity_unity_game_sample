@@ -8,10 +8,10 @@ library NekoUtil {
   using PRNG for PRNG.Data;
 
   function mixParam(PRNG.Data memory rnd, 
-    uint p1, uint p2, uint blend_rate, uint bonus) public view returns (uint) {
+    uint p1, uint p2, int blend_rate, uint bonus) public view returns (uint) {
     var max_param = uint(Math.max256(p1, p2));
     var min_param = uint(Math.min256(p1, p2));
-    return ((max_param * (16 - blend_rate) + min_param * blend_rate) / 256) + rnd.gen2(0, bonus);
+    return ((max_param * uint(16 - blend_rate) + min_param * uint(blend_rate)) / 16) + rnd.gen2(0, bonus);
   }
 
   function evaluateCat(pb_neko_Cat.Data c) internal view returns (uint price) {
@@ -20,6 +20,5 @@ library NekoUtil {
     for (uint i = 0; i < c.skills.length; i++) {
       price += c.exp;
     }
-    price = price * (10 ^ 13);
   }
 }
