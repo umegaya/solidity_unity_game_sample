@@ -25,6 +25,7 @@ contract Inventory is StorageAccessor, Restrictable {
 
   //events
   event AddCat(address user, uint id, bytes created);
+  event Breed(address user_a, address user_b, uint id_a, uint id_b, uint new_id);
 
 
   //ctor
@@ -69,14 +70,18 @@ contract Inventory is StorageAccessor, Restrictable {
     }
     found = false;
   }
-  function estimateBreedFee(address breeder, uint breeder_cat_id,
+  function canReleaseCat(address user) public view returns (bool) {
+    //cannot be the 'no cat' status
+    return inventories_[user].length > 1;
+  }
+  function estimateBreedValue(address breeder, uint breeder_cat_id,
     address breedee, uint breedee_cat_id, int debug_rate) public view returns (uint) {
     var kitty = createKitty(breeder, breeder_cat_id, breedee, breedee_cat_id, debug_rate);
     return NekoUtil.evaluateCat(kitty);
   }
   function createKitty(
     address a, uint a_cat_id, 
-    address b, uint b_cat_id, int rate) internal returns (pb_neko_Cat.Data kitty) {
+    address b, uint b_cat_id, int rate) internal view returns (pb_neko_Cat.Data kitty) {
     bool tmp;
     pb_neko_Cat.Data memory ca;
     (ca, tmp) = getCat(a, a_cat_id);
@@ -85,6 +90,8 @@ contract Inventory is StorageAccessor, Restrictable {
     pb_neko_Cat.Data memory cb;
     (cb, tmp) = getCat(b, b_cat_id);
     require(tmp); //*/
+
+    require(ca.is_male != cb.is_male);
 
     if (rate < 0) {
       tmp = false;
@@ -142,10 +149,11 @@ contract Inventory is StorageAccessor, Restrictable {
     int debug_rate) public writer returns (bool) {
     var kitty = createKitty(breeder, breeder_cat_id, breedee, breedee_cat_id, debug_rate);
     kitty.name = name;
-    addFixedCat(breeder, kitty);
+    var new_id = addFixedCat(breeder, kitty);
+    Breed(breeder, breedee, breeder_cat_id, breedee_cat_id, new_id);
     return true;
   }
-  function addCat(address user, string name) public writer returns (bool) {
+  function addCat(address user, string name) public writer returns (uint) {
     require(bytes(name).length <= 32);
     PRNG.Data memory rnd;
     var n_skills = rnd.gen2(1, 3);
@@ -156,11 +164,11 @@ contract Inventory is StorageAccessor, Restrictable {
     return addFixedCat(user, name, 
                 uint16(rnd.gen2(50, 100)), 
                 uint16(rnd.gen2(10, 30)), uint16(rnd.gen2(10, 30)),
-                skills);
+                skills, rnd.gen2(0, 1) == 0);
   }
   function addFixedCat(address user, string name, 
                       uint16 hp, uint16 atk, uint16 def, 
-                      uint16[] skills) public writer returns (bool) {
+                      uint16[] skills, bool is_male) public writer returns (uint) {
     require(bytes(name).length <= 32);
     pb_neko_Cat.Data memory c;
     c.hp = hp;
@@ -173,9 +181,10 @@ contract Inventory is StorageAccessor, Restrictable {
       c.skills[i].exp = 0;
     }
     c.name = name;
-    return addFixedCat(user, c); 
+    c.is_male = is_male;
+    return addFixedCat(user, c); //*/
   }
-  function addFixedCat(address user, pb_neko_Cat.Data cat) internal writer returns (bool) {
+  function addFixedCat(address user, pb_neko_Cat.Data cat) internal writer returns (uint) {
     var id = idSeed_++;
     var bs = cat.encode();
     saveBytes(id, bs);
@@ -185,6 +194,6 @@ contract Inventory is StorageAccessor, Restrictable {
     inventories_[user].push(s);  
 
     AddCat(user, id, bs);
-    return true;  
+    return id;  
   }
 }

@@ -15,5 +15,5 @@ message Cat {
     }
     repeated Skill skills = 6;
     string name = 7;
-    bool sex = 8;
+    bool is_male = 8;
 }

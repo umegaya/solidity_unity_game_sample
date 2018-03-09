@@ -11,7 +11,8 @@ contract StorageAccessor {
     }
 
     function saveBytes(uint id, bytes memory b) internal {
-      require(storageContract_.checkWritableFrom(msg.sender));
+      //sender of setBytes will be this.
+      require(storageContract_.checkWritableFrom(this));
       storageContract_.setBytes(id, b);
     }
 

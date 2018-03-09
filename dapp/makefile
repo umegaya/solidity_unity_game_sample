@@ -19,3 +19,8 @@ $(LOCAL_PROTO_DST_DIR)/%_pb.sol: $(LOCAL_PROTO_SRC_DIR)/%.proto
 
 .PHONY: proto
 proto: $(PROTO_SOL)
+
+test:
+	make proto
+	truffle develop --log
+	truffle test

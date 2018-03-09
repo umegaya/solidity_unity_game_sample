@@ -35,11 +35,15 @@ module.exports = function(deployer) {
     return deployer.deploy(World, Moritapo.address, Inventory.address);
   }).then(function () {
     return Storage.at(Storage.address).then(function (instance) {
-        return instance.setPrivilege(Inventory.address, 1);
+      return instance.setPrivilege(Inventory.address, 1);
     });
   }).then(function () {
     return Inventory.at(Inventory.address).then(function (instance) {
-        return instance.setPrivilege(World.address, 1);
+      return instance.setPrivilege(World.address, 1);
+    });
+  }).then(function () {
+    return Moritapo.at(Moritapo.address).then(function (instance) {
+      return instance.setPrivilege(World.address, 1);
     });
   });
 };
