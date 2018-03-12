@@ -221,6 +221,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd8c759f804da4eb89fcb64344b24bfb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  password_: hoge hoge fuga fuga foo bar
+  address_: 
+  chain_address_: http://localhost:9545
+  remove_wallet_: 0
 --- !u!4 &2077915984
 Transform:
   m_ObjectHideFlags: 0
