@@ -2,12 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 
-using Nethereum.JsonRpc.UnityClient;
 using Nethereum.KeyStore;
 
 using UnityEngine;
 
+namespace Game.Web3 {
 public class Account : MonoBehaviour {
+	//definitions
 	internal class AccountInitializer {
 		internal Thread thread_;
 		internal Account account_;
@@ -48,23 +49,29 @@ public class Account : MonoBehaviour {
 		}
 
 	}
-	public enum AccountInitEvent {
+	public enum InitEvent {
 		Start,
 		EndSuccess,
 		EndFailure,
 	}
-	public delegate void AccountInitCallback(AccountInitEvent ev);
+	public delegate void InitCallback(InitEvent ev);
 
+	//variable
 	public const string KEY_PREFIX = "neko";
 	public string password_;
 	public string address_;
 	public string chain_address_ = "http://localhost:9545";
 	public bool remove_wallet_ = false;
-	public AccountInitCallback callback_;
+	public InitCallback callback_;
 
 
 	AccountInitializer worker_;
 	Nethereum.Signer.EthECKey key_ = null;
+
+	//attr
+	public string PrivateKey {
+		get { return key_.GetPrivateKey(); }
+	}
 
 	// Use this for initialization
 	void Start () {
@@ -75,7 +82,7 @@ public class Account : MonoBehaviour {
 		}
 		#endif
 		var ks = PlayerPrefs.GetString(KEY_PREFIX + "_encrypted_key_store", "");
-		callback_(AccountInitEvent.Start);
+		callback_(InitEvent.Start);
 		worker_ = new AccountInitializer(this, ks);
 		worker_.Start();
 	}
@@ -85,7 +92,7 @@ public class Account : MonoBehaviour {
 			Thread.MemoryBarrier();
 			if (worker_.result_ != 0) {
 				if (worker_.result_ < 0) {
-					callback_(AccountInitEvent.EndFailure);
+					callback_(InitEvent.EndFailure);
 					#if UNITY_EDITOR
 					UnityEditor.EditorApplication.isPlaying = false;
 					#else
@@ -99,44 +106,15 @@ public class Account : MonoBehaviour {
 					}
 					//Get the public address (derivied from the public key)
 					address_ = key_.GetPublicAddress();
-					callback_(AccountInitEvent.EndSuccess);
+					callback_(InitEvent.EndSuccess);
 					Debug.Log("wallet address:" + address_);
-					// At the start of the script we are going to call getAccountBalance()
-					// with the address we want to check, and a callback to know when the request has finished.
-					StartCoroutine(getAccountBalance(address_, chain_address_, (balance) => {
-						// When the callback is called, we are just going print the balance of the account
-						Debug.Log("Eth Account Balance:" + balance);
-					}));		
 				}
 				worker_ = null;
 			}
 		}
 	}
 
-	// We create the function which will check the balance of the address and return a callback with a decimal variable
-	public static IEnumerator getAccountBalance (string address, string chain_address, System.Action<decimal> callback) {
-		// Now we define a new EthGetBalanceUnityRequest and send it the testnet url where we are going to
-		// check the address, in this case "https://kovan.infura.io".
-		// (we get EthGetBalanceUnityRequest from the Netherum lib imported at the start)
-		var getBalanceRequest = new EthGetBalanceUnityRequest (chain_address);
-		// Then we call the method SendRequest() from the getBalanceRequest we created
-		// with the address and the newest created block.
-		yield return getBalanceRequest.SendRequest(address, Nethereum.RPC.Eth.DTOs.BlockParameter.CreateLatest ());
-		
-		// Now we check if the request has an exception
-		if (getBalanceRequest.Exception == null) {
-			// We define balance and assign the value that the getBalanceRequest gave us.
-			var balance = getBalanceRequest.Result.Value;
-			// Finally we execute the callback and we use the Netherum.Util.UnitConversion
-			// to convert the balance from WEI to ETHER (that has 18 decimal places)
-			callback (Nethereum.Util.UnitConversion.Convert.FromWei(balance, 18));
-		} else {
-			// If there was an error we just throw an exception.
-			throw new System.InvalidOperationException ("Get balance request failed");
-		}
-	}
-
-    static public Nethereum.Signer.EthECKey CreateAccount(string password, out string encryptedKeyStore)
+    static Nethereum.Signer.EthECKey CreateAccount(string password, out string encryptedKeyStore)
     {
         //Generate a private key pair using SecureRandom
         var key = Nethereum.Signer.EthECKey.GenerateKey();
@@ -169,4 +147,5 @@ public class Account : MonoBehaviour {
 
         return fileName;
     }*/
+}
 }

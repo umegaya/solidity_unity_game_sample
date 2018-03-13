@@ -24,3 +24,6 @@ test:
 	make proto
 	truffle develop --log
 	truffle test
+
+compile_if_not:
+	@[[ -e ./build/contracts ]] || truffle compile
