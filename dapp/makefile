@@ -5,7 +5,7 @@ CONTAINER_RUNARG=docker run --rm -v `pwd`/contracts/libs/pb:${OUTPUT_DIR} -v `pw
 SOLIDITY_PLUGIN=/protoc/plugin/gen_sol.py
 
 LOCAL_PROTO_SRC_DIR=./proto
-LOCAL_PROTO_DST_DIR=./constracts/libs/pb
+LOCAL_PROTO_DST_DIR=./contracts/libs/pb
 PROTO_SRC=$(notdir $(shell ls $(LOCAL_PROTO_SRC_DIR)/*.proto))
 PROTO_SOL=$(addprefix $(LOCAL_PROTO_DST_DIR)/,$(PROTO_SRC:%.proto=%_pb.sol))
 
@@ -20,8 +20,7 @@ $(LOCAL_PROTO_DST_DIR)/%_pb.sol: $(LOCAL_PROTO_SRC_DIR)/%.proto
 .PHONY: proto
 proto: $(PROTO_SOL)
 
-test:
-	make proto
+test: proto
 	truffle develop --log
 	truffle test
 
