@@ -60,7 +60,7 @@ public class Account : MonoBehaviour {
 	public const string KEY_PREFIX = "neko";
 	public string password_;
 	public string address_;
-	public string chain_address_ = "http://localhost:9545";
+	public string chain_url_ = "http://localhost:9545";
 	public bool remove_wallet_ = false;
 	public InitCallback callback_;
 
@@ -107,7 +107,7 @@ public class Account : MonoBehaviour {
 					//Get the public address (derivied from the public key)
 					address_ = key_.GetPublicAddress();
 					callback_(InitEvent.EndSuccess);
-					Debug.Log("wallet address:" + address_);
+					Debug.Log("wallet address:" + address_ + " pkey:" + key_.GetPrivateKey());
 				}
 				worker_ = null;
 			}
