@@ -92,7 +92,7 @@ public class RPC : MonoBehaviour {
 		yield return get_balance_.SendRequest(address, Nethereum.RPC.Eth.DTOs.BlockParameter.CreateLatest ());
 		if (get_balance_.Exception == null) {
 			var balance = get_balance_.Result.Value;
-			callback (Nethereum.Util.UnitConversion.Convert.FromWei(balance, 18));
+			callback(Nethereum.Util.UnitConversion.Convert.FromWei(balance, 18));
 		} else {
 			throw new System.InvalidOperationException ("Get balance request failed");
 		}
