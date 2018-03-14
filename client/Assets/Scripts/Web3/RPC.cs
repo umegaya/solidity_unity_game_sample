@@ -16,25 +16,50 @@ public class RPC : MonoBehaviour {
         TxEvent,
     };
     public delegate void OnEventDelegate(Event ev, object arg);
-    void Nop(Event ev, object arg) {}
+    public class Target {
+        public Contract c_;
+        RPC owner_;
 
-    public TextAsset contract_abi_;
-    public string contract_address_;
+        public Target(RPC owner, string abi, string addr) {
+            owner_ = owner;
+            c_ = new Contract(null, abi, addr);
+        }
+        public IEnumerator Call(string func, params object[] args) {
+            var fn = c_.GetFunction(func);
+            yield return owner_.call_.SendRequest(fn.CreateCallInput(args), 
+                Nethereum.RPC.Eth.DTOs.BlockParameter.CreateLatest());
+        }
+        public IEnumerator Send(string func, double gas, double value_wei, params object[] args) {
+            var fn = c_.GetFunction(func);
+            yield return owner_.send_.SignAndSendTransaction(
+                fn.CreateTransactionInput(Manager.instance.Account.address_, 
+                    new HexBigInteger(new BigInteger(gas)), 
+                    new HexBigInteger(new BigInteger(value_wei)), args));
+        }
+    }
+    [System.Serializable] public struct TargetEntry {
+        public string label_, address_;
+        public TextAsset abi_;
+    }
+
+    public List<TargetEntry> target_entries_ = new List<TargetEntry>();
     public OnEventDelegate callback_;
 
-    Contract api_;
+    Dictionary<string, Target> targets_;
     EthGetBalanceUnityRequest get_balance_;
     EthBlockNumberUnityRequest block_number_;
     EthCallUnityRequest call_;
     TransactionSignedUnityRequest send_;
     
-    public void Start() {
+    public void Awake() {
         Manager.instance.Account.callback_ += OnAccountInitEvent;
-        callback_ += Nop;
     }
 
     void InitRPC() {
-        api_ = new Contract(null, contract_abi_.text, contract_address_);
+        targets_ = new Dictionary<string, Target>();
+        foreach (var e in target_entries_) {
+            targets_[e.label_] = new Target(this, e.abi_.text, e.address_);
+        }
         var url = Manager.instance.Account.chain_url_;
         get_balance_ = new EthGetBalanceUnityRequest(url);
         block_number_ = new EthBlockNumberUnityRequest(url);
@@ -76,24 +101,18 @@ public class RPC : MonoBehaviour {
         return GetBalance(Manager.instance.Account.address_, callback);
     }
 
-    public IEnumerator Call(string func, params object[] args) {
-        var fn = api_.GetFunction(func);
-        yield return call_.SendRequest(fn.CreateCallInput(args), 
-            Nethereum.RPC.Eth.DTOs.BlockParameter.CreateLatest());
+    public Target this[string key] {
+        get {
+            Target t;
+            return targets_.TryGetValue(key, out t) ? t : null;
+        }
     }
     public EthCallUnityRequest CallResult {
         get { return call_; }
     }
-
-    public IEnumerator Send(string func, double gas, double value_wei, params object[] args) {
-        var fn = api_.GetFunction(func);
-        yield return send_.SignAndSendTransaction(
-            fn.CreateTransactionInput(Manager.instance.Account.address_, 
-                new HexBigInteger(new BigInteger(gas)), 
-                new HexBigInteger(new BigInteger(value_wei)), args));
-    }
     public TransactionSignedUnityRequest SendResult {
         get { return send_; }
     }
+
 }
 }

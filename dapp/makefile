@@ -1,7 +1,7 @@
 INPUT_DIR=/in
 OUTPUT_DIR=/out
 CONTAINER=umegaya/pb3sol
-CONTAINER_RUNARG=docker run --rm -ti -v `pwd`/contracts/libs/pb:${OUTPUT_DIR} -v `pwd`/proto:${INPUT_DIR} ${CONTAINER}
+CONTAINER_RUNARG=docker run --rm -v `pwd`/contracts/libs/pb:${OUTPUT_DIR} -v `pwd`/proto:${INPUT_DIR} ${CONTAINER}
 SOLIDITY_PLUGIN=/protoc/plugin/gen_sol.py
 
 LOCAL_PROTO_SRC_DIR=./proto
@@ -25,5 +25,5 @@ test:
 	truffle develop --log
 	truffle test
 
-compile_if_not:
+compile_if_not: proto
 	@[[ -e ./build/contracts ]] || truffle compile

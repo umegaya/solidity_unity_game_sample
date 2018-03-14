@@ -12,7 +12,7 @@ public class Main : MonoBehaviour {
         get { return UI.Manager.instance; }
     }
 
-    void Start() {
+    void Awake() {
         Web3Mgr.Rpc.callback_ += OnWalletInititalized;
     }
 
@@ -23,15 +23,28 @@ public class Main : MonoBehaviour {
     }
 
     IEnumerator OnWalletInititalizedTask() {
-        yield return Web3Mgr.Rpc.Send("createInitialCat", 4000000, 1e18, 0, "testcat", false);
-        var r = Web3Mgr.Rpc.SendResult;
-        if (r.Exception == null) {
-            yield return Web3Mgr.Rpc.GetSelfBalance((balance) => {
-                Debug.Log("new balance:" + balance);
-            });
-        } else {
-            Debug.LogError("CreateInitialCat fails:" + r.Exception.Message);
+        {
+            yield return Web3Mgr.Rpc["Inventory"].Call("getSlotSize", Web3Mgr.Account.address_);
+            var r = Web3Mgr.Rpc.CallResult;
+            if (r.Exception != null) {
+                Debug.LogError("Inventory.getSlotSize fails:" + r.Exception.Message);                
+            } else {
+                Debug.Log("Inventory getSlotSize:" + r.Result);
+            }
         }
+        /*{
+            yield return Web3Mgr.Rpc["World"].Send(
+                "createInitialCat", 4000000, 1e18, 0, "testcat", false
+            );
+            var r = Web3Mgr.Rpc.SendResult;
+            if (r.Exception == null) {
+                yield return Web3Mgr.Rpc.GetSelfBalance((balance) => {
+                    Debug.Log("new balance:" + balance);
+                });
+            } else {
+                Debug.LogError("CreateInitialCat fails:" + r.Exception.Message);
+            }
+        }*/
     }
 }
 }
