@@ -24,12 +24,20 @@ public class RPC : MonoBehaviour {
             owner_ = owner;
             c_ = new Contract(null, abi, addr);
         }
-        public IEnumerator Call(string func, params object[] args) {
+        public IEnumerator Call(string func, params object[] args) { return Call(func, owner_.default_gas_, 0, args); }
+        public IEnumerator Call2(string func, double value_wei, params object[] args) { return Call(func, owner_.default_gas_, value_wei, args); }
+        public IEnumerator Call3(string func, double gas, double value_wei, params object[] args) {
             var fn = c_.GetFunction(func);
-            yield return owner_.call_.SendRequest(fn.CreateCallInput(args), 
+            yield return owner_.call_.SendRequest(
+                fn.CreateCallInput(Manager.instance.Account.address_,
+                    new HexBigInteger(new BigInteger(gas)), 
+                    new HexBigInteger(new BigInteger(value_wei)), 
+                    args), 
                 Nethereum.RPC.Eth.DTOs.BlockParameter.CreateLatest());
         }
-        public IEnumerator Send(string func, double gas, double value_wei, params object[] args) {
+        public IEnumerator Send(string func, params object[] args) { return Send(func, owner_.default_gas_, 0, args); }
+        public IEnumerator Send2(string func, double value_wei, params object[] args) { return Send(func, owner_.default_gas_, value_wei, args); }
+        public IEnumerator Send3(string func, double gas, double value_wei, params object[] args) {
             var fn = c_.GetFunction(func);
             yield return owner_.send_.SignAndSendTransaction(
                 fn.CreateTransactionInput(Manager.instance.Account.address_, 
@@ -44,6 +52,7 @@ public class RPC : MonoBehaviour {
 
     public List<TargetEntry> target_entries_ = new List<TargetEntry>();
     public OnEventDelegate callback_;
+    public double default_gas_ = 4000000;
 
     Dictionary<string, Target> targets_;
     EthGetBalanceUnityRequest get_balance_;

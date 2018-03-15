@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using Game.Web3Util;
+using Nethereum.Hex.HexConvertors.Extensions;
 
 namespace Game {
 public class Main : MonoBehaviour {
@@ -30,7 +31,8 @@ public class Main : MonoBehaviour {
             yield return Web3Mgr.Rpc["Inventory"].Call("getSlotSize", myaddr);
             var r = Web3Mgr.Rpc.CallResult;
             if (r.Exception != null) {
-                Debug.LogError("Inventory.getSlotSize fails:" + r.Exception.Message);                
+                Debug.LogError("Inventory.getSlotSize fails:" + r.Exception.Message);    
+                break;            
             } else {
                 var slot_size = r.Result.AsInt().Value;
                 if (slot_size <= 0) {
@@ -52,9 +54,7 @@ public class Main : MonoBehaviour {
         }
     }
     IEnumerator CreateInitialCat() {
-        yield return Web3Mgr.Rpc["World"].Send(
-            "createInitialCat", 4000000, 1e18, 0, "testcat", false
-        );
+        yield return Web3Mgr.Rpc["World"].Send("createInitialCat", 0, "testcat", false);
         var r = Web3Mgr.Rpc.SendResult;
         if (r.Exception == null) {
             yield return Web3Mgr.Rpc.GetSelfBalance((balance) => {

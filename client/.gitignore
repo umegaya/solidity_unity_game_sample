@@ -31,3 +31,4 @@ sysinfo.txt
 *.cs-e*
 foodfighters/
 
+.vscode/

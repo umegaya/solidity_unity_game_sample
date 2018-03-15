@@ -7,6 +7,25 @@
         "type": "uint256"
       }
     ],
+    "name": "loadBytesLength",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
     "name": "loadBytes",
     "outputs": [
       {
