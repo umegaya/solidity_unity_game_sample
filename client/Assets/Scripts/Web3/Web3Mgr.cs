@@ -4,14 +4,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game.Web3 {
-public class Manager : MonoBehaviour {
-    static public Manager instance {
+public class Web3Mgr : MonoBehaviour {
+    static public Web3Mgr instance {
         get; private set;
     }
-    public Account Account {
+    [HideInInspector] public Account Account {
         get; private set;
     }
-    public RPC Rpc {
+    [HideInInspector] public RPC Rpc {
         get; private set;
     }
 

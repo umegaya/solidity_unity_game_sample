@@ -1,14 +1,15 @@
-using System;
-using System.Diagnostics;
+using System.Collections;
+using System.Collections.Generic;
 
 using Nethereum.Hex.HexTypes;
+using Nethereum.Contracts;
+using Nethereum.ABI.FunctionEncoding;
 
 namespace Game.Web3Util {
 public static class Web3ResultParseHelper
 {
     public static HexBigInteger HexZero = new HexBigInteger(System.Numerics.BigInteger.Zero);
-    public static HexBigInteger AsInt(this string ret)
-    {
+    public static HexBigInteger AsInt(this string ret) {
         //because 0x000........0 string causes following crash (IndexOutOfRangeException)
         //in System.Numerics.BigInteger in dotnet 3.5 of Unity3d... so strange
         var i = 0;
