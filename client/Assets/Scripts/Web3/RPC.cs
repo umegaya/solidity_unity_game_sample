@@ -10,6 +10,8 @@ using Nethereum.Contracts;
 
 using UnityEngine;
 
+using Game.Web3Util;
+
 namespace Game.Web3 {
 public class RPC : MonoBehaviour {
     public enum Event {
@@ -21,6 +23,16 @@ public class RPC : MonoBehaviour {
         public class Response {
             public List<ParameterOutput> Result { get; set; }
             public System.Exception Error { get; set; }
+
+            public M As<M>(Google.Protobuf.MessageParser<M> p) where M : Google.Protobuf.IMessage<M> {
+                var len = (int)(System.Numerics.BigInteger)Result[1].Result;
+                var bs = new byte[len];
+                var ls = (List<object>)Result[0].Result;
+                for (int j = 0; j < len; j++) {
+                    bs[j] = (byte)ls[j];
+                }
+                return p.ParseFrom(bs);
+            }
         }
 
         public Contract c_;
@@ -59,7 +71,7 @@ public class RPC : MonoBehaviour {
                 r.Error = req.Exception;
                 r.Result = null;
             } else {
-                r.Result = fn.DecodeInput(req.Result);
+                r.Result = fn.DecodeResponse(req.Result);
             }
         }
     }

@@ -42,7 +42,8 @@ public class ViewModelMgr : MonoBehaviour {
                 Debug.LogError("Inventory.getSlotSize fails:" + r.Error.Message);    
                 break;            
             } else {
-                var slot_size = (System.Numerics.BigInteger)r.Result[0].Result;
+                var rr = r.Result[0].Result;
+                var slot_size = (System.Numerics.BigInteger)rr;
                 if (slot_size <= 0) {
                     yield return StartCoroutine(CreateInitialCat());
                 } else {
@@ -53,10 +54,7 @@ public class ViewModelMgr : MonoBehaviour {
                         if (r.Error != null) {
                             Debug.LogError("Inventory.getSlotBytes fails:" + r.Error.Message);
                         } else {
-                            var len = (int)(System.Numerics.BigInteger)r.Result[1].Result;
-                            var bs = new byte[len];
-                            System.Array.Copy((byte[])r.Result[0].Result, bs, len);
-                            Neko.Cat cat = Neko.Cat.Parser.ParseFrom(bs);
+                            var cat = r.As<Neko.Cat>(Neko.Cat.Parser);
                             Debug.Log("Inventory.getSlotBytes cat:" + cat.Name);
                         }
                     }
@@ -72,7 +70,7 @@ public class ViewModelMgr : MonoBehaviour {
         });
     }
     IEnumerator CreateInitialCat() {
-        yield return Web3Mgr.Rpc["World"].Send("createInitialCat", 0, "testcat", false);
+        yield return Web3Mgr.Rpc["World"].Send2("createInitialCat", 1e18, 0, "testcat", false);
         var r = Web3Mgr.Rpc.Response;
         if (r.Error == null) {
             yield return StartCoroutine(UpdateBalance());

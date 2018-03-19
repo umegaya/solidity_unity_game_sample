@@ -23,5 +23,10 @@ public static class Web3ResultParseHelper
         }
         return i == ret.Length ? HexZero : new HexBigInteger(ret);
     }
+
+    public static ParameterDecoder decoder_ = new ParameterDecoder();
+    public static List<ParameterOutput> DecodeResponse(this Function fn, string data) {
+        return decoder_.DecodeDefaultData(data, fn.FunctionABI.OutputParameters);
+    }
 }
 }
