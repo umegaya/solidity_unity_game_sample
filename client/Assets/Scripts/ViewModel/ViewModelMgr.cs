@@ -34,6 +34,7 @@ public class ViewModelMgr : MonoBehaviour {
     }
 
     public IEnumerator InititalizeTask() {
+        yield return StartCoroutine(UpdateBalance());
         var myaddr = Web3Mgr.Account.address_;
         while (true) {
             yield return Web3Mgr.Rpc["Inventory"].Call("getSlotSize", myaddr);

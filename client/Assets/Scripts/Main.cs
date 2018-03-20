@@ -19,8 +19,7 @@ public class Main : MonoBehaviour {
         Web3Mgr.Rpc.callback_ += OnRpcInititalized;
     }
 
-    void OnRpcInititalized(Web3.RPC.Event ev, object arg) {
-        ViewModelMgr.Balance = (decimal)arg;
+    void OnRpcInititalized(Web3.RPC.Event ev) {
         StartCoroutine(ViewModelMgr.InititalizeTask());
     }
 

@@ -18,7 +18,7 @@ public class RPC : MonoBehaviour {
         Inititalized,
         TxEvent,
     };
-    public delegate void OnEventDelegate(Event ev, object arg);
+    public delegate void OnEventDelegate(Event ev);
     public class Target {
         public class Response {
             public List<ParameterOutput> Result { get; set; }
@@ -120,12 +120,7 @@ public class RPC : MonoBehaviour {
             break;
         case Account.InitEvent.EndSuccess:
             InitRPC();
-            // At the start of the script we are going to call getAccountBalance()
-            // with the address we want to check, and a callback to know when the request has finished.
-            StartCoroutine(GetSelfBalance((balance) => {
-                Debug.Log("Eth Account Balance:" + balance);
-                callback_(Event.Inititalized, balance);
-            }));		            
+            callback_(Event.Inititalized);
             break;
         }
     }
