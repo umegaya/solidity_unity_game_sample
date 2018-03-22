@@ -38,7 +38,7 @@ public class ViewModelMgr : MonoBehaviour {
         var myaddr = Web3Mgr.Account.address_;
         while (true) {
             yield return Web3Mgr.Rpc["Inventory"].Call("getSlotSize", myaddr);
-            var r = Web3Mgr.Rpc.Response;
+            var r = Web3Mgr.Rpc.CallResponse;
             if (r.Error != null) {
                 Debug.LogError("Inventory.getSlotSize fails:" + r.Error.Message);    
                 break;            
@@ -46,12 +46,13 @@ public class ViewModelMgr : MonoBehaviour {
                 var rr = r.Result[0].Result;
                 var slot_size = (System.Numerics.BigInteger)rr;
                 if (slot_size <= 0) {
+                    Debug.Log("create initial cat");
                     yield return StartCoroutine(CreateInitialCat());
                 } else {
                     Debug.Log("Inventory getSlotSize:" + slot_size);
                     for (int i = 0; i < slot_size; i++) {
                         yield return Web3Mgr.Rpc["Inventory"].Call("getSlotBytes", myaddr, i);
-                        r = Web3Mgr.Rpc.Response;
+                        r = Web3Mgr.Rpc.CallResponse;
                         if (r.Error != null) {
                             Debug.LogError("Inventory.getSlotBytes fails:" + r.Error.Message);
                         } else {
@@ -72,11 +73,12 @@ public class ViewModelMgr : MonoBehaviour {
     }
     IEnumerator CreateInitialCat() {
         yield return Web3Mgr.Rpc["World"].Send2("createInitialCat", 1e18, 0, "testcat", false);
-        var r = Web3Mgr.Rpc.Response;
+        Debug.Log("create initial cat: created");
+        var r = Web3Mgr.Rpc.SendResponse;
         if (r.Error == null) {
             yield return StartCoroutine(UpdateBalance());
         } else {
-            Debug.LogError("World.createInitialCat fails:" + r.Error.Message);
+            Debug.LogError("World.createInitialCat fails:" + r.Error.Message + "|" + r.Error.InnerException.Message);
         }                    
     }
 }

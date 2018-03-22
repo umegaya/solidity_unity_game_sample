@@ -195,10 +195,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target_entries_:
   - label_: World
-    address_: 0x94aac55d37874d5d28b1a002fe7651dcd484a058
+    address_: 0x8fe69949bf977816b270fb64dfccbdae7a25aaf9
     abi_: {fileID: 4900000, guid: 9e9588cee7174400eb9c62efb315044c, type: 3}
   - label_: Inventory
-    address_: 0x859bbd89a841e7477e3dfb2e50e868466a1d6609
+    address_: 0xfcf14697c196fd141ae904e8b5c994cde3e24c8a
     abi_: {fileID: 4900000, guid: f581641a53d224414960a5c4710b4594, type: 3}
   default_gas_: 4000000
 --- !u!114 &1038119389
@@ -215,6 +215,7 @@ MonoBehaviour:
   password_: hoge fuga hoge fuga foo foo bar
   address_: 
   chain_url_: http://localhost:9545
+  encyption_: 0
   remove_wallet_: 0
 --- !u!4 &1038119390
 Transform:

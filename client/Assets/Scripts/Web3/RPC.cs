@@ -20,7 +20,7 @@ public class RPC : MonoBehaviour {
     };
     public delegate void OnEventDelegate(Event ev);
     public class Target {
-        public class Response {
+        public class CallResponse {
             public List<ParameterOutput> Result { get; set; }
             public System.Exception Error { get; set; }
 
@@ -33,6 +33,11 @@ public class RPC : MonoBehaviour {
                 }
                 return p.ParseFrom(bs);
             }
+        }
+
+        public class SendResponse {
+            public Receipt Result { get; set; }
+            public System.Exception Error { get; set; }
         }
 
         public Contract c_;
@@ -52,7 +57,7 @@ public class RPC : MonoBehaviour {
                     new HexBigInteger(new BigInteger(value_wei)), 
                     args), 
                 Nethereum.RPC.Eth.DTOs.BlockParameter.CreateLatest());
-            ParseResponse(fn, owner_.call_);
+            ParseCallResponse(fn, owner_.call_);
         }
         public IEnumerator Send(string func, params object[] args) { return Send3(func, owner_.default_gas_, 0, args); }
         public IEnumerator Send2(string func, double value_wei, params object[] args) { return Send3(func, owner_.default_gas_, value_wei, args); }
@@ -62,16 +67,36 @@ public class RPC : MonoBehaviour {
                 fn.CreateTransactionInput(Web3Mgr.instance.Account.address_, 
                     new HexBigInteger(new BigInteger(gas)), 
                     new HexBigInteger(new BigInteger(value_wei)), args));
-            ParseResponse(fn, owner_.send_);
+            yield return owner_.get_receipt_.SendRequest(
+                owner_.send_.Result
+            );
+            ParseSendResponse(fn, owner_.get_receipt_);
         }
 
-        public void ParseResponse(Function fn, UnityRequest<string> req) {
-            var r = owner_.response_;
+        public void ParseCallResponse(Function fn, UnityRequest<string> req) {
+            var r = owner_.call_resp_;
             if (req.Exception != null) {
                 r.Error = req.Exception;
                 r.Result = null;
             } else {
+                r.Error = null;
                 r.Result = fn.DecodeResponse(req.Result);
+            }
+        }
+        public void ParseSendResponse(Function fn, UnityRequest<Dictionary<string, object>> req) {
+            try {
+                var r = owner_.send_resp_;
+                if (req.Exception != null) {
+                    r.Error = req.Exception;
+                    r.Result = null;
+                } else {
+                    var txr = new Receipt(req.Result);
+                    txr.Dump();
+                    r.Error = null;
+                    r.Result = txr;
+                }
+            } catch (System.Exception ex) {
+                Debug.Log("parseSendResposne error:" + ex.StackTrace);
             }
         }
     }
@@ -84,17 +109,22 @@ public class RPC : MonoBehaviour {
     public OnEventDelegate callback_;
     public double default_gas_ = 4000000;
 
+    public Newtonsoft.Json.JsonSerializerSettings settings_ = null;
+
     Dictionary<string, Target> targets_;
     EthGetBalanceUnityRequest get_balance_;
     EthBlockNumberUnityRequest block_number_;
     EthCallUnityRequest call_;
     TransactionSignedUnityRequest send_;
+    GetTransactionReceiptRequest get_receipt_;
 
-    Target.Response response_;
+    Target.CallResponse call_resp_;
+    Target.SendResponse send_resp_;
     
     public void Awake() {
         Web3Mgr.instance.Account.callback_ += OnAccountInitEvent;
-        response_ = new Target.Response();
+        call_resp_ = new Target.CallResponse();
+        send_resp_ = new Target.SendResponse();
     }
 
     void InitRPC() {
@@ -103,12 +133,13 @@ public class RPC : MonoBehaviour {
             targets_[e.label_] = new Target(this, e.abi_.text, e.address_);
         }
         var url = Web3Mgr.instance.Account.chain_url_;
-        get_balance_ = new EthGetBalanceUnityRequest(url);
+        get_balance_ = new EthGetBalanceUnityRequest(url, settings_);
         block_number_ = new EthBlockNumberUnityRequest(url);
         call_ = new EthCallUnityRequest(url);
         send_ = new TransactionSignedUnityRequest(url, 
                     Web3Mgr.instance.Account.PrivateKey,
                     Web3Mgr.instance.Account.address_);
+        get_receipt_ = new GetTransactionReceiptRequest(url);
     }
 
     void OnAccountInitEvent(Account.InitEvent ev) {
@@ -144,8 +175,11 @@ public class RPC : MonoBehaviour {
             return targets_.TryGetValue(key, out t) ? t : null;
         }
     }
-    public Target.Response Response {
-        get { return response_; }
+    public Target.CallResponse CallResponse {
+        get { return call_resp_; }
+    }
+    public Target.SendResponse SendResponse {
+        get { return send_resp_; }
     }
 }
 }

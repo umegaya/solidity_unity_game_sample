@@ -12,12 +12,14 @@ public class Account : MonoBehaviour {
 	internal class AccountInitializer {
 		internal Thread thread_;
 		internal Account account_;
-		internal string encryptedKeyStore_ = null;
+		internal string keyStore_ = null;
+		internal bool encrypted_;
 		internal int result_ = 0;
 
-		internal AccountInitializer(Account a, string encryptedKeyStore) {
+		internal AccountInitializer(Account a, 
+									string keyStore, bool encrypted) {
 			account_ = a;
-			encryptedKeyStore_ = encryptedKeyStore;
+			keyStore_ = keyStore;
 			thread_ = new Thread(() => { 
 				LoadOrCreateAccount(); 
 			});
@@ -28,19 +30,23 @@ public class Account : MonoBehaviour {
 		void LoadOrCreateAccount() {
 			Nethereum.Signer.EthECKey key;
 			var password = account_.password_;
-			if (string.IsNullOrEmpty(encryptedKeyStore_)) {
-				if (string.IsNullOrEmpty(password)) {
+			if (string.IsNullOrEmpty(keyStore_)) {
+				if (encrypted_ && string.IsNullOrEmpty(password)) {
 					Thread.MemoryBarrier();
 					result_ = -1;
 					return;
 				}
-				key = CreateAccount(password, out encryptedKeyStore_);
+				key = CreateAccount(password, encrypted_, out keyStore_);
 			} else {
 				//generate ecKey from encrypted key store
-				var service = new Nethereum.KeyStore.KeyStoreService();
-				key = new Nethereum.Signer.EthECKey(
-					service.DecryptKeyStoreFromJson(password, encryptedKeyStore_), 
-					true);
+				if (encrypted_) {
+					var service = new Nethereum.KeyStore.KeyStoreService();
+					key = new Nethereum.Signer.EthECKey(
+						service.DecryptKeyStoreFromJson(password, keyStore_), 
+						true);
+				} else {
+					key = new Nethereum.Signer.EthECKey(keyStore_);
+				}
 			}
 			account_.key_ = key;
 
@@ -54,6 +60,11 @@ public class Account : MonoBehaviour {
 		EndSuccess,
 		EndFailure,
 	}
+	public enum Encyption {
+		Unknown,
+		On,
+		Off,
+	}
 	public delegate void InitCallback(InitEvent ev);
 
 	//variable
@@ -61,6 +72,7 @@ public class Account : MonoBehaviour {
 	public string password_;
 	public string address_;
 	public string chain_url_ = "http://localhost:9545";
+	public bool encyption_ = false;
 	public bool remove_wallet_ = false;
 	public InitCallback callback_;
 
@@ -78,12 +90,19 @@ public class Account : MonoBehaviour {
 		#if UNITY_EDITOR
 		if (remove_wallet_) {
 			Debug.Log("remove wallet data. this is unrecoverable.");
-			PlayerPrefs.SetString(KEY_PREFIX + "_encrypted_key_store", "");
+			PlayerPrefs.SetString(KEY_PREFIX + "_key_store", "");
 		}
+		#else
+		encyption_ = false;
 		#endif
-		var ks = PlayerPrefs.GetString(KEY_PREFIX + "_encrypted_key_store", "");
+		Encyption e = (Encyption)PlayerPrefs.GetInt(
+			KEY_PREFIX + "_key_store_encyption", (int)Encyption.Unknown);
+		if (e != Encyption.Unknown) {
+			encyption_ = (e == Encyption.On);
+		}
+		var ks = PlayerPrefs.GetString(KEY_PREFIX + "_key_store", "");
 		callback_(InitEvent.Start);
-		worker_ = new AccountInitializer(this, ks);
+		worker_ = new AccountInitializer(this, ks, encyption_);
 		worker_.Start();
 	}
 
@@ -99,9 +118,11 @@ public class Account : MonoBehaviour {
 					Application.Quit();
 					#endif
 				} else {
-					var eks = worker_.encryptedKeyStore_;
-					if (!string.IsNullOrEmpty(eks)) {
-						PlayerPrefs.SetString(KEY_PREFIX + "_encrypted_key_store", eks);
+					var ks = worker_.keyStore_;
+					if (!string.IsNullOrEmpty(ks)) {
+						PlayerPrefs.SetString(KEY_PREFIX + "_key_store", ks);
+						PlayerPrefs.SetInt(KEY_PREFIX + "_key_store_encyption", 
+							(int)(encyption_ ? Encyption.On : Encyption.Off));
 						PlayerPrefs.Save();					
 					}
 					//Get the public address (derivied from the public key)
@@ -114,16 +135,22 @@ public class Account : MonoBehaviour {
 		}
 	}
 
-    static Nethereum.Signer.EthECKey CreateAccount(string password, out string encryptedKeyStore)
+    static Nethereum.Signer.EthECKey CreateAccount(
+		string password, bool encryption, out string keyStore)
     {
         //Generate a private key pair using SecureRandom
         var key = Nethereum.Signer.EthECKey.GenerateKey();
 
         //Create a store service, to encrypt and save the file using the web3 standard
-        var service = new Nethereum.KeyStore.KeyStoreService();
-        encryptedKeyStore = service.EncryptAndGenerateDefaultKeyStoreAsJson(
-			password, key.GetPrivateKeyAsBytes(), key.GetPublicAddress());
-        return key;
+		if (encryption) {
+			var service = new Nethereum.KeyStore.KeyStoreService();
+			keyStore = service.EncryptAndGenerateDefaultKeyStoreAsJson(
+				password, key.GetPrivateKeyAsBytes(), key.GetPublicAddress());
+			return key;
+		} else {
+			keyStore = key.GetPrivateKey();
+			return key;
+		}
     }
 
     //original version

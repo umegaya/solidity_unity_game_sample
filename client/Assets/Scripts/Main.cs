@@ -20,7 +20,11 @@ public class Main : MonoBehaviour {
     }
 
     void OnRpcInititalized(Web3.RPC.Event ev) {
-        StartCoroutine(ViewModelMgr.InititalizeTask());
+        if (ev == Web3.RPC.Event.Inititalized) {
+            StartCoroutine(ViewModelMgr.InititalizeTask());
+        } else if (ev == Web3.RPC.Event.TxEvent) {
+            Debug.Log("TxEvent Happen");
+        }
     }
 
 
