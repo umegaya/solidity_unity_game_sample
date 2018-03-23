@@ -24,10 +24,10 @@ public class RPC : MonoBehaviour {
             public List<ParameterOutput> Result { get; set; }
             public System.Exception Error { get; set; }
 
-            public M As<M>(Google.Protobuf.MessageParser<M> p) where M : Google.Protobuf.IMessage<M> {
-                var len = (int)(System.Numerics.BigInteger)Result[1].Result;
+            public M As<M>(Google.Protobuf.MessageParser<M> p, int startIndex = 1) where M : Google.Protobuf.IMessage<M> {
+                var len = (int)(System.Numerics.BigInteger)Result[startIndex + 1].Result;
                 var bs = new byte[len];
-                var ls = (List<object>)Result[0].Result;
+                var ls = (List<object>)Result[startIndex].Result;
                 for (int j = 0; j < len; j++) {
                     bs[j] = (byte)ls[j];
                 }

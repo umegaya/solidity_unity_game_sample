@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 
 using UnityEngine;
 
@@ -15,6 +16,9 @@ public class ViewModelMgr : MonoBehaviour {
     }
     public decimal Balance {
         get; set; 
+    }
+    public BigInteger TokenBalance {
+        get; set;
     }
     public Web3.Web3Mgr Web3Mgr {
         get { return Main.Web3Mgr; }
@@ -44,20 +48,22 @@ public class ViewModelMgr : MonoBehaviour {
                 break;            
             } else {
                 var rr = r.Result[0].Result;
-                var slot_size = (System.Numerics.BigInteger)rr;
+                var slot_size = (BigInteger)rr;
                 if (slot_size <= 0) {
                     Debug.Log("create initial cat");
                     yield return StartCoroutine(CreateInitialCat());
                 } else {
                     Debug.Log("Inventory getSlotSize:" + slot_size);
                     for (int i = 0; i < slot_size; i++) {
-                        yield return Web3Mgr.Rpc["Inventory"].Call("getSlotBytes", myaddr, i);
+                        yield return Web3Mgr.Rpc["Inventory"].Call("getSlotBytesAndId", myaddr, i);
                         r = Web3Mgr.Rpc.CallResponse;
                         if (r.Error != null) {
                             Debug.LogError("Inventory.getSlotBytes fails:" + r.Error.Message);
                         } else {
+                            var id = (System.Numerics.BigInteger)r.Result[0].Result;
                             var cat = r.As<Neko.Cat>(Neko.Cat.Parser);
-                            Debug.Log("Inventory.getSlotBytes cat:" + cat.Name);
+                            Debug.Log("Inventory.getSlotBytes cat[" + id.ToString() + "]:" + cat.Name);
+                            Inventory.Cats[id] = cat;
                         }
                     }
                     break;
@@ -67,9 +73,11 @@ public class ViewModelMgr : MonoBehaviour {
     }
     IEnumerator UpdateBalance() {
         yield return Web3Mgr.Rpc.GetSelfBalance((balance) => {
-            Debug.Log("new balance:" + balance);
             Balance = balance;
         });
+        yield return Web3Mgr.Rpc["Moritapo"].Call("balanceOf", Web3Mgr.Account.address_);
+        TokenBalance = (BigInteger)Web3Mgr.Rpc.CallResponse.Result[0].Result;
+        Debug.Log("new balance:" + TokenBalance + "(" + Balance + ")");
     }
     IEnumerator CreateInitialCat() {
         yield return Web3Mgr.Rpc["World"].Send2("createInitialCat", 1e18, 0, "testcat", false);

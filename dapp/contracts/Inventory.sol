@@ -44,6 +44,12 @@ contract Inventory is StorageAccessor, Restrictable {
     assert(iv.length > slot_idx);
     return loadBytes(iv[slot_idx].id);
   }
+  function getSlotBytesAndId(address user, uint slot_idx) public view returns (uint, byte[256], uint) {
+    var iv = inventories_[user];
+    assert(iv.length > slot_idx);
+    var (c, clen) = loadBytes(iv[slot_idx].id);    
+    return (iv[slot_idx].id, c, clen);
+  }
   function getSlotId(address user, uint slot_idx) public view returns (uint) {
     var iv = inventories_[user];
     assert(iv.length > slot_idx);

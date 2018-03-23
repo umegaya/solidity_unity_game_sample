@@ -243,6 +243,37 @@
         "type": "uint256"
       }
     ],
+    "name": "getSlotBytesAndId",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes1[256]"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "name": "slot_idx",
+        "type": "uint256"
+      }
+    ],
     "name": "getSlotId",
     "outputs": [
       {
