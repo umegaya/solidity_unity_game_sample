@@ -22,9 +22,10 @@ contract World is Restrictable, Constants {
 
   //event
   event Exchange(uint value, uint rate, uint tokenSold, uint result);
-  event AddCat(address user, uint id, bytes created); //from Inventory.sol
+  event AddCat(address indexed user, uint id, bytes created); //from Inventory.sol
   event Approval(address indexed owner, address indexed spender, uint256 value); //from ERC20.sol
   event Transfer(address indexed from, address indexed to, uint256 value); //from ERC20.sol
+  event Breed(address indexed user_a, address indexed user_b, uint id_a, uint id_b, uint new_id);
 
   event Error(address sender, uint require, uint allowance);
 

@@ -195,10 +195,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target_entries_:
   - label_: World
-    address_: 0x8fe69949bf977816b270fb64dfccbdae7a25aaf9
+    address_: 0x2c2b9c9a4a25e24b174f26114e8926a9f2128fe4
     abi_: {fileID: 4900000, guid: 9e9588cee7174400eb9c62efb315044c, type: 3}
   - label_: Inventory
-    address_: 0xfcf14697c196fd141ae904e8b5c994cde3e24c8a
+    address_: 0x9fbda871d559710256a2502a2517b794b482db40
     abi_: {fileID: 4900000, guid: f581641a53d224414960a5c4710b4594, type: 3}
   default_gas_: 4000000
 --- !u!114 &1038119389

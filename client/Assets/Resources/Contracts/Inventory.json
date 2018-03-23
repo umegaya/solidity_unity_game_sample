@@ -135,7 +135,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "name": "user",
         "type": "address"
       },
@@ -157,12 +157,12 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "name": "user_a",
         "type": "address"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "name": "user_b",
         "type": "address"
       },

@@ -18,7 +18,7 @@ public class RPC : MonoBehaviour {
         Inititalized,
         TxEvent,
     };
-    public delegate void OnEventDelegate(Event ev);
+    public delegate void OnEventDelegate(Event ev, object arg);
     public class Target {
         public class CallResponse {
             public List<ParameterOutput> Result { get; set; }
@@ -90,10 +90,13 @@ public class RPC : MonoBehaviour {
                     r.Error = req.Exception;
                     r.Result = null;
                 } else {
-                    var txr = new Receipt(req.Result);
+                    var txr = new Receipt(req.Result, c_);
                     txr.Dump();
                     r.Error = null;
                     r.Result = txr;
+                    for (int i = 0; i < txr.Logs.Count; i++) {
+                        owner_.callback_(Event.TxEvent, new Receipt.Log(txr.Logs[i], c_));
+                    }
                 }
             } catch (System.Exception ex) {
                 Debug.Log("parseSendResposne error:" + ex.StackTrace);
@@ -151,7 +154,7 @@ public class RPC : MonoBehaviour {
             break;
         case Account.InitEvent.EndSuccess:
             InitRPC();
-            callback_(Event.Inititalized);
+            callback_(Event.Inititalized, null);
             break;
         }
     }

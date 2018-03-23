@@ -199,7 +199,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "name": "user",
         "type": "address"
       },
@@ -259,6 +259,38 @@
       }
     ],
     "name": "Transfer",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "user_a",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "name": "user_b",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "id_a",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "id_b",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "new_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "Breed",
     "type": "event"
   },
   {

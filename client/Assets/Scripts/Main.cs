@@ -19,11 +19,22 @@ public class Main : MonoBehaviour {
         Web3Mgr.Rpc.callback_ += OnRpcInititalized;
     }
 
-    void OnRpcInititalized(Web3.RPC.Event ev) {
+    void OnRpcInititalized(Web3.RPC.Event ev, object arg) {
         if (ev == Web3.RPC.Event.Inititalized) {
             StartCoroutine(ViewModelMgr.InititalizeTask());
         } else if (ev == Web3.RPC.Event.TxEvent) {
-            Debug.Log("TxEvent Happen");
+            var log = (Web3.Receipt.Log)arg;
+            if (log.Name == "Transfer") {
+                Debug.Log("TxEvent Happen:" + log.As<Web3.Event.Transfer>().ToString());
+            } else if (log.Name == "Approval") {
+                Debug.Log("TxEvent Happen:" + log.As<Web3.Event.Approval>().ToString());
+            } else if (log.Name == "AddCat") {
+                Debug.Log("TxEvent Happen:" + log.As<Web3.Event.AddCat>().ToString());
+            } else if (log.Name == "Exchange") {
+                Debug.Log("TxEvent Happen:" + log.As<Web3.Event.Exchange>().ToString());
+            } else {
+                Debug.LogError("invalid event log:" + log.Name);
+            }
         }
     }
 

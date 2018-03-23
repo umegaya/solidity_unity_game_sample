@@ -24,8 +24,8 @@ contract Inventory is StorageAccessor, Restrictable {
 
 
   //events
-  event AddCat(address user, uint id, bytes created);
-  event Breed(address user_a, address user_b, uint id_a, uint id_b, uint new_id);
+  event AddCat(address indexed user, uint id, bytes created);
+  event Breed(address indexed user_a, address indexed user_b, uint id_a, uint id_b, uint new_id);
 
 
   //ctor
