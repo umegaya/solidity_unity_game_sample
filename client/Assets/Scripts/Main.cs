@@ -16,10 +16,11 @@ public class Main : MonoBehaviour {
     }
 
     void Awake() {
-        Web3Mgr.Rpc.callback_ += OnRpcInititalized;
+        Web3Mgr.Rpc.callback_ += OnRpcEvent;
+        ViewModelMgr.callback_ += OnViewModelEvent;
     }
 
-    void OnRpcInititalized(Web3.RPC.Event ev, object arg) {
+    void OnRpcEvent(Web3.RPC.Event ev, object arg) {
         if (ev == Web3.RPC.Event.Inititalized) {
             StartCoroutine(ViewModelMgr.InititalizeTask());
         } else if (ev == Web3.RPC.Event.TxEvent) {
@@ -35,6 +36,12 @@ public class Main : MonoBehaviour {
             } else {
                 Debug.LogError("invalid event log:" + log.Name);
             }
+        }
+    }
+    void OnViewModelEvent(ViewModel.ViewModelMgr.Event ev, params object[] args) {
+        Debug.Log("OnViewModelEvent:" + ev);
+        if (ev == ViewModel.ViewModelMgr.Event.Initialized) {
+            UIMgr.Open("Top");
         }
     }
 

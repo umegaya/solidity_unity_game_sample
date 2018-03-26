@@ -8,6 +8,10 @@ using Game.Web3Util;
 
 namespace Game.ViewModel {
 public class ViewModelMgr : MonoBehaviour {
+    public enum Event {
+        Initialized,
+    }
+    public delegate void OnViewModelChange(Event ev, params object[] args);
     static public ViewModelMgr instance {
         get; private set;
     }
@@ -20,6 +24,7 @@ public class ViewModelMgr : MonoBehaviour {
     public BigInteger TokenBalance {
         get; set;
     }
+    public OnViewModelChange callback_;
     public Web3.Web3Mgr Web3Mgr {
         get { return Main.Web3Mgr; }
     }
@@ -63,13 +68,14 @@ public class ViewModelMgr : MonoBehaviour {
                             var id = (System.Numerics.BigInteger)r.Result[0].Result;
                             var cat = r.As<Neko.Cat>(Neko.Cat.Parser);
                             Debug.Log("Inventory.getSlotBytes cat[" + id.ToString() + "]:" + cat.Name);
-                            Inventory.Cats[id] = cat;
+                            Inventory.AddCat(id, cat);
                         }
                     }
                     break;
                 }
             }
         }
+        callback_(Event.Initialized);
     }
     IEnumerator UpdateBalance() {
         yield return Web3Mgr.Rpc.GetSelfBalance((balance) => {

@@ -634,9 +634,9 @@ PlayerSettings:
     Collab: 0
     ErrorHub: 0
     Hub: 0
-    UNet: 0
+    UNet: 1
   facebookSdkVersion: 7.9.4
-  apiCompatibilityLevel: 2
+  apiCompatibilityLevel: 3
   cloudProjectId: 1fe4ddaf-fd60-40a7-babf-a2c11b79fbde
   projectName: jp.dokyogames.neko
   organizationId: dokyo
