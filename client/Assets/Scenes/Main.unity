@@ -282,7 +282,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: eee004267595d4685a4b154fd0e5faf5, type: 3}
   screens_:
   - name_: Top
-    prefab_: {fileID: 1913428989200800, guid: 5a9e0c81a3c374de19bffd671ad28bc6, type: 2}
+    prefab_: {fileID: 1404293297785188, guid: 747b85dfd571a4fe88930d76c066ad4c, type: 2}
   active_: {fileID: 0}
 --- !u!1 &1038119386
 GameObject:
