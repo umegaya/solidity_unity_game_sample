@@ -82,8 +82,13 @@ contract('World', (accounts) => {
         }).then((ret) => {
             return c.setPrivilege(sub_account, 1);
         }).then((ret) => {
-            //create initial cat
-            return c.createInitialCat(0, "cat0", true, {from: main_account, value: 10**18});
+            //create initial cat (by using main_account)
+            return c.createInitialCat(main_account, 10**6, 0, "cat0", true, {from: main_account});
+        }).then((ret) => {
+            assert(false, "should not success because main_account is not writer");
+        }, (err) => {
+            //create initial cat (by using admin_account)
+            return c.createInitialCat(main_account, 10**6, 0, "cat0", true);
         }).then((ret) => {
             catCheck(ret, proto, {
                 name: "cat0",
@@ -92,7 +97,7 @@ contract('World', (accounts) => {
                 def: 10,
                 skill_len: 1,
             });
-            return c.createInitialCat(0, "cat0", true, {from: main_account, value: 10**18});
+            return c.createInitialCat(main_account, 10**6, 0, "cat0", true);
         }).then((ret) => {
             assert(false, "should not success next create cat");
         }, (err) => {
@@ -101,20 +106,20 @@ contract('World', (accounts) => {
         //buy token
         }).then((ret) => {
             assert.equal(ret.toNumber(), main_balance, "gain token balance should correct");
-            return c.buyToken({from: main_account, value: 10**19});
+            return c.buyToken(main_account, 10**7);
         }).then((ret) => {
             main_balance += 10**7;
             return c.getTokenBalance.call({from: main_account});            
         }).then((ret) => {
             assert.equal(ret.toNumber(), main_balance, "gain token balance should correct");
-            return c.buyToken({from: main_account, value: 10**18});
+            return c.buyToken(main_account, 10**6);
         }).then((ret) => {
             main_balance += 5 * (10**5);
             return c.getTokenBalance.call({from: main_account});            
         }).then((ret) => {
             assert.equal(ret.toNumber(), main_balance, "gain token balance should correct");
         //breed and buy cat
-            return c.createInitialCat(0, "cat0", false, {from: sub_account, value: 10**18});
+            return c.createInitialCat(sub_account, 10**6, 0, "cat0", false);
         }).then((ret) => {
             sub_balance += 5*(10**5); //already token price doubled above
             return c.estimateBreedFee.call(1, sub_account, 2, {from: main_account});

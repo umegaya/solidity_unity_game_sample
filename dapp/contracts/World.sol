@@ -56,43 +56,38 @@ contract World is Restrictable, Constants {
 
   //writer
   //get fixed parameter initial cat according to sel_idx, also give some token
-  function createInitialCat(uint sel_idx, string name, bool debug_is_male) public payable returns (bool) {
+  function createInitialCat(address target, uint payment_unit, uint sel_idx, string name, bool debug_is_male) public writer returns (bool) {
     //world should have write access to inventory
     require(inventory_.checkWritableFrom(this));
-    require(inventory_.getSlotSize(msg.sender) <= 0); //only once
-    //check send value is enough
-    if (msg.value < CREATE_INITIAL_CAT_TX_FEE) {
-      revert();
-      return false;
-    }
+    require(inventory_.getSlotSize(target) <= 0); //only once
     //give cat according to sel_idx
     PRNG.Data memory rnd;
-    bool is_male = checkWritableFrom(msg.sender) ? debug_is_male : (rnd.gen2(0, 1) == 0);
+    bool is_male = checkWritableFrom(target) ? debug_is_male : (rnd.gen2(0, 1) == 0);
     uint16[] memory skills = new uint16[](1);
     skills[0] = uint16(rnd.gen2(1, 64));
     if (sel_idx == 0) {
       //hp type
-      inventory_.addFixedCat(msg.sender, name, 75, 10, 10, skills, is_male);
+      inventory_.addFixedCat(target, name, 75, 10, 10, skills, is_male);
     } else if (sel_idx == 1) {
       //attack type
-      inventory_.addFixedCat(msg.sender, name, 50, 20, 10, skills, is_male);
+      inventory_.addFixedCat(target, name, 50, 20, 10, skills, is_male);
     } else if (sel_idx == 2) {
       //defense type
-      inventory_.addFixedCat(msg.sender, name, 50, 10, 20, skills, is_male);
+      inventory_.addFixedCat(target, name, 50, 10, 20, skills, is_male);
     }//*/
     //give initial token with current rate
-    uint amount = msg.value / currentRateInWei();
-    require(token_.privilegedTransfer(msg.sender, amount));
-    Exchange(msg.value, currentRateInWei(), tokenSold_, amount);
+    var amount = payment_unit / currentRateForPU();
+    require(token_.privilegedTransfer(target, amount));
+    Exchange(payment_unit, currentRateForPU(), tokenSold_, amount);
     tokenSold_ += amount;
     return true;
   }
   //just buy token with sent ether (where to have conversion rate?)
-  function buyToken() public payable {
+  function buyToken(address target, uint payment_unit) public writer {
     //give initial token with current rate
-    uint amount = msg.value / currentRateInWei();
-    require(token_.privilegedTransfer(msg.sender, amount));
-    Exchange(msg.value, currentRateInWei(), tokenSold_, amount);
+    uint amount = payment_unit / currentRateForPU();
+    require(token_.privilegedTransfer(target, amount));
+    Exchange(payment_unit, currentRateForPU(), tokenSold_, amount);
     tokenSold_ += amount;
   }
   //buy cat with set token price
@@ -135,10 +130,10 @@ contract World is Restrictable, Constants {
 
 
   //helper
-  function currentRateInWei() internal view returns (uint) {
+  function currentRateForPU() internal view returns (uint) {
     //sale. rate is doubled for each TOKEN_DOUBLED_AMOUNT_THRESHOULD token sold
     var power = tokenSold_ / TOKEN_DOUBLED_AMOUNT_THRESHOULD;
-    return BASE_TOKEN_PRICE_IN_WEI * (2**power);
+    return 2**power;
   }
   function breedTokenFromCatValue(uint cv) internal view returns (uint) {
     return cv / CAT_VALUE_DIVIDE_BY_TOKEN;
