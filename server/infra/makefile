@@ -16,3 +16,6 @@ apply:
 
 exec:
 	@make -C src exec PLAN=$(PLAN)
+
+destroy:
+	@make -C src destroy ACCOUNT=$(AWS_ACCESS_KEY) SECRET=$(AWS_SECRET_KEY) REGION=$(AWS_DEFAULT_REGION)

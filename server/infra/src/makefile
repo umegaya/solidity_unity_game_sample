@@ -27,3 +27,6 @@ apply:
 
 exec:
 	$(call tf,apply "./plans/$(PLAN)")
+
+destroy:
+	$(call tf,destroy $(VARS))

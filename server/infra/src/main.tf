@@ -10,4 +10,5 @@ resource "aws_instance" "example" {
   }
   ami           = "ami-ceafcba8"
   instance_type = "t2.micro"
+  subnet_id     = "subnet-eaa5ddb3"
 }
