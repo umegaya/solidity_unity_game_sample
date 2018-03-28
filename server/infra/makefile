@@ -1,5 +1,6 @@
 BUCKET=dokyogames-terraform-bucket
 WS=dev
+PLAN=exec.plan
 
 init:
 	@make -C src init ACCOUNT=$(AWS_ACCESS_KEY) SECRET=$(AWS_SECRET_KEY) REGION=$(AWS_DEFAULT_REGION) BUCKET=$(BUCKET)
@@ -9,3 +10,9 @@ plan:
 
 select:
 	@make -C src select ACCOUNT=$(AWS_ACCESS_KEY) SECRET=$(AWS_SECRET_KEY) REGION=$(AWS_DEFAULT_REGION) WS=$(WS)
+
+apply:
+	@make -C src apply ACCOUNT=$(AWS_ACCESS_KEY) SECRET=$(AWS_SECRET_KEY) REGION=$(AWS_DEFAULT_REGION)
+
+exec:
+	@make -C src exec PLAN=$(PLAN)
