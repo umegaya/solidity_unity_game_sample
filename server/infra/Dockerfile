@@ -1,2 +1,0 @@
-FROM hashicorp/terraform:light
-
