@@ -12,3 +12,16 @@
 ### local(dev)
 - use minikube https://github.com/kubernetes/minikube
 - no need to make k8s
+
+## commands
+- basically short hand of terraform. parameter not specified, following default value will be used
+  - PLATFORM => dev
+  - WS => dev
+  - PLAN => exec.tfplan
+- ```make init PLATFORM=XXX``` terraform init. 
+- ```make ws WS=XXX``` terraform workspace new.
+- ```make select WS=XXX``` terraform workspace select.
+- ```make plan PLATFORM=XXX PLAN=YYY``` terraform plan. will create plan file ./plans/YYY
+- ```make exec PLATFORM=XXX PLAN=YYY``` terraform apply with plan file ./plans/YYY
+- ```make apply PLATFORM=XXX``` terraform apply without plan file
+- ```make destroy PLATFORM=XXX``` terraform destroy
