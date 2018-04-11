@@ -1,3 +1,4 @@
+volume/storage/*
 .terraform
 *.tfplan
 k8s/*/config

@@ -1,0 +1,10 @@
+[parity]
+chain = "dev"
+base_path = "/data/storage/0"
+
+[network]
+min_peers = 1
+
+[rpc]
+interface = "all"
+hosts = ["all"]
