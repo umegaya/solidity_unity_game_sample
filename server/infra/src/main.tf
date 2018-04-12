@@ -8,7 +8,15 @@ resource "kubernetes_namespace" "neko" {
   }
 }
 
+resource "null_resource" "neko-blockchain-cm" {
+  provisioner "local-exec" {
+    command = "kubectl create configmap neko-blockchain-cm --kubeconfig=/k8s/config -n neko --dry-run -o yaml --from-file=${var.parity_config} | kubectl apply --kubeconfig=/k8s/config -f -"
+  }  
+}
+
 resource "kubernetes_daemonset" "neko-blockchain-ds" {
+  depends_on = ["null_resource.neko-blockchain-cm"]
+
   metadata {
     namespace = "neko"
     name = "neko-blockchain-ds"
@@ -31,10 +39,10 @@ resource "kubernetes_daemonset" "neko-blockchain-ds" {
         container {
           image = "parity/parity"
           name  = "neko-blockchain-node"
-          args = ["--config", "/shared/config/${var.parity_config}"]
+          args = ["--config", "/shared/config/${var.setup_path}"]
           volume_mount {
-            name = "neko-blockchain-shared-volume"
-            mount_path = "/shared"
+            name = "neko-blockchain-config-volume"
+            mount_path = "/shared/config"
           }
           volume_mount {
             name = "neko-blockchain-data-volume"
@@ -42,9 +50,9 @@ resource "kubernetes_daemonset" "neko-blockchain-ds" {
           }
         }
         volume {
-          name = "neko-blockchain-shared-volume"
-          persistent_volume_claim {
-            claim_name = "${kubernetes_persistent_volume_claim.neko-blockchain-shared-pvc.metadata.0.name}"
+          name = "neko-blockchain-config-volume"
+          config_map {
+            name = "neko-blockchain-cm"
           }
         }
         volume {
