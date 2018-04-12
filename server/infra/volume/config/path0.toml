@@ -1,0 +1,11 @@
+[parity]
+chain = "/shared/config/chain0.json"
+base_path = "/data/storage"
+
+[network]
+min_peers = 1
+
+[rpc]
+interface = "all"
+hosts = ["all"]
+apis = ["web3", "eth", "pubsub", "net", "parity", "parity_pubsub", "traces", "rpc", "shh", "shh_pubsub", "parity_accounts"]

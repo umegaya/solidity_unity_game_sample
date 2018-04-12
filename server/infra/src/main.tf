@@ -8,44 +8,50 @@ resource "kubernetes_namespace" "neko" {
   }
 }
 
-resource "kubernetes_replication_controller" "neko-blockchain-rc" {
+resource "kubernetes_daemonset" "neko-blockchain-ds" {
   metadata {
     namespace = "neko"
-    name = "neko-blockchain-rc"
+    name = "neko-blockchain-ds"
     labels {
       name = "neko-blockchain-node"
     }
   }
 
   spec {
-    replicas = 1
     selector {
       name = "neko-blockchain-node"
     }
     template {
-      container {
-        image = "parity/parity"
-        name  = "neko-blockchain-node"
-        args = ["--config", "/shared/config/node0.toml"]
-        volume_mount {
+      metadata {
+        labels {
+          name = "neko-blockchain-node"
+        }
+      }
+      spec {
+        container {
+          image = "parity/parity"
+          name  = "neko-blockchain-node"
+          args = ["--config", "/shared/config/${var.parity_config}"]
+          volume_mount {
+            name = "neko-blockchain-shared-volume"
+            mount_path = "/shared"
+          }
+          volume_mount {
+            name = "neko-blockchain-data-volume"
+            mount_path = "/data"
+          }
+        }
+        volume {
           name = "neko-blockchain-shared-volume"
-          mount_path = "/shared"
+          persistent_volume_claim {
+            claim_name = "${kubernetes_persistent_volume_claim.neko-blockchain-shared-pvc.metadata.0.name}"
+          }
         }
-        volume_mount {
+        volume {
           name = "neko-blockchain-data-volume"
-          mount_path = "/data"
-        }
-      }
-      volume {
-        name = "neko-blockchain-shared-volume"
-        persistent_volume_claim {
-          claim_name = "${kubernetes_persistent_volume_claim.neko-blockchain-shared-pvc.metadata.0.name}"
-        }
-      }
-      volume {
-        name = "neko-blockchain-data-volume"
-        persistent_volume_claim {
-          claim_name = "${kubernetes_persistent_volume_claim.neko-blockchain-data-pvc.metadata.0.name}"
+          persistent_volume_claim {
+            claim_name = "${kubernetes_persistent_volume_claim.neko-blockchain-data-pvc.metadata.0.name}"
+          }
         }
       }
     }

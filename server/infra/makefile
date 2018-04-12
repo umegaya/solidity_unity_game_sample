@@ -12,9 +12,10 @@ S3_BUCKET=dokyogames-terraform-bucket
 
 WS=dev
 PLAN=exec.tfplan
-OBJECT=
+OBJECT=kubernetes_daemonset.neko-blockchain-ds
 
-PLATFORM=dev
+PLATFORM=gcp
+PROJECT_ID=
 ifeq ($(PLATFORM),dev)
 K8S_CONFIG_DIR=$(HOME)/.kube
 VOLUME=`pwd`/volume
@@ -23,14 +24,17 @@ K8S_CONFIG_DIR=`pwd`/k8s/$(PLATFORM)
 # TODO
 VOLUME=/path/to/volume
 ifeq ($(PLATFORM),gcp) 
-K8S_REGION=us-central1
-K8S_CLUSTER=k8stest
+K8S_REGION=asia-northeast1
+K8S_CLUSTER=neko
 else
 endif
 endif
 
-# before this, you should configure your google/cloud-sdk container by
-# gcloud config set container/use_v1_api false and $gcloud config set project PROJECT_ID
+# for gcp, project_id is your project id. 
+# TODO: document other cloud services
+k8s_setup:
+	@make -C k8s $(PLATFORM)_setup CLUSTER=$(K8S_CLUSTER) REGION=$(K8S_REGION) PROJECT_ID=$(PROJECT_ID)
+
 k8s:
 	@make -C k8s $(PLATFORM) CLUSTER=$(K8S_CLUSTER) REGION=$(K8S_REGION)
 
@@ -64,15 +68,11 @@ destroy:
 # ----------------------------------------------------------------------------------
 # administration related
 # ----------------------------------------------------------------------------------
-# TODO: automatically retrieve this information (via terraform output?)
 POD=`kubectl get po -o json | jq -r .items[0].metadata.name`
-KUBEHOST=`minikube ip`
-COUNT=3
+KUBEHOST=`bash ./tools/kubehost.sh`
+CREDENTIAL_OUT=`pwd`/volume/secret
 
-genesis: 
-	@minikube ssh rm -r /var/parity/storage
-	@minikube ssh mkdir -p /var/parity/storage
-	@kubectl exec $(POD) kill 1
+genesis: chain_spec taint plan exec
 
 restart:
 	@kubectl exec $(POD) kill 1
@@ -83,15 +83,9 @@ tail:
 sh:
 	@kubectl exec -ti $(POD) /bin/bash
 
-accounts:
-	curl --data '{"jsonrpc":"2.0","method":"parity_newAccountFromPhrase","params":["node0", "node0"],"id":0}' -H "Content-Type: application/json" -X POST $(KUBEHOST):30540
-
-
-
-
-
-
-
+chain_spec:
+	@bash ./tools/make_account.sh $(KUBEHOST) $(CREDENTIAL_OUT)
+	@bash ./tools/make_chain_spec.sh $(CREDENTIAL_OUT)
 
 
 

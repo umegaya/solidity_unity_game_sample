@@ -1,4 +1,6 @@
-volume/storage/*
+volume/config/chain1.json
+volume/config/path1.toml
+volume/secret/*
 .terraform
 *.tfplan
 k8s/*/config

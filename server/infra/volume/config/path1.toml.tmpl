@@ -1,0 +1,17 @@
+[parity]
+chain = "/shared/config/chain1.json"
+base_path = "/data/storage"
+
+[network]
+min_peers = 1
+
+[account]
+password = ["/shared/secret/node.pwds"]
+
+[mining]
+engine_signer = __SIGNER__
+reseal_on_txs = "none"
+
+[rpc]
+interface = "all"
+hosts = ["all"]

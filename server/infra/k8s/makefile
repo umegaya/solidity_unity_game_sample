@@ -1,13 +1,18 @@
 DOCKER_OPTS=-e 'KUBECONFIG=./gcp/config'
 REGION=
 CLUSTER=
+PROJECT_ID=
 
 define gcloud
 docker run --rm -ti -v `pwd`:/work -w /work --volumes-from gcloud-config $(DOCKER_OPTS) google/cloud-sdk gcloud $1
 endef
 
+gcp_setup:
+	docker inspect gcloud-config || docker run -ti --name gcloud-config --entrypoint=gcloud umegaya/terraform auth login
+	$(call gcloud,config set container/use_v1_api false)
+	$(call gcloud,config set project $(PROJECT_ID))
+
 gcp:
-	docker inspect gcloud-config || docker run -ti --name gcloud-config google/cloud-sdk gcloud auth login
 	$(call gcloud,beta container clusters get-credentials --region $(REGION) $(CLUSTER))
 
 aws:
