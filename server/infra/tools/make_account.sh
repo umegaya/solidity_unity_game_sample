@@ -4,6 +4,10 @@ NODE_ADDR=$1
 OUT=$2
 source `dirname $0`/wait_node.sh ${NODE_ADDR}
 
+ROOT=`dirname $0`/..
+rm -f ${ROOT}/volume/secret/*.addr
+rm -f ${ROOT}/volume/secret/*.pass
+
 create_account() {
 	local phrase=$1
 	local pass=$2

@@ -8,14 +8,8 @@ resource "kubernetes_namespace" "neko" {
   }
 }
 
-resource "null_resource" "neko-blockchain-cm" {
-  provisioner "local-exec" {
-    command = "kubectl create configmap neko-blockchain-cm --kubeconfig=/k8s/config -n neko --dry-run -o yaml --from-file=${var.parity_config} | kubectl apply --kubeconfig=/k8s/config -f -"
-  }  
-}
-
 resource "kubernetes_daemonset" "neko-blockchain-ds" {
-  depends_on = ["null_resource.neko-blockchain-cm"]
+  depends_on = ["null_resource.neko-blockchain-cm", "null_resource.neko-blockchain-secret"]
 
   metadata {
     namespace = "neko"
@@ -45,6 +39,10 @@ resource "kubernetes_daemonset" "neko-blockchain-ds" {
             mount_path = "/shared/config"
           }
           volume_mount {
+            name = "neko-blockchain-secret-volume"
+            mount_path = "/shared/secret"
+          }
+          volume_mount {
             name = "neko-blockchain-data-volume"
             mount_path = "/data"
           }
@@ -53,6 +51,12 @@ resource "kubernetes_daemonset" "neko-blockchain-ds" {
           name = "neko-blockchain-config-volume"
           config_map {
             name = "neko-blockchain-cm"
+          }
+        }
+        volume {
+          name = "neko-blockchain-secret-volume"
+          secret {
+            secret_name = "neko-blockchain-secret"
           }
         }
         volume {

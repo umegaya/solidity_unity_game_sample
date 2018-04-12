@@ -3,7 +3,7 @@ chain = "/shared/config/chain0.json"
 base_path = "/data/parity"
 
 [network]
-min_peers = 1
+min_peers = 0
 
 [rpc]
 interface = "all"
