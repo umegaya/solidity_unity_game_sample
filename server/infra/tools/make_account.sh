@@ -1,5 +1,8 @@
 #!/bin/bash
 
+ROOT=$(cd $(dirname $0) && pwd)/..
+source ${ROOT}/tools/common.sh ${ROOT}
+
 NODE_ADDR=$1
 OUT=$2
 source `dirname $0`/wait_node.sh ${NODE_ADDR}
@@ -12,8 +15,8 @@ create_account() {
 	local phrase=$1
 	local pass=$2
 	local out=
-	if [ -z "$4" ]; then
-		out="${OUT}/node-$3"
+	if [ ! -z "$4" ]; then
+		out="${OUT}/node-$4"
 	else
 		out="${OUT}/user"
 	fi
@@ -22,17 +25,46 @@ create_account() {
 BODY
 )
 	# will write json output like {"jsonrpc":"2.0","result":"0x00bd138abd70e2f00903268f3db08f2d25677c9e","id":0}
-	curl --stderr /dev/null --data ${body} -H "Content-Type: application/json" -X POST ${NODE_ADDR}:30545 | jq -r .result > ${out}.addr
+	curl --stderr /dev/null --data ${body} -H "Content-Type: application/json" -X POST $3:30545 | jq -r .result > ${out}.addr
 	echo ${pass} > ${out}.pass
 }
 
-# authority address for each nodes
+
+NODE_LIST=$(node_list)
+NODES=($(echo ${NODE_LIST} | jq -r .address))
+MACHINES=($(echo ${NODE_LIST} | jq -r .machineID))
+
+echo "NODES=($NODES), MACHINES=($MACHINES)"
+
+VALIDATOR_ADDRESSES=()
 USER_CREATION_NODE=
-for a in $(kubectl get node -o json | jq -r .items[].status.addresses[0].address) ; do 
-	create_account `ps auwx | md5sum | awk '{print $1}'` `ps auwx | sha1sum | awk '{print $1}'` $a
+
+# ----------------------------------
+# authority address for each nodes
+# ----------------------------------
+for idx in ${!NODES[@]} ; do 
+	a=${NODES[$idx]}
+	m=${MACHINES[$idx]}
+	create_account `ps auwx | md5sum | awk '{print $1}'` `ps auwx | sha1sum | awk '{print $1}'` $a $m
+	VALIDATOR_ADDRESSES+=(`cat ${OUT}/node-$m.addr`)
+	# get user creation node
 	if [ -z "${USER_CREATION_NODE}" ]; then
 		USER_CREATION_NODE=$a
 	fi
 done
+
+
+# ----------------------------------
 # genesis user
-create_account `ps auwx | md5sum | awk '{print $1}'` `ps auwx | sha1sum | awk '{print $1}'` $USER_CREATION_NODE 1
+# ----------------------------------
+create_account `ps auwx | md5sum | awk '{print $1}'` `ps auwx | sha1sum | awk '{print $1}'` $USER_CREATION_NODE
+
+
+# ----------------------------------
+# create node settings
+# ----------------------------------
+for idx in ${!MACHINES[@]} ; do
+	cat ${ROOT}/volume/config/path1.toml.tmpl \
+		| sed -e "s/__SIGNER__/${VALIDATOR_ADDRESSES[idx]}/" \
+	>  ${ROOT}/volume/config/${MACHINES[$idx]}.toml
+done

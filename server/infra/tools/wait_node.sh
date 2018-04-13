@@ -6,7 +6,6 @@ while true ; do
 		-H "Content-Type: application/json" \
 		-X POST $1:30545 1>/dev/null 2>/dev/null
 	if [ $? -eq 0 ]; then
-		echo "ok"
 		break
 	fi
 	if [ $ATTEMPT -eq 0 ]; then

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+	echo "specify platform:(dev|gcp|azure|aws)"
+	exit 1
+fi
+
+# if following error occurs, try restart docker-machine
+# RequestError: send request failed
+# caused by: Get https://dokyogames-terraform-bucket.s3.ap-northeast-1.amazonaws.com/?prefix=env%3A%2F: dial tcp: lookup dokyogames-terraform-bucket.s3.ap-northeast-1.amazonaws.com on 10.0.2.3:53: read udp 172.17.0.3:43876->10.0.2.3:53: i/o timeout
+export K8S_PLATFORM=$1
+source `pwd`/tools/common.sh `pwd`
+if [ "$1" == "dev" ]; then
+	make select WS=default
+else
+	make select WS=$1
+fi
+
+echo "switch to:$K8S_PLATFORM"

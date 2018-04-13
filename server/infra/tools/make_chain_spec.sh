@@ -1,6 +1,7 @@
 #!/bin/bash
 
-ROOT=`dirname $0`/..
+ROOT=$(cd $(dirname $0) && pwd)/..
+source ${ROOT}/tools/common.sh ${ROOT}
 
 # ----------------------------------
 # create genesis account setting
@@ -39,9 +40,3 @@ cat ${ROOT}/volume/config/chain1.json.tmpl \
 	| sed -e "s/__GENESIS_ACCOUNTS__/${GENESIS_ACCOUNTS}/" \
 >  ${ROOT}/volume/config/chain1.json
 
-# ----------------------------------
-# create node settings
-# ----------------------------------
-cat ${ROOT}/volume/config/path1.toml.tmpl \
-	| sed -e "s/__SIGNER__/${VALIDATOR_ADDRESSES[0]}/" \
->  ${ROOT}/volume/config/path1.toml

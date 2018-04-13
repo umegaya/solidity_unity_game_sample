@@ -33,7 +33,8 @@ resource "kubernetes_daemonset" "neko-blockchain-ds" {
         container {
           image = "parity/parity"
           name  = "neko-blockchain-node"
-          args = ["--config", "/shared/config/${var.setup_path}"]
+          command = ["/bin/bash"]
+          args = ["-c", "/parity/parity --config /shared/config/${var.setup_path}"]
           volume_mount {
             name = "neko-blockchain-config-volume"
             mount_path = "/shared/config"
@@ -45,6 +46,10 @@ resource "kubernetes_daemonset" "neko-blockchain-ds" {
           volume_mount {
             name = "neko-blockchain-data-volume"
             mount_path = "/data"
+          }
+          volume_mount {
+            name = "neko-blockchain-etc-volume"
+            mount_path = "/hostetc"
           }
         }
         volume {
@@ -63,6 +68,12 @@ resource "kubernetes_daemonset" "neko-blockchain-ds" {
           name = "neko-blockchain-data-volume"
           persistent_volume_claim {
             claim_name = "${kubernetes_persistent_volume_claim.neko-blockchain-data-pvc.metadata.0.name}"
+          }
+        }
+        volume {
+          name = "neko-blockchain-etc-volume"
+          persistent_volume_claim {
+            claim_name = "${kubernetes_persistent_volume_claim.neko-blockchain-etc-pvc.metadata.0.name}"
           }
         }
       }

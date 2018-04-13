@@ -1,3 +1,4 @@
+# variables for execution of this makefile, given from parent
 ACCOUNT=
 SECRET=
 REGION=
@@ -5,26 +6,25 @@ BUCKET=
 K8S_CONFIG_DIR=
 OBJECT=
 
+# variables for execution of this makefile, automatically decided
+ROOT=`pwd`/..
+SETUP_PATH=$(shell bash $(ROOT)/tools/decide_path.sh $(ROOT))
+K8S_HOST=$(shell bash $(ROOT)/tools/kubehost.sh)
+K8S_VARS=-var 'k8s_config_path=/k8s/config' -var 'k8s_host=$(K8S_HOST)'
+VARS=$(K8S_VARS) -var 'access_key=$(ACCOUNT)' -var 'secret_key=$(SECRET)' -var 'region=$(REGION)' -var 'data_volume=$(STORAGE_VOLUME)' -var 'parity_config=$(CONFIG_VOLUME)' -var 'parity_secret=$(SECRET_VOLUME)' -var 'setup_path=$(SETUP_PATH)'
+BACKEND_VARS=$(K8S_VARS) -backend-config='access_key=$(ACCOUNT)' -backend-config='secret_key=$(SECRET)' -backend-config='bucket=$(BUCKET)' -backend-config='region=$(REGION)'
+
+# variables for execution of this container
 MOUNT=/tf
+TFROOT=/tf/src
 STORAGE_VOLUME=/var
 CONFIG_VOLUME=$(MOUNT)/volume/config
 SECRET_VOLUME=$(MOUNT)/volume/secret
 WS=dev
 PLAN=exec.tfplan
-
 IMAGE=umegaya/terraform
 
-ROOT=`pwd`/..
-TFROOT=/tf/src
-SETUP_PATH=$(shell bash $(ROOT)/tools/decide_path.sh $(ROOT))
-K8S_HOST=$(shell bash $(ROOT)/tools/kubehost.sh)
-
-K8S_VARS=-var 'k8s_config_path=/k8s/config'
-VARS=$(K8S_VARS) -var 'access_key=$(ACCOUNT)' -var 'secret_key=$(SECRET)' -var 'region=$(REGION)' -var 'data_volume=$(STORAGE_VOLUME)' -var 'k8s_host=$(K8S_HOST)' -var 'parity_config=$(CONFIG_VOLUME)' -var 'parity_secret=$(SECRET_VOLUME)' -var 'setup_path=$(SETUP_PATH)'
-BACKEND_VARS=$(K8S_VARS) -backend-config='access_key=$(ACCOUNT)' -backend-config='secret_key=$(SECRET)' -backend-config='bucket=$(BUCKET)' -backend-config='region=$(REGION)'
-
 define tf 
-@[ ! -z "$(CONFIG_VOLUME)" ] || (echo "CONFIG_VOLUME is not set" && exit 1)
 @[ ! -z "$(HOME)" ] || (echo "HOME is not set" && exit 1)
 @[ ! -z "$(K8S_CONFIG_DIR)" ] || (echo "K8S_CONFIG_DIR is not set" && exit 1)
 docker run --rm -ti --volumes-from gcloud-config -v $(HOME)/.minikube:$(HOME)/.minikube -v $(K8S_CONFIG_DIR):/k8s -v $(ROOT):$(MOUNT) -w $(TFROOT) $(IMAGE) $1 $2
@@ -32,6 +32,7 @@ endef
 
 
 init:	
+	@[ ! -z "$(BUCKET)" ] || (echo "BUCKET is not set" && exit 1)
 	$(call tf,init $(BACKEND_VARS))
 
 ws:
@@ -50,6 +51,7 @@ apply:
 	$(call tf,apply $(VARS))
 
 taint:
+	@[ ! -z "$(OBJECT)" ] || (echo "OBJECT is not set" && exit 1)
 	$(call tf,taint $(VARS) $(OBJECT))
 
 destroy:

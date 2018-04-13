@@ -10,18 +10,18 @@ image:
 # ----------------------------------------------------------------------------------
 S3_BUCKET=dokyogames-terraform-bucket
 
-WS=dev
+WS=$(K8S_PLATFORM)
 PLAN=exec.tfplan
 OBJECT=kubernetes_daemonset.neko-blockchain-ds
 
-PLATFORM=dev
+PLATFORM=$(K8S_PLATFORM)
 PROJECT_ID=
 ifeq ($(PLATFORM),dev)
 K8S_CONFIG_DIR=$(HOME)/.kube
 else
 K8S_CONFIG_DIR=`pwd`/k8s/$(PLATFORM)
 ifeq ($(PLATFORM),gcp) 
-K8S_REGION=asia-northeast1
+K8S_REGION=us-central1
 K8S_CLUSTER=neko
 else
 endif
@@ -65,7 +65,7 @@ destroy:
 # ----------------------------------------------------------------------------------
 # administration related
 # ----------------------------------------------------------------------------------
-POD=`kubectl get po -o json | jq -r .items[0].metadata.name`
+POD=`kcd get po -o json | jq -r .items[0].metadata.name`
 KUBEHOST=`bash ./tools/kubehost.sh`
 CREDENTIAL_OUT=`pwd`/volume/secret
 
