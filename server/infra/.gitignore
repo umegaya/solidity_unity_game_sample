@@ -1,6 +1,8 @@
-volume/config/chain1.json
+volume/config/dev.json
 volume/config/[a-f0-9]*.toml
-volume/secret/*
+volume/secret/*/*.addr
+volume/secret/*/*.pass
+volume/secret/*/*.pwds
 .terraform
 *.tfplan
 k8s/*/config

@@ -82,8 +82,8 @@ sh:
 
 chain_spec:
 	@bash ./tools/create_mesh.sh
-	@bash ./tools/make_account.sh $(KUBEHOST) $(CREDENTIAL_OUT)
-	@bash ./tools/make_chain_spec.sh $(CREDENTIAL_OUT)
+	@bash ./tools/make_account.sh $(KUBEHOST)
+	@bash ./tools/make_chain_spec.sh
 
 
 

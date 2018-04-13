@@ -3,22 +3,23 @@
 ROOT=$(cd $(dirname $0) && pwd)/..
 source ${ROOT}/tools/common.sh ${ROOT}
 
+SECRET_ROOT=${ROOT}/volume/secret/${K8S_PLATFORM}
+
 NODE_ADDR=$1
-OUT=$2
 source `dirname $0`/wait_node.sh ${NODE_ADDR}
 
 ROOT=`dirname $0`/..
-rm -f ${ROOT}/volume/secret/*.addr
-rm -f ${ROOT}/volume/secret/*.pass
+rm -f ${SECRET_ROOT}/*.addr
+rm -f ${SECRET_ROOT}/*.pass
 
 create_account() {
 	local phrase=$1
 	local pass=$2
 	local out=
 	if [ ! -z "$4" ]; then
-		out="${OUT}/node-$4"
+		out="${SECRET_ROOT}/node-$4"
 	else
-		out="${OUT}/user"
+		out="${SECRET_ROOT}/user"
 	fi
 	local body=$(cat << BODY
 {"jsonrpc":"2.0","method":"parity_newAccountFromPhrase","params":["${phrase}","${pass}"],"id":0}
@@ -39,6 +40,7 @@ echo "NODES=($NODES), MACHINES=($MACHINES)"
 VALIDATOR_ADDRESSES=()
 USER_CREATION_NODE=
 
+
 # ----------------------------------
 # authority address for each nodes
 # ----------------------------------
@@ -46,7 +48,7 @@ for idx in ${!NODES[@]} ; do
 	a=${NODES[$idx]}
 	m=${MACHINES[$idx]}
 	create_account `ps auwx | md5sum | awk '{print $1}'` `ps auwx | sha1sum | awk '{print $1}'` $a $m
-	VALIDATOR_ADDRESSES+=(`cat ${OUT}/node-$m.addr`)
+	VALIDATOR_ADDRESSES+=(`cat ${SECRET_ROOT}/node-$m.addr`)
 	# get user creation node
 	if [ -z "${USER_CREATION_NODE}" ]; then
 		USER_CREATION_NODE=$a
@@ -66,5 +68,6 @@ create_account `ps auwx | md5sum | awk '{print $1}'` `ps auwx | sha1sum | awk '{
 for idx in ${!MACHINES[@]} ; do
 	cat ${ROOT}/volume/config/path1.toml.tmpl \
 		| sed -e "s/__SIGNER__/${VALIDATOR_ADDRESSES[idx]}/" \
-	>  ${ROOT}/volume/config/${MACHINES[$idx]}.toml
+		| sed -e "s/__PLATFORM__/${K8S_PLATFORM}/" \
+	> ${ROOT}/volume/config/${MACHINES[$idx]}.toml
 done

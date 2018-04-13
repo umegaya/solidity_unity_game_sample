@@ -18,7 +18,7 @@ get_enode_of() {
 BODY
 )
 	# will write json output like {"jsonrpc":"2.0","result":"0x00bd138abd70e2f00903268f3db08f2d25677c9e","id":0}
-	curl --stderr /dev/null --data ${body} -H "Content-Type: application/json" -X POST $node:30545 #| jq -r .result
+	curl --stderr /dev/null --data ${body} -H "Content-Type: application/json" -X POST $node:30545 | jq -r .result
 }
 
 register_enode_to() {
@@ -29,7 +29,7 @@ register_enode_to() {
 BODY
 )
 	# will write json output like {"jsonrpc":"2.0","result":"0x00bd138abd70e2f00903268f3db08f2d25677c9e","id":0}
-	echo curl --stderr /dev/null --data ${body} -H "Content-Type: application/json" -X POST $node:30545 #| jq -r .result
+	curl --stderr /dev/null --data ${body} -H "Content-Type: application/json" -X POST $node:30545 | jq -r .result
 }
 
 # create mesh
