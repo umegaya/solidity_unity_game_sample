@@ -1,4 +1,5 @@
 volume/config/dev.json
+volume/config/gcp.json
 volume/config/[a-f0-9]*.toml
 volume/secret/*/*.addr
 volume/secret/*/*.pass

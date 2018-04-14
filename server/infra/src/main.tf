@@ -51,6 +51,22 @@ resource "kubernetes_daemonset" "neko-blockchain-ds" {
             name = "neko-blockchain-etc-volume"
             mount_path = "/hostetc"
           }
+          port {
+            name = "ethereum"
+            container_port = 30303
+            host_port = 30303            
+          }
+          port {
+            name = "peer-discovery"
+            container_port = 30303
+            host_port = 30303
+            protocol = "UDP"
+          }
+          port {
+            name = "json-rpc"
+            container_port = 8545
+            host_port = 8545
+          }
         }
         volume {
           name = "neko-blockchain-config-volume"
@@ -78,36 +94,5 @@ resource "kubernetes_daemonset" "neko-blockchain-ds" {
         }
       }
     }
-  }
-}
-
-resource "kubernetes_service" "neko-blockchain-service" {
-  metadata {
-    namespace = "neko"
-    name = "neko-blockchain-service"
-  }
-  spec {
-    selector {
-      name = "neko-blockchain-node"
-    }
-    session_affinity = "ClientIP"
-    port {
-      name = "ethereum-protocol"
-      port = 30303
-      node_port = 30303
-    }
-    port {
-      name = "json-rpc"
-      port = 8545
-      node_port = 30545
-    }
-    port {
-      name = "peer-discovery"
-      port = 30303
-      node_port = 30303
-      protocol = "UDP"
-    }
-
-    type = "NodePort"
   }
 }

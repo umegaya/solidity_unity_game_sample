@@ -5,8 +5,10 @@ source ${ROOT}/tools/common.sh ${ROOT}
 
 SECRET_ROOT=${ROOT}/volume/secret/${K8S_PLATFORM}
 
-NODE_ADDR=$1
-source `dirname $0`/wait_node.sh ${NODE_ADDR}
+if [ "${K8S_PLATFORM}" = "dev" ]; then
+	NODE_ADDR=$1
+	bash ${ROOT}/tools/wait_node.sh ${NODE_ADDR}
+fi
 
 ROOT=`dirname $0`/..
 rm -f ${SECRET_ROOT}/*.addr
@@ -26,7 +28,7 @@ create_account() {
 BODY
 )
 	# will write json output like {"jsonrpc":"2.0","result":"0x00bd138abd70e2f00903268f3db08f2d25677c9e","id":0}
-	curl --stderr /dev/null --data ${body} -H "Content-Type: application/json" -X POST $3:30545 | jq -r .result > ${out}.addr
+	jsonrpc ${body} $3 | jq -r .result > ${out}.addr
 	echo ${pass} > ${out}.pass
 }
 

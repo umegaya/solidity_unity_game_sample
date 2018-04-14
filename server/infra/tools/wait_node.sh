@@ -1,10 +1,11 @@
 #!/bin/bash
 
+ROOT=$(cd $(dirname $0) && pwd)/..
+source ${ROOT}/tools/common.sh ${ROOT}
+
 ATTEMPT=0
 while true ; do
-	curl --data '{"method":"web3_clientVersion","params":[],"id":1,"jsonrpc":"2.0"}' \
-		-H "Content-Type: application/json" \
-		-X POST $1:30545 1>/dev/null 2>/dev/null
+	jsonrpc '{"method":"web3_clientVersion","params":[],"id":1,"jsonrpc":"2.0"}' $1 1>/dev/null 2>/dev/null
 	if [ $? -eq 0 ]; then
 		break
 	fi

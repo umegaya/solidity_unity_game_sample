@@ -15,7 +15,6 @@ PLAN=exec.tfplan
 OBJECT=kubernetes_daemonset.neko-blockchain-ds
 
 PLATFORM=$(K8S_PLATFORM)
-PROJECT_ID=
 ifeq ($(PLATFORM),dev)
 K8S_CONFIG_DIR=$(HOME)/.kube
 else
@@ -23,6 +22,8 @@ K8S_CONFIG_DIR=`pwd`/k8s/$(PLATFORM)
 ifeq ($(PLATFORM),gcp) 
 K8S_REGION=us-central1
 K8S_CLUSTER=neko
+K8S_NODETAG=$(shell bash ./tools/get_fw_node_filter.sh $(K8S_CLUSTER))
+PROJECT_ID=$(shell docker run --rm -ti --volumes-from gcloud-config --entrypoint=gcloud umegaya/terraform config get-value project)
 else
 endif
 endif
@@ -43,13 +44,13 @@ ws:
 	@make -C src ws ACCOUNT=$(AWS_ACCESS_KEY) SECRET=$(AWS_SECRET_KEY) REGION=$(AWS_DEFAULT_REGION) WS=$(WS) K8S_CONFIG_DIR=$(K8S_CONFIG_DIR)
 
 plan:
-	@make -C src plan ACCOUNT=$(AWS_ACCESS_KEY) SECRET=$(AWS_SECRET_KEY) REGION=$(AWS_DEFAULT_REGION) K8S_CONFIG_DIR=$(K8S_CONFIG_DIR)
+	@make -C src plan ACCOUNT=$(AWS_ACCESS_KEY) SECRET=$(AWS_SECRET_KEY) REGION=$(AWS_DEFAULT_REGION) K8S_CONFIG_DIR=$(K8S_CONFIG_DIR) PROJECT_ID=$(PROJECT_ID) NODETAG=$(K8S_NODETAG)
 
 select:
 	@make -C src select ACCOUNT=$(AWS_ACCESS_KEY) SECRET=$(AWS_SECRET_KEY) REGION=$(AWS_DEFAULT_REGION) WS=$(WS) K8S_CONFIG_DIR=$(K8S_CONFIG_DIR)
 
 apply:
-	@make -C src apply ACCOUNT=$(AWS_ACCESS_KEY) SECRET=$(AWS_SECRET_KEY) REGION=$(AWS_DEFAULT_REGION) K8S_CONFIG_DIR=$(K8S_CONFIG_DIR)
+	@make -C src apply ACCOUNT=$(AWS_ACCESS_KEY) SECRET=$(AWS_SECRET_KEY) REGION=$(AWS_DEFAULT_REGION) K8S_CONFIG_DIR=$(K8S_CONFIG_DIR) PROJECT_ID=$(PROJECT_ID) NODETAG=$(K8S_NODETAG)
 
 exec:
 	@make -C src exec PLAN=$(PLAN) K8S_CONFIG_DIR=$(K8S_CONFIG_DIR)

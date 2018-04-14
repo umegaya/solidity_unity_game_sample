@@ -16,6 +16,10 @@ kcd() {
 		-e "KUBECONFIG=${kconfig}" umegaya/terraform $@
 }
 
+gcpd() {
+	docker run --rm -ti --entrypoint=gcloud --volumes-from=gcloud-config umegaya/terraform $@
+}
+
 node_list() {
 	local iftype="ExternalIP"
 	if [ "${K8S_PLATFORM}" = "dev" ]; then
@@ -25,4 +29,8 @@ node_list() {
 		| jq -r "{interface:.status.addresses[],machineID:.status.nodeInfo.machineID}" \
 		| jq -r "select(.interface.type == \"${iftype}\")" \
 		| jq -r "{address:.interface.address,machineID:.machineID}"
+}
+
+jsonrpc() {
+	curl --stderr /dev/null --data $1 -H "Content-Type: application/json" -X POST http://$2:8545
 }
