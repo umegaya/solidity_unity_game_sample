@@ -23,6 +23,9 @@ resource "kubernetes_daemonset" "neko-blockchain-ds" {
     selector {
       name = "neko-blockchain-node"
     }
+    strategy {
+      type = "RollingUpdate"
+    }
     template {
       metadata {
         labels {

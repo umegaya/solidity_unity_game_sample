@@ -2,20 +2,6 @@
   {
     "constant": true,
     "inputs": [],
-    "name": "BASE_TOKEN_PRICE_IN_WEI",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
     "name": "name",
     "outputs": [
       {

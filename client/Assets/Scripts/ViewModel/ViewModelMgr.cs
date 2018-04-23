@@ -86,7 +86,7 @@ public class ViewModelMgr : MonoBehaviour {
         Debug.Log("new balance:" + TokenBalance + "(" + Balance + ")");
     }
     IEnumerator CreateInitialCat() {
-        yield return Web3Mgr.Rpc["World"].Send2("createInitialCat", 1e18, 0, "testcat", false);
+        yield return Web3Mgr.Rpc["World"].Send2("payForInitialCat", 1e18, 0, "testcat");
         Debug.Log("create initial cat: created");
         var r = Web3Mgr.Rpc.SendResponse;
         if (r.Error == null) {

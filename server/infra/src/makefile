@@ -32,7 +32,6 @@ define tf
 docker run --rm -ti --volumes-from gcloud-config -v $(HOME)/.minikube:$(HOME)/.minikube -v $(K8S_CONFIG_DIR):/k8s -v $(ROOT):$(MOUNT) -w $(TFROOT) $(IMAGE) $1 $2
 endef
 
-
 init:	
 	@[ ! -z "$(BUCKET)" ] || (echo "BUCKET is not set" && exit 1)
 	$(call tf,init $(BACKEND_VARS))

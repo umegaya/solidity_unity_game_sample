@@ -41,18 +41,18 @@ contract Inventory is StorageAccessor, Restrictable {
   //until solidity 0.4.21, return bytes directly and parse on client side
   function getSlotBytes(address user, uint slot_idx) public view returns (byte[256], uint) {
     var iv = inventories_[user];
-    assert(iv.length > slot_idx);
+    require(iv.length > slot_idx);
     return loadBytes(iv[slot_idx].id);
   }
   function getSlotBytesAndId(address user, uint slot_idx) public view returns (uint, byte[256], uint) {
     var iv = inventories_[user];
-    assert(iv.length > slot_idx);
+    require(iv.length > slot_idx);
     var (c, clen) = loadBytes(iv[slot_idx].id);    
     return (iv[slot_idx].id, c, clen);
   }
   function getSlotId(address user, uint slot_idx) public view returns (uint) {
     var iv = inventories_[user];
-    assert(iv.length > slot_idx);
+    require(iv.length > slot_idx);
     return iv[slot_idx].id;
   }
   function getPrice(address user, uint id) public view returns (uint) {

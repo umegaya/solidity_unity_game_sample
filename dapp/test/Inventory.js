@@ -74,6 +74,7 @@ contract('Inventory', (accounts) => {
             assert.equal(log.args.user, accounts[0], "event should happens on specified account");
             assert.equal(log.args.id, 1, "cat id should be correct");
             var CatProto = proto.lookup("Cat");
+            var bs = toBytes(log.args.created);
             var cat = CatProto.decode(bs);
             //console.log("cat", cat);
             catCheck(cat, { isMale: true });
@@ -87,7 +88,7 @@ contract('Inventory', (accounts) => {
         }).then((ret) => {
             assert(false, "should not success with invalid index");
         }, (err) => {
-            return c.getSlotBytes.call(account[0], 0);
+            return c.getSlotBytes.call(accounts[0], 0);
         }).then((ret) => {
             var CatProto = proto.lookup("Cat");
             var cat = CatProto.decode(ret[0].slice(0, ret[1]));
@@ -95,14 +96,14 @@ contract('Inventory', (accounts) => {
             return c.setForSale(accounts[0], 0, 444);
         //set / get price
         }).then((ret) => {
-            return c.getPrice(accounts[0], 0);
+            return c.getPrice(accounts[0], 1);
         }).then((ret) => {
             assert.equal(ret, 444, "price should be set");
             return c.setForSale(accounts[1], 0, 222);
         }).then((ret) => {
             assert(false, "should not success with invalid account");
         }, (err) => {
-            return c.setForSale(account[0], 1, 0);
+            return c.setForSale(accounts[0], 1, 0);
         //transfer cat
         }).then((ret) => {
             assert(false, "should not success with invalid index");
@@ -132,10 +133,11 @@ contract('Inventory', (accounts) => {
             assert.equal(ret.toNumber(), 11500, "value should be correct");
             return c.breed(NAME2, accounts[0], 2, accounts[1], 1, 0);
         }).then((ret) => {
-            var log = ret.logs[1];
+            var log = ret.logs[0];
             var CatProto = proto.lookup("Cat");
             var bs = toBytes(log.args.created);
             var cat = CatProto.decode(bs);
+            //console.log("cat2", cat);
             assert.equal(log.args.id, 3, "cat id should be correct");
             catCheck(cat, { atk: ATK, def: DEF2, name: NAME2, skills: SKILL_IDS_CHILD });
             return c.estimateBreedValue(accounts[0], 2, accounts[1], 1, 16);
@@ -143,10 +145,11 @@ contract('Inventory', (accounts) => {
             assert.equal(ret.toNumber(), 10500, "value should be correct");
             return c.breed(NAME2, accounts[0], 2, accounts[1], 1, 16);
         }).then((ret) => {
-            var log = ret.logs[1];
+            var log = ret.logs[0];
             var CatProto = proto.lookup("Cat");
             var bs = toBytes(log.args.created);
             var cat = CatProto.decode(bs);
+            console.log("cat3", cat);
             assert.equal(log.args.id, 4, "cat id should be correct");
             catCheck(cat, { atk: ATK2, def: DEF, name: NAME2, skills: SKILL_IDS_CHILD });
         }).then((ret) => {
@@ -156,7 +159,6 @@ contract('Inventory', (accounts) => {
         }).then((ret) => { 
             assert(false, "breed should fail by sex is same");
         }, (err) => {
-            
         });
     });
 });

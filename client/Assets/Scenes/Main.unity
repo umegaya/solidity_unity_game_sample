@@ -326,13 +326,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target_entries_:
   - label_: World
-    address_: 0x2c2b9c9a4a25e24b174f26114e8926a9f2128fe4
+    address_: 0x76fe50a7157201104791a82e4287f229262a8819
     abi_: {fileID: 4900000, guid: 9e9588cee7174400eb9c62efb315044c, type: 3}
   - label_: Inventory
-    address_: 0x9fbda871d559710256a2502a2517b794b482db40
+    address_: 0x8be825ba9f6ad27eb542d17034c964b80275c45e
     abi_: {fileID: 4900000, guid: f581641a53d224414960a5c4710b4594, type: 3}
   - label_: Moritapo
-    address_: 0xf25186b5081ff5ce73482ad761db0eb0d25abfbf
+    address_: 0x9bc6dc3a807dfa540fc9dbf3276f02d156691caa
     abi_: {fileID: 4900000, guid: b422af85e1e1940ba99edf34e8130169, type: 3}
   default_gas_: 4000000
 --- !u!114 &1038119389
@@ -348,7 +348,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   password_: hoge fuga hoge fuga foo foo bar
   address_: 
-  chain_url_: http://localhost:9545
+  chain_url_: http://localhost:8540
   encyption_: 0
   remove_wallet_: 0
 --- !u!4 &1038119390

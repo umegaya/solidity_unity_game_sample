@@ -8,4 +8,4 @@ min_peers = 0
 [rpc]
 interface = "all"
 hosts = ["all"]
-apis = ["web3", "eth", "pubsub", "net", "parity", "parity_pubsub", "traces", "rpc", "shh", "shh_pubsub", "parity_accounts"]
+apis = ["web3", "eth", "pubsub", "net", "parity", "parity_pubsub", "traces", "rpc", "shh", "shh_pubsub", "parity_accounts", "parity_set"]

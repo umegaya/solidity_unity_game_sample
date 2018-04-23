@@ -20,7 +20,7 @@ K8S_CONFIG_DIR=$(HOME)/.kube
 else
 K8S_CONFIG_DIR=`pwd`/k8s/$(PLATFORM)
 ifeq ($(PLATFORM),gcp) 
-K8S_REGION=us-central1
+K8S_REGION=asia-northeast1
 K8S_CLUSTER=neko
 K8S_NODETAG=$(shell bash ./tools/get_fw_node_filter.sh $(K8S_CLUSTER))
 PROJECT_ID=$(shell docker run --rm -ti --volumes-from gcloud-config --entrypoint=gcloud umegaya/terraform config get-value project)

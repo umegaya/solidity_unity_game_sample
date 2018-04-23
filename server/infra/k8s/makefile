@@ -13,6 +13,7 @@ gcp_setup:
 	$(call gcloud,config set project $(PROJECT_ID))
 
 gcp:
+	rm `pwd`/gcp/config
 	$(call gcloud,beta container clusters get-credentials --region $(REGION) $(CLUSTER))
 
 aws:

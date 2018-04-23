@@ -3,7 +3,8 @@ chain = "/shared/config/__PLATFORM__.json"
 base_path = "/data/parity"
 
 [network]
-min_peers = 0
+min_peers = 1
+nat = "extip:__EXTIP__"
 
 [account]
 password = ["/shared/secret/node.pwds"]
@@ -15,3 +16,4 @@ reseal_on_txs = "none"
 [rpc]
 interface = "all"
 hosts = ["all"]
+apis = ["web3", "eth", "personal", pubsub", "net", "parity", "parity_pubsub", "traces", "rpc", "shh", "shh_pubsub", "parity_accounts", "parity_set"]

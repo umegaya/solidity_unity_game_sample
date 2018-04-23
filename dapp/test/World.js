@@ -90,6 +90,7 @@ contract('World', (accounts) => {
             //create initial cat (by using admin_account)
             return c.createInitialCat(main_account, 10**6, 0, "cat0", true);
         }).then((ret) => {
+            console.log(ret);
             catCheck(ret, proto, {
                 name: "cat0",
                 hp: 75,

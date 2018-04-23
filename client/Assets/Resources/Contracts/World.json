@@ -2,20 +2,6 @@
   {
     "constant": true,
     "inputs": [],
-    "name": "BASE_TOKEN_PRICE_IN_WEI",
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [],
     "name": "TOKEN_DOUBLED_AMOUNT_THRESHOULD",
     "outputs": [
       {
@@ -352,6 +338,14 @@
     "constant": false,
     "inputs": [
       {
+        "name": "target",
+        "type": "address"
+      },
+      {
+        "name": "payment_unit",
+        "type": "uint256"
+      },
+      {
         "name": "sel_idx",
         "type": "uint256"
       },
@@ -371,17 +365,44 @@
         "type": "bool"
       }
     ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "sel_idx",
+        "type": "uint256"
+      },
+      {
+        "name": "name",
+        "type": "string"
+      }
+    ],
+    "name": "payForInitialCat",
+    "outputs": [],
     "payable": true,
     "stateMutability": "payable",
     "type": "function"
   },
   {
     "constant": false,
-    "inputs": [],
+    "inputs": [
+      {
+        "name": "target",
+        "type": "address"
+      },
+      {
+        "name": "payment_unit",
+        "type": "uint256"
+      }
+    ],
     "name": "buyToken",
     "outputs": [],
-    "payable": true,
-    "stateMutability": "payable",
+    "payable": false,
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

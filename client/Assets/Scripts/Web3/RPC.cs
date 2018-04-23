@@ -62,15 +62,26 @@ public class RPC : MonoBehaviour {
         public IEnumerator Send(string func, params object[] args) { return Send3(func, owner_.default_gas_, 0, args); }
         public IEnumerator Send2(string func, double value_wei, params object[] args) { return Send3(func, owner_.default_gas_, value_wei, args); }
         public IEnumerator Send3(string func, double gas, double value_wei, params object[] args) {
+            Debug.Log("gas/value = " + gas + "|" + value_wei);
             var fn = c_.GetFunction(func);
             yield return owner_.send_.SignAndSendTransaction(
                 fn.CreateTransactionInput(Web3Mgr.instance.Account.address_, 
                     new HexBigInteger(new BigInteger(gas)), 
                     new HexBigInteger(new BigInteger(value_wei)), args));
-            yield return owner_.get_receipt_.SendRequest(
-                owner_.send_.Result
-            );
-            ParseSendResponse(fn, owner_.get_receipt_);
+            int retry = 0;
+            do {
+                if (retry > 0) {
+                    if (retry > 100) {
+                        break;
+                    }
+                    Debug.Log("retry get receipt:" + retry);
+                    yield return new WaitForSeconds(0.5f);
+                }
+                yield return owner_.get_receipt_.SendRequest(
+                    owner_.send_.Result
+                );
+                retry++;
+            } while (ParseSendResponse(fn, owner_.get_receipt_) == 0);
         }
 
         public void ParseCallResponse(Function fn, UnityRequest<string> req) {
@@ -83,12 +94,17 @@ public class RPC : MonoBehaviour {
                 r.Result = fn.DecodeResponse(req.Result);
             }
         }
-        public void ParseSendResponse(Function fn, UnityRequest<Dictionary<string, object>> req) {
+        public int ParseSendResponse(Function fn, UnityRequest<Dictionary<string, object>> req) {
             try {
                 var r = owner_.send_resp_;
                 if (req.Exception != null) {
                     r.Error = req.Exception;
                     r.Result = null;
+                    Debug.Log("parseSendResposne request error:" + r.Error.Message);
+                    return -1;
+                } else if (req.Result == null) {
+                    Debug.Log("tx not returns");
+                    return 0;
                 } else {
                     var txr = new Receipt(req.Result, c_);
                     txr.Dump();
@@ -97,9 +113,11 @@ public class RPC : MonoBehaviour {
                     for (int i = 0; i < txr.Logs.Count; i++) {
                         owner_.callback_(Event.TxEvent, new Receipt.Log(txr.Logs[i], c_));
                     }
+                    return 1;
                 }
             } catch (System.Exception ex) {
                 Debug.Log("parseSendResposne error:" + ex.StackTrace);
+                return 0;
             }
         }
     }

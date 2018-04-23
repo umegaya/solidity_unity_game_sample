@@ -37,7 +37,7 @@ NODE_LIST=$(node_list)
 NODES=($(echo ${NODE_LIST} | jq -r .address))
 MACHINES=($(echo ${NODE_LIST} | jq -r .machineID))
 
-echo "NODES=($NODES), MACHINES=($MACHINES)"
+echo "NODES=(${NODES[@]}), MACHINES=(${MACHINES[@]})"
 
 VALIDATOR_ADDRESSES=()
 USER_CREATION_NODE=
@@ -69,7 +69,8 @@ create_account `ps auwx | md5sum | awk '{print $1}'` `ps auwx | sha1sum | awk '{
 # ----------------------------------
 for idx in ${!MACHINES[@]} ; do
 	cat ${ROOT}/volume/config/path1.toml.tmpl \
-		| sed -e "s/__SIGNER__/${VALIDATOR_ADDRESSES[idx]}/" \
+		| sed -e "s/__SIGNER__/${VALIDATOR_ADDRESSES[$idx]}/" \
 		| sed -e "s/__PLATFORM__/${K8S_PLATFORM}/" \
+		| sed -e "s/__EXTIP__/${NODES[$idx]}/" \
 	> ${ROOT}/volume/config/${MACHINES[$idx]}.toml
 done

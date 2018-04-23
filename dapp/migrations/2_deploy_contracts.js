@@ -3,6 +3,7 @@ var NekoUtil = artifacts.require("NekoUtil");
 var Moritapo = artifacts.require("Moritapo");
 var Inventory = artifacts.require("Inventory");
 var World = artifacts.require("World");
+var Test = artifacts.require("Test");
 
 function deploy_pb(deployer) {
 	var PbRuntime = artifacts.require("_pb");
@@ -24,9 +25,10 @@ module.exports = function(deployer) {
   })//*/
   .then(function () {
     return deployer.deploy(Moritapo);
-  })
-  .then(function () {
+  }).then(function () {
     return deployer.deploy(NekoUtil);
+  }).then(function () {
+    return deployer.deploy(Test);
   }).then(function () {
     Inventory.link(NekoUtil);
     return deployer.deploy(Inventory, Storage.address);
@@ -43,6 +45,10 @@ module.exports = function(deployer) {
     });
   }).then(function () {
     return Moritapo.at(Moritapo.address).then(function (instance) {
+      return instance.setPrivilege(World.address, 1);
+    });
+  }).then(function () {
+    return World.at(World.address).then(function (instance) {
       return instance.setPrivilege(World.address, 1);
     });
   });
