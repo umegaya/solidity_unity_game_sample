@@ -82,8 +82,8 @@ contract World is Restrictable, Constants {
     tokenSold_ += amount;
     return true;
   }
-  function payForInitialCat(uint sel_idx, string name) public payable {
-    createInitialCat(msg.sender, 10000, sel_idx, name, true);
+  function payForInitialCat(uint sel_idx, string name, bool debug_is_mail) public payable {
+    createInitialCat(msg.sender, 10000, sel_idx, name, debug_is_mail);
   }
   //just buy token with sent ether (where to have conversion rate?)
   function buyToken(address target, uint payment_unit) public writer {

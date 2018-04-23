@@ -45,7 +45,7 @@ var catCheck = (cat, opts) => {
 
 contract('Inventory', (accounts) => {
     it("can create and load cat", () => {
-        var c, sc, proto;
+        var c, sc, proto, no_throw = false;
         return Storage.deployed().then((instance) => {
             sc = instance;
             return Inventory.deployed();
@@ -149,16 +149,17 @@ contract('Inventory', (accounts) => {
             var CatProto = proto.lookup("Cat");
             var bs = toBytes(log.args.created);
             var cat = CatProto.decode(bs);
-            console.log("cat3", cat);
             assert.equal(log.args.id, 4, "cat id should be correct");
             catCheck(cat, { atk: ATK2, def: DEF, name: NAME2, skills: SKILL_IDS_CHILD });
         }).then((ret) => {
             return c.addFixedCat(accounts[0], NAME, HP, ATK2, DEF2, SKILL_IDS2, true);
         }).then((ret) => {
+            no_throw = true;
             return c.breed(NAME2, accounts[0], 5, accounts[1], 1, -1);
         }).then((ret) => { 
             assert(false, "breed should fail by sex is same");
         }, (err) => {
+            assert(no_throw, "should not got halfway throw");
         });
     });
 });

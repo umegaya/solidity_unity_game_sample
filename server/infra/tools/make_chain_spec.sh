@@ -29,6 +29,7 @@ rm -f ${NODE_PWDS}
 for n in $(ls ${SECRET_ROOT}/node-*.pass) ; do
 	cat $n >> ${NODE_PWDS}
 done
+cat ${SECRET_ROOT}/user.pass >> ${NODE_PWDS}
 
 echo "GENESIS_ACCOUNTS:${GENESIS_ACCOUNTS}"
 echo "VALIDATORS:${VALIDATORS}"

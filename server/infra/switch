@@ -9,6 +9,8 @@ fi
 # RequestError: send request failed
 # caused by: Get https://dokyogames-terraform-bucket.s3.ap-northeast-1.amazonaws.com/?prefix=env%3A%2F: dial tcp: lookup dokyogames-terraform-bucket.s3.ap-northeast-1.amazonaws.com on 10.0.2.3:53: read udp 172.17.0.3:43876->10.0.2.3:53: i/o timeout
 export K8S_PLATFORM=$1
+rm -r `pwd`/src/specific
+cp -r `pwd`/specific/${K8S_PLATFORM} `pwd`/src/specific
 source `pwd`/tools/common.sh `pwd`
 if [ "$1" == "dev" ]; then
 	make select WS=default
