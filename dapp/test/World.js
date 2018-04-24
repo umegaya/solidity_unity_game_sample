@@ -131,6 +131,7 @@ contract('World', (accounts) => {
             return c.payForInitialCat(0, "cat0", false, {from: sub_account, value: 10**18});
         }).then((ret) => {
             console.log(8);
+            proess.exit(1);
             sub_balance += 5*(10**3); //already token price doubled above
             return c.estimateBreedFee.call(1, sub_account, 2, {from: main_account});
         }).then(async (ret) => {

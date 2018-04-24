@@ -12,7 +12,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "glob": "^7.1.2",
+    "keythereum": "^1.0.3",
     "protobufjs": "^6.8.6",
-    "soltype-pb": "^0.2.1"
+    "soltype-pb": "^0.2.1",
+    "truffle-privatekey-provider": "0.0.6"
   }
 }
