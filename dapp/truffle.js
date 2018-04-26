@@ -1,5 +1,5 @@
 var t = require(__dirname + "/tools/utils/testUtils");
-t.init("poa-tutorial", "http://localhost:8540/");
+t.init("dev", "http://192.168.99.101:8545/");
 /*var privateKey = "eb9bd3e2dfcf73e180c253dcdf8332eab5cdeb26b0f174cec3692b1681b93095";
 // == address "0x56BB052E3C8dAD01F3bb0Fc8000a5E8475289849" */
 

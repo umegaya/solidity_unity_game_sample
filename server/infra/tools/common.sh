@@ -32,5 +32,5 @@ node_list() {
 }
 
 jsonrpc() {
-	curl --stderr /dev/null --data $1 -H "Content-Type: application/json" -X POST http://$2:8545
+	curl --stderr /tmp/jsonrpc.error.log --data $1 -H "Content-Type: application/json" -X POST http://$2:8545
 }

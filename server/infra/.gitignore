@@ -4,6 +4,7 @@ volume/config/[a-f0-9]*.toml
 volume/secret/*/*.addr
 volume/secret/*/*.pass
 volume/secret/*/*.pwds
+volume/secret/*/*.ks
 .terraform
 *.tfplan
 k8s/*/config

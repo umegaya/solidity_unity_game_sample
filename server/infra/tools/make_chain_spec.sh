@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 ROOT=$(cd $(dirname $0) && pwd)/..
 source ${ROOT}/tools/common.sh ${ROOT}
 
@@ -8,9 +10,12 @@ SECRET_ROOT=${ROOT}/volume/secret/${K8S_PLATFORM}
 # ----------------------------------
 # create genesis account setting
 # ----------------------------------
-USER_ADDRESS=`cat ${SECRET_ROOT}/user.addr`
-# this big number means 2 ^ 200
-GENESIS_ACCOUNTS="\"${USER_ADDRESS}\": { \"balance\": \"1606938044258990275541962092341162602522202993782792835301376\" }"
+GENESIS_ACCOUNTS_ADDRESSES=()
+for u in $(ls ${SECRET_ROOT}/user-*.addr) ; do
+	# this big number means 2 ^ 192 (ether) = 2 ^ 192 * 10 ^ 18 (wei) < 2 ^256
+	GENESIS_ACCOUNTS_ADDRESSES+=("\"$(cat $u)\": { \"balance\": \"0x1000000000000000000000000000000000000000000000000\" }")
+done
+GENESIS_ACCOUNTS="$(IFS=,; echo "${GENESIS_ACCOUNTS_ADDRESSES[*]}")"
 
 # ----------------------------------
 # create validators account setting
@@ -29,10 +34,12 @@ rm -f ${NODE_PWDS}
 for n in $(ls ${SECRET_ROOT}/node-*.pass) ; do
 	cat $n >> ${NODE_PWDS}
 done
-cat ${SECRET_ROOT}/user.pass >> ${NODE_PWDS}
 
-echo "GENESIS_ACCOUNTS:${GENESIS_ACCOUNTS}"
-echo "VALIDATORS:${VALIDATORS}"
+# ----------------------------------
+# dump results
+# ----------------------------------
+echo "GENESIS_ACCOUNTS:${GENESIS_ACCOUNTS[@]}"
+echo "VALIDATORS:${VALIDATORS[@]}"
 cat ${NODE_PWDS}
 
 # ----------------------------------
