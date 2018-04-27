@@ -6,22 +6,18 @@ var Inventory = artifacts.require('Inventory');
 var soltype = require("soltype-pb");
 var protobuf = soltype.importProtoFile(require("protobufjs"));
 
-var toBytes = (hexdump) => {
-    var buff = new Uint8Array(hexdump.length / 2 - 1);
-    var idx = 0;
-    hexdump.substring(2).replace(/\w{2}/g, (m) => {
-        buff[idx++] = parseInt(m, 16);
-    });
-    return buff;
-}
+var helper = require(__dirname + "/../tools/utils/helper");
+
 var catCheck = (ret, proto, opts) => {
     var log;
     //search AddCat log
     ret.logs.forEach((l) => {
-        if (l.event == 'AddCat') { log = l; }
+        if (l.event == 'AddCat') { 
+            log = l; 
+        }
     });
     var CatProto = proto.lookup("Cat");
-    var bs = toBytes(log.args.created);
+    var bs = helper.toBytes(log.args.created);
     var cat = CatProto.decode(bs);
     opts = opts || {}
     if (opts.name) {
@@ -39,6 +35,7 @@ var catCheck = (ret, proto, opts) => {
     if (opts.skill_len) {
         assert.equal(cat.skills.length, opts.skill_len, "skill should be correct");
     }
+    return log.args.id.toNumber();
 }
 var checkSpent = (ret, target) => {
     var log;
@@ -49,15 +46,17 @@ var checkSpent = (ret, target) => {
     return log ? log.args.value : 0;
 }
 
+var pgrs = new helper.Progress();
+//pgrs.verbose = true;
 
-contract('World', (accounts) => {
-    console.log(accounts);
+contract('World', (as) => {
+    var accounts = World.currentProvider.addresses_;
     var admin_account = accounts[0];
     var main_account = accounts[1]; //because accounts[0] is token creator
     var sub_account = accounts[2];
+    var main_cat_id, sub_cat_id, breed_cat_id;
     it("can create and load cat", () => {
         var c, sc, tc, proto;
-        var no_throw = false;
         var est_breed_fee, reclaim_token;
         var main_balance = 0, sub_balance = 0;
         var test_cat_price = 2222;
@@ -80,70 +79,80 @@ contract('World', (accounts) => {
             });
         }).then((p) => {
             proto = p;
-            return c.setPrivilege(main_account, 1);
+            //console.log("contract address:", Inventory.address, Moritapo.address, World.address);
+            return c.setPrivilege(sub_account, 1);            
         }).then((ret) => {
-            return c.setPrivilege(sub_account, 1);
-        }).then((ret) => {
+            pgrs.step();
             //create initial cat (by using main_account)
             return c.createInitialCat(main_account, 10**6, 0, "cat0", true, {from: main_account});
         }).then((ret) => {
             assert(false, "should not success because main_account is not writer");
         }, (err) => {
+            pgrs.raise(err);
             //create initial cat (by using admin_account)
             return c.createInitialCat(main_account, 10**6, 0, "cat0", true);
         }).then((ret) => {
-            console.log(1);
-            catCheck(ret, proto, {
+            pgrs.step();
+            main_cat_id = catCheck(ret, proto, {
                 name: "cat0",
                 hp: 75,
                 atk: 10,
                 def: 10,
                 skill_len: 1,
             });
+            //create initial cat (by using admin_account)
             return c.createInitialCat(main_account, 10**6, 0, "cat0", true);
         }).then((ret) => {
             assert(false, "should not success next create cat");
         }, (err) => {
-            console.log(2, err);
+            pgrs.raise(err);
             main_balance += 10**6;
+        }).then((ret) => {
+            pgrs.step();
+            return c.setPrivilege(main_account, 1);
+        }).then((ret) => { 
             return c.getTokenBalance.call({from: main_account});
         //buy token
         }).then((ret) => {
-            console.log(3);
+            pgrs.step();
             assert.equal(ret.toNumber(), main_balance, "gain token balance should correct");
             return c.buyToken(main_account, 10**7);
         }).then((ret) => {
-            console.log(4);
+            pgrs.step();
             main_balance += 10**7;
+        }).then((ret) => {
             return c.getTokenBalance.call({from: main_account});            
         }).then((ret) => {
-            console.log(5);
+            pgrs.step();
             assert.equal(ret.toNumber(), main_balance, "gain token balance should correct");
             return c.buyToken(main_account, 10**6);
         }).then((ret) => {
-            console.log(6);
+            pgrs.step();
             main_balance += 5 * (10**5);
             return c.getTokenBalance.call({from: main_account});            
         }).then((ret) => {
-            console.log(7, ret);
+            pgrs.step();
             assert.equal(ret.toNumber(), main_balance, "gain token balance should correct");
         //breed and buy cat
             return c.payForInitialCat(0, "cat0", false, {from: sub_account, value: 10**18});
         }).then((ret) => {
-            console.log(8);
-            proess.exit(1);
+            pgrs.step();
+            sub_cat_id = catCheck(ret, proto, {
+                name: "cat0",
+            });
             sub_balance += 5*(10**3); //already token price doubled above
-            return c.estimateBreedFee.call(1, sub_account, 2, {from: main_account});
+            return c.estimateBreedFee.call(main_cat_id, sub_account, sub_cat_id, {from: main_account});
         }).then(async (ret) => {
+            pgrs.step();
             est_breed_fee = ret.toNumber();
             assert.equal(est_breed_fee >= 95 && est_breed_fee <= (16 + 95), 
                          true, "breed fee should be correct");
             //allow possible maximum spent
             await tc.approve(World.address, 16 + 95, {from: main_account});
-            return c.breedCat("breed", 1, sub_account, 2, {from: main_account});
+            return c.breedCat("breed", main_cat_id, sub_account, sub_cat_id, {from: main_account});
         }).then((ret) => {
-            console.log(9);
-            catCheck(ret, proto, {
+            pgrs.step();
+            breed_cat_id = catCheck(ret, proto, {
                 name: "breed",
             });
             var spent = checkSpent(ret, main_account);
@@ -151,42 +160,45 @@ contract('World', (accounts) => {
             main_balance -= spent;
             return c.getTokenBalance.call({from: main_account});
         }).then((ret) => {
-            console.log(10);
+            pgrs.step();
             assert.equal(ret.toNumber(), main_balance, "token balance shold be decreased correctly");
             return c.setForSale(0, test_cat_price, {from: main_account});
         }).then((ret) => {
             return Inventory.deployed();
         }).then((instance) => {
-            console.log(11);
-            return instance.getPrice.call(main_account, 1); //slot 0 should be cat_id = 1
+            pgrs.step();
+            return instance.getPrice.call(main_account, main_cat_id); //slot 0 should be cat_id = 1
         }).then(async (ret) => {
-            console.log(12);
+            pgrs.step();
             assert.equal(ret.toNumber(), test_cat_price, "getPrice should returns correct price");
             await tc.approve(World.address, test_cat_price, {from: sub_account});
-            return c.buyCat(main_account, 1, { from: sub_account }); //slot 0 should be cat_id = 1
+            return c.buyCat(main_account, main_cat_id, { from: sub_account }); //slot 0 should be cat_id = 1
         }).then((ret) => {
-            console.log(13);
+            pgrs.step();
             sub_balance -= test_cat_price;
             return c.getTokenBalance.call({ from: sub_account });
         }).then((ret) => {
-            console.log(14);
+            pgrs.step();
             assert.equal(ret.toNumber(), sub_balance, "balance should be correctly decreased");
         //reclaim cat
-        console.log(15);
-        return c.estimateReclaimToken.call(1, { from: sub_account });
+            pgrs.step();
+            return c.estimateReclaimToken.call(1, { from: sub_account });
         }).then((ret) => {
-            console.log(16);
+            pgrs.step();
             reclaim_token = ret.toNumber();
             assert.equal(reclaim_token, 95, "reclaim fee should be correct");
             return c.reclaimToken(1, { from: sub_account });
         }).then((ret) => {
-            console.log(17);
+            pgrs.step();
             sub_balance += reclaim_token;
-            no_throw = true;
             return c.getTokenBalance.call({ from: sub_account });        
         }).then((ret) => {
-            console.log(18);
+            pgrs.step();
             assert.equal(ret.toNumber(), sub_balance, "reclaim should be done correctly");
+            if (pgrs.err_counter != 2) {
+                console.log(pgrs.err);
+                assert(false, "should not got halfway throw");
+            }
         });
-    });    
+    });
 });

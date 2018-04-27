@@ -34,7 +34,7 @@ resource "kubernetes_daemonset" "neko-blockchain-ds" {
       }
       spec {
         container {
-          image = "parity/parity"
+          image = "umegaya/parity"
           name  = "neko-blockchain-node"
           command = ["/bin/bash"]
           args = ["-c", "/parity/parity --config /shared/config/${var.setup_path}"]

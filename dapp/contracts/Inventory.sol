@@ -123,6 +123,10 @@ contract Inventory is StorageAccessor, Restrictable {
 
 
   //writer
+  function clearSlots(address user) public admin {
+    var iv = inventories_[user];
+    iv.length = 0;
+  }
   function setForSale(address user, uint index, uint price) public writer returns (bool) {
     var iv = inventories_[user];
     require(iv.length > index);
