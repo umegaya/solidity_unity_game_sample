@@ -326,13 +326,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target_entries_:
   - label_: World
-    address_: 0x76fe50a7157201104791a82e4287f229262a8819
+    address_: 0xf015979938513f25babd2b226f9fd1b657b052aa
     abi_: {fileID: 4900000, guid: 9e9588cee7174400eb9c62efb315044c, type: 3}
   - label_: Inventory
-    address_: 0x8be825ba9f6ad27eb542d17034c964b80275c45e
+    address_: 0xb17b9128ec40ffe6d827a07bf5c3e6aaa762b0c5
     abi_: {fileID: 4900000, guid: f581641a53d224414960a5c4710b4594, type: 3}
   - label_: Moritapo
-    address_: 0x9bc6dc3a807dfa540fc9dbf3276f02d156691caa
+    address_: 0x48b54e91fc26a98a8a60830cd0b7e76a604c4a94
     abi_: {fileID: 4900000, guid: b422af85e1e1940ba99edf34e8130169, type: 3}
   default_gas_: 4000000
 --- !u!114 &1038119389

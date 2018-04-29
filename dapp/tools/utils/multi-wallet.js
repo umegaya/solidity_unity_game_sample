@@ -65,7 +65,7 @@ MultiWalletEthTxProvider.prototype.init = function (opts) {
                     }
                     break;
                 } catch (e) {
-                    console.log(files[i] + ":try recover with pass[" + pass + "] fails(throw). continue");
+                    //console.log(files[i] + ":try recover with pass[" + pass + "] fails(throw). continue");
                 }
             }
             if (!pkey) {
