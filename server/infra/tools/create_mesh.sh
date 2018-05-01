@@ -9,7 +9,10 @@ if [ ${#NODES[@]} -le 1 ]; then
 	exit 0
 fi
 
-echo "create mesh of ${#NODES[@]} nodes"
+PEERS_FILE=${ROOT}/volume/config/${K8S_PLATFORM}.peers
+rm -f ${PEERS_FILE}
+
+echo "create mesh of ${#NODES[@]} nodes to ${PEERS_FILE}"
 
 get_enode_of() {
 	local node=$1
@@ -21,26 +24,9 @@ BODY
 	jsonrpc ${body} $node | jq -r .result | sed -e "s/@[\.0-9]*:/@${node}:/"
 }
 
-register_enode_to() {
-	local node=$1
-	local enode=$2
-	local body=$(cat << BODY
-{"jsonrpc":"2.0","method":"parity_addReservedPeer","params":["${enode}"],"id":0}
-BODY
-)
-	# will write json output like {"jsonrpc":"2.0","result":"0x00bd138abd70e2f00903268f3db08f2d25677c9e","id":0}
-	jsonrpc ${body} $node
-}
-
 # create mesh
 for a in ${NODES[@]} ; do 
 	bash ${ROOT}/tools/wait_node.sh ${a}
 	enode=`get_enode_of ${a}`
-	echo "enode=${enode}"
-	for b in ${NODES[@]} ; do 
-		if  [ "$a" != "$b" ]; then
-			echo "register $a => $b"
-			register_enode_to $b $enode > /dev/null
-		fi
-	done
+	echo "${enode}" >> ${PEERS_FILE}
 done

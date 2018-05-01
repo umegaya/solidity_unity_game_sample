@@ -13,8 +13,9 @@ ROOT=`pwd`/..
 SETUP_PATH=$(shell bash $(ROOT)/tools/decide_path.sh $(ROOT))
 K8S_HOST=$(shell bash $(ROOT)/tools/kubehost.sh)
 K8S_VARS=-var 'k8s_config_path=/k8s/config' -var 'k8s_host=$(K8S_HOST)'
-VARS=$(K8S_VARS) -var 'access_key=$(ACCOUNT)' -var 'secret_key=$(SECRET)' -var 'region=$(REGION)' -var 'data_volume=$(STORAGE_VOLUME)' -var 'parity_config=$(CONFIG_VOLUME)' -var 'parity_secret=$(SECRET_VOLUME)' -var 'project_id=$(PROJECT_ID)' -var 'setup_path=$(SETUP_PATH)' -var 'fw_node_filter=$(NODETAG)'
-BACKEND_VARS=$(K8S_VARS) -backend-config='access_key=$(ACCOUNT)' -backend-config='secret_key=$(SECRET)' -backend-config='bucket=$(BUCKET)' -backend-config='region=$(REGION)'
+SPEC_VARS=-var 'project_id=$(PROJECT_ID)' -var 'fw_node_filter=$(NODETAG)'
+VARS=$(K8S_VARS) $(SPEC_VARS) -var 'access_key=$(ACCOUNT)' -var 'secret_key=$(SECRET)' -var 'region=$(REGION)' -var 'data_volume=$(STORAGE_VOLUME)' -var 'parity_config=$(CONFIG_VOLUME)' -var 'parity_secret=$(SECRET_VOLUME)' -var 'setup_path=$(SETUP_PATH)'
+BACKEND_VARS=$(K8S_VARS) $(SPEC_VARS) -backend-config='access_key=$(ACCOUNT)' -backend-config='secret_key=$(SECRET)' -backend-config='bucket=$(BUCKET)' -backend-config='region=$(REGION)'
 
 # variables for execution of this container
 MOUNT=/tf

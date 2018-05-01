@@ -99,3 +99,10 @@ resource "kubernetes_daemonset" "neko-blockchain-ds" {
     }
   }
 }
+
+module "specific" {
+  source = "./specific"
+
+  project_id = "${var.project_id}"
+  fw_node_filter = "${var.fw_node_filter}"
+}
