@@ -13,6 +13,7 @@ rm -r `pwd`/src/specific
 cp -r `pwd`/specific/${K8S_PLATFORM} `pwd`/src/specific
 source `pwd`/tools/common.sh `pwd`
 if [ "$1" == "dev" ]; then
+	kcd config set-context minikube --namespace=neko
 	make select WS=default
 else
 	make select WS=$1

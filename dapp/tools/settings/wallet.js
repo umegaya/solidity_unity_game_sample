@@ -1,7 +1,10 @@
-var stage = "local";
+var exec = require('child_process').execSync;
+var chop = require('../utils/helper').chop;
+
+var stage = process.env.CONFIG_NAME || "dev";
 var walletSettings = {
   dev: {
-    url: "http://192.168.99.101:8545/",
+    url: "http://" + chop(exec("minikube ip")) + ":8545/",
     sourceType: "ha-blockchain-tool",
     sourcePath: __dirname + "/../../../server/infra/volume/secret/" + stage,      
   },

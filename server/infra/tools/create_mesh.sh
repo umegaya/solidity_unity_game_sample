@@ -3,14 +3,15 @@
 ROOT=$(cd $(dirname $0) && pwd)/..
 source ${ROOT}/tools/common.sh ${ROOT}
 
+PEERS_FILE=${ROOT}/volume/config/${K8S_PLATFORM}.peers
+rm -f ${PEERS_FILE}
+
 NODES=($(node_list | jq -r .address))
 if [ ${#NODES[@]} -le 1 ]; then
 	echo "no need to create mesh for [${NODES}]"
+	touch ${PEERS_FILE}
 	exit 0
 fi
-
-PEERS_FILE=${ROOT}/volume/config/${K8S_PLATFORM}.peers
-rm -f ${PEERS_FILE}
 
 echo "create mesh of ${#NODES[@]} nodes to ${PEERS_FILE}"
 

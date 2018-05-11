@@ -20,6 +20,22 @@ class Progress {
     }
 }
 
+var chop = function (str) {
+    if (typeof(str) != 'string') {
+        str = str.toString();
+    }
+    var i = str.length - 1;
+    for (; i >= 0; i--) {
+        if (str.charAt(i) != '\r' && str.charAt(i) != '\n') {
+            break;
+        }
+    }
+    if (i < (str.length - 1)) {
+        return str.substring(0, i+1);
+    } else {
+        return str;
+    }
+}
 
 var toBytes = (hexdump) => {
     var buff = new Uint8Array(hexdump.length / 2 - 1);
@@ -31,6 +47,7 @@ var toBytes = (hexdump) => {
 }
 
 module.exports = {
+    chop: chop,
     toBytes: toBytes,
     Progress: Progress,
 }

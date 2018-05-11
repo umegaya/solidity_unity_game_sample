@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const inherits = require('util').inherits
 const glob = require("glob");
+const chop = require("./helper").chop;
 const keythereum = require("keythereum");
 const Web3 = require("web3");
 const ProviderEngine = require("web3-provider-engine");
@@ -30,20 +31,6 @@ function MultiWalletEthTxProvider(opts) {
     };
     self.init(opts);
     MultiWalletEthTxProvider.super_.call(self, opts);
-}
-
-MultiWalletEthTxProvider.chop = function (str) {
-	var i = str.length - 1;
-	for (; i >= 0; i--) {
-		if (str.charAt(i) != '\r' && str.charAt(i) != '\n') {
-			break;
-		}
-	}
-	if (i < (str.length - 1)) {
-		return str.substring(0, i+1);
-	} else {
-		return str;
-	}
 }
 
 MultiWalletEthTxProvider.prototype.init = function (opts) {
@@ -83,7 +70,7 @@ MultiWalletEthTxProvider.prototype.init = function (opts) {
         for (var i = 0; i < files.length; i++) {
             var key = JSON.parse(fs.readFileSync(files[i]));
             var passfile = path.dirname(files[i]) + "/" + path.basename(files[i], ".ks") + ".pass";
-            var pass = MultiWalletEthTxProvider.chop(fs.readFileSync(passfile).toString());
+            var pass = chop(fs.readFileSync(passfile).toString());
             var pkey = keythereum.recover(pass, key);
             if (pkey == null) {
                 throw new Error(files[i] + ":try recover with pass[" + pass + "] fails. abort");

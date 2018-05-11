@@ -9,6 +9,8 @@ LOCAL_PROTO_DST_DIR=./contracts/libs/pb
 PROTO_SRC=$(notdir $(shell ls $(LOCAL_PROTO_SRC_DIR)/*.proto))
 PROTO_SOL=$(addprefix $(LOCAL_PROTO_DST_DIR)/,$(PROTO_SRC:%.proto=%_pb.sol))
 
+K8S_PLATFORM?=
+
 
 define soliditize
 ${CONTAINER_RUNARG} protoc -I/ -I/protoc/include --plugin=protoc-gen-sol=${SOLIDITY_PLUGIN} --sol_out=$2 $1
@@ -26,3 +28,9 @@ test: proto
 
 compile_if_not: proto
 	@[[ -e ./build/contracts ]] || truffle compile
+
+migrate: proto
+	truffle migrate
+
+addresses: migrate
+	CONFIG_NAME=$(K8S_PLATFORM) truffle exec ./tools/admin/make_address_map.js

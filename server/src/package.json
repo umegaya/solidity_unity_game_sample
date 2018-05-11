@@ -1,0 +1,20 @@
+{
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "express": "^4.15.4",
+    "keythereum": "^1.0.3",
+    "mysql": "^2.14.1",
+    "truffle-privatekey-provider": "^0.0.6",
+    "web3": "^1.0.0-beta.34"
+  },
+  "devDependencies": {
+    "@types/express": "^4.11.1",
+    "@types/node": "^10.0.8",
+    "raw-loader": "^0.5.1",
+    "ts-loader": "^4.3.0",
+    "typescript": "^2.8.3",
+    "web3-typescript-typings": "^0.10.2",
+    "webpack": "^4.8.1",
+    "webpack-cli": "^2.1.3"
+  }
+}

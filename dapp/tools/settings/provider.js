@@ -1,3 +1,3 @@
-var MultiWalletProvider = require(__dirname + "/../utils/multi-wallet");
-var setting = require("./wallet.js");
+var MultiWalletProvider = require("../utils/multi-wallet");
+var setting = require("./wallet");
 module.exports = new MultiWalletProvider(setting);
