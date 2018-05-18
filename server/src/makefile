@@ -7,7 +7,8 @@ run: db
 	node index.js
 
 dev:
-	webpack --config ./tools/webpack/config.js --watch
+	webpack --config ./tools/webpack/config.js --watch &
+	node_modules/.bin/nodemon --ext js --watch dist -x 'node index.js'
 
 compile:
 	webpack --config ./tools/webpack/config.js
