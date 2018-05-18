@@ -1,14 +1,15 @@
 var fs = require('fs');
 var path = require('path');
-
 var functions = {};
 var dirs = fs.readdirSync(__dirname);
 for (var i = 0; i < dirs.length; i++) {
-    console.log("dir:" + i + " => " + dirs[i]);
-    var p = path.join(__dirname, dirs[i]);
+	var d = dirs[i];
+    var p = path.join(__dirname, d);
     if (fs.statSync(p).isDirectory()) {
+	    console.log("dir:" + i + " => " + d + "(" + path.join("..", "dist", d) + ")");
         //TODO: interpolate parcel-built javascript file path and require
-        functions = Object.assign(functions, require(path.join(p, "build")));
+        var req = require(path.join("..", "dist", d));
+        functions = Object.assign(functions, req);
     }
 }
 

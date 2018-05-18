@@ -25,6 +25,7 @@ module.exports = {
   devtool: false,
   output: {
     filename: '[name].js',
-    path: path.resolve(path.join(__dirname, '..', '..', 'dist'))
+    path: path.resolve(path.join(__dirname, '..', '..', 'dist')),
+    libraryTarget: 'commonjs',
   }
 };

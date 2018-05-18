@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 
-var helloHandler = (req: Request):string => {
+var handler = (req: Request):string => {
     return "buy-token";
 }
 
-export function hello(req: Request, res: Response) {
+export function buy_token(req: Request, res: Response) {
     try {
-        var out:string = helloHandler(req);
+        var out:string = handler(req);
         res.status(200);
         res.send(out);
     } catch (err) {

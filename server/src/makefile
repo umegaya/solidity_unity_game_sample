@@ -9,6 +9,9 @@ run: db
 dev:
 	webpack --config ./tools/webpack/config.js --watch
 
+compile:
+	webpack --config ./tools/webpack/config.js
+
 stop:
 	-docker kill ffdb
 	-docker rm ffdb

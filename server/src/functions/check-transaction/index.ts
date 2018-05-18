@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 
-var helloHandler = (req: Request):string => {
+var handler = (req: Request):string => {
     return "check-tx";
 }
 
-export function hello(req: Request, res: Response) {
+export function check_transaction(req: Request, res: Response) {
     try {
-        var out:string = helloHandler(req);
+        var out:string = handler(req);
         res.status(200);
         res.send(out);
     } catch (err) {
