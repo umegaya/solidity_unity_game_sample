@@ -38,7 +38,7 @@ k8s:
 
 init:
 	@echo "if platform == dev, be sure that you already create directory /var/parity/storage in your minikube VM"
-	@rm `pwd`/volume/config/$(K8S_PLATFORM).json
+	@-rm `pwd`/volume/config/$(K8S_PLATFORM).json
 	@make -C src init ACCOUNT=$(AWS_ACCESS_KEY) SECRET=$(AWS_SECRET_KEY) REGION=$(AWS_DEFAULT_REGION) BUCKET=$(S3_BUCKET) K8S_CONFIG_DIR=$(K8S_CONFIG_DIR) PROJECT_ID=$(PROJECT_ID) NODETAG=$(K8S_NODETAG)
 
 ws:
