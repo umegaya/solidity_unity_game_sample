@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package neko;
+
+import "Solidity.proto";
+
+message Payment {
+    solidity.address payer = 1;
+}

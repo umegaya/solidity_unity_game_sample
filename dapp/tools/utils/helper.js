@@ -1,3 +1,5 @@
+var cp = require('child_process');
+
 class Progress {
     constructor() {
         this.counter = 0;
@@ -46,8 +48,24 @@ var toBytes = (hexdump) => {
     return buff;
 }
 
+var getDockerHost = () => {
+    if (process.env.DOCKER_HOST) {
+        //docker machine
+        return process.env.DOCKER_HOST.replace(/tcp:\/\/([0-9\.]+):.*/, function (m, a1) { console.log(m, a1); return a1; });
+    } else {
+        //docker for mac/win
+        return "localhost";
+    }
+}
+
+var getMinikubeHost = () => {
+    return chop(cp.execSync("minikube ip"));
+}
+
 module.exports = {
     chop: chop,
     toBytes: toBytes,
     Progress: Progress,
+    getDockerHost: getDockerHost,
+    getMinikubeHost: getMinikubeHost,
 }

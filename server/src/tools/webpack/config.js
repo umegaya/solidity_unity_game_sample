@@ -6,8 +6,6 @@ module.exports = {
   module: {
     rules: [
         { test: /\.ts$/, use: 'ts-loader' },
-        //{ test: /\.node$/, use: 'node-loader' },
-        //{ test: /.*\/build\/contracts\/.*\.json$/, use: 'raw-loader' },
         { test: /\.pass$/, use: 'raw-loader' },
         { test: /\.ks$/, use: 'json-loader' },
     ],

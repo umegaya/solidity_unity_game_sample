@@ -6,7 +6,7 @@ library PRNG {
     }
     function gen(Data d) internal view returns (uint) {
         d.seed = d.seed + 1;
-        return uint(keccak256(d.seed, block.timestamp, block.blockhash(block.number - 1)));
+        return uint(keccak256(abi.encodePacked(d.seed, block.timestamp, blockhash(block.number - 1))));
     }
     function gen2(Data d, uint min, uint max) internal view returns (uint) {
         if (min >= max) { return min; }

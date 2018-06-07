@@ -1,11 +1,11 @@
 pragma solidity ^0.4.17;
 
 contract Restrictable {
-    enum Privilege { None, Write }
+    enum Privilege { None, Read, Write }
     address public administrator_;
     mapping (address => Privilege) public members_;
 
-    function Restrictable() public {
+    constructor() public {
         administrator_ = msg.sender;
     }
 
@@ -17,6 +17,11 @@ contract Restrictable {
     modifier writer {
         require(checkWritableFrom(msg.sender));
         _;
+    }
+
+    modifier reader {
+        require(checkReadableFrom(msg.sender));
+        _;        
     }
 
     function changeOwner(address newAdmin) public admin {
@@ -33,5 +38,9 @@ contract Restrictable {
 
     function checkWritableFrom(address sender) view public returns (bool) {
       return sender == administrator_ || uint(members_[sender]) >= uint(Privilege.Write);
+    }
+
+    function checkReadableFrom(address sender) view public returns (bool) {
+      return sender == administrator_ || uint(members_[sender]) >= uint(Privilege.Read);
     }
 }

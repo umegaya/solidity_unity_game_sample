@@ -1,4 +1,4 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.24;
 
 import "./Inventory.sol";
 import "./Moritapo.sol";
@@ -30,7 +30,7 @@ contract World is Restrictable, Constants {
   event Error(address sender, uint require, uint allowance);
 
   //ctor
-  function World(address tokenAddress, address inventoryAddress) Restrictable() public {
+  constructor(address tokenAddress, address inventoryAddress) Restrictable() public {
     token_ = Moritapo(tokenAddress); 
     //msg.sender should be initial owner of all token
     require(token_.balanceOf(msg.sender) > 0);
@@ -47,9 +47,9 @@ contract World is Restrictable, Constants {
   function estimateBreedFee(uint cat_id, address target, uint target_cat_id) public view returns (uint) {
     return estimateBreedFee(msg.sender, cat_id, target, target_cat_id);
   }
-  function estimateReclaimToken(uint index) returns (uint256) {
-    var (c, clen) = inventory_.getSlotBytes(msg.sender, index);
-    pb_neko_Cat.Data memory cat = pb_neko_Cat.decode(StorageHelper.toBytes(c, clen));
+  function estimateReclaimToken(uint index) internal view returns (uint256) {
+    bytes memory c = inventory_.getSlotBytes(msg.sender, index);
+    pb_neko_Cat.Data memory cat = pb_neko_Cat.decode(c);
     return breedTokenFromCatValue(NekoUtil.evaluateCat(cat));
   }
 
@@ -76,9 +76,9 @@ contract World is Restrictable, Constants {
       inventory_.addFixedCat(target, name, 50, 10, 20, skills, is_male);
     }//*/
     //give initial token with current rate
-    var amount = payment_unit / currentRateForPU();
+    uint amount = payment_unit / currentRateForPU();
     require(token_.privilegedTransfer(target, amount));
-    Exchange(payment_unit, currentRateForPU(), tokenSold_, amount);
+    emit Exchange(payment_unit, currentRateForPU(), tokenSold_, amount);
     tokenSold_ += amount;
     return true;
   }
@@ -90,7 +90,7 @@ contract World is Restrictable, Constants {
     //give initial token with current rate
     uint amount = payment_unit / currentRateForPU();
     require(token_.privilegedTransfer(target, amount));
-    Exchange(payment_unit, currentRateForPU(), tokenSold_, amount);
+    emit Exchange(payment_unit, currentRateForPU(), tokenSold_, amount);
     tokenSold_ += amount;
   }
   //buy cat with set token price
@@ -107,7 +107,7 @@ contract World is Restrictable, Constants {
   //change your cat to token according to configured sell price
   function reclaimToken(uint index) public returns (bool) {
     require(inventory_.canReleaseCat(msg.sender));
-    var (reclaim_amount, cat_id) = getStandardPrice(msg.sender, index);
+    (uint reclaim_amount, uint cat_id) = getStandardPrice(msg.sender, index);
     require(reclaim_amount > 0); //ensure sender has the cat
     require(token_.privilegedTransfer(msg.sender, reclaim_amount));
     require(inventory_.transferCat(msg.sender, administrator_, cat_id));
@@ -118,7 +118,7 @@ contract World is Restrictable, Constants {
   //if required_token != 0, token is not enough. 
   //sender have to approve administrator_ to spend 'estimateBreedFee' 
   function breedCat(string name, uint cat_id, address target, uint target_cat_id) public returns (uint required_token) {
-    var fee = estimateBreedFee(msg.sender, cat_id, target, target_cat_id);
+    uint fee = estimateBreedFee(msg.sender, cat_id, target, target_cat_id);
     if (fee > token_.balanceOf(msg.sender)) {
       return fee;
     }
@@ -135,18 +135,17 @@ contract World is Restrictable, Constants {
   //helper
   function currentRateForPU() internal view returns (uint) {
     //sale. rate is doubled for each TOKEN_DOUBLED_AMOUNT_THRESHOULD token sold
-    var power = tokenSold_ / TOKEN_DOUBLED_AMOUNT_THRESHOULD;
+    uint power = tokenSold_ / TOKEN_DOUBLED_AMOUNT_THRESHOULD;
     return 2**power;
   }
-  function breedTokenFromCatValue(uint cv) internal view returns (uint) {
+  function breedTokenFromCatValue(uint cv) internal pure returns (uint) {
     return cv / CAT_VALUE_DIVIDE_BY_TOKEN;
   }
   function getStandardPrice(address reclaimer, uint index) public view returns (uint price, uint cat_id) {
-    var (c, clen) = inventory_.getSlotBytes(reclaimer, index);
-    var bs = StorageHelper.toBytes(c, clen);
+    bytes memory bs = inventory_.getSlotBytes(reclaimer, index);
     cat_id = inventory_.getSlotId(reclaimer, index);
-    var cat = pb_neko_Cat.decode(bs);
-    var base_price = NekoUtil.evaluateCat(cat);
+    pb_neko_Cat.Data memory cat = pb_neko_Cat.decode(bs);
+    uint base_price = NekoUtil.evaluateCat(cat);
     return (breedTokenFromCatValue(base_price), cat_id);
   }
   function estimateBreedFee(address sender, uint cat_id, address target, uint target_cat_id) internal view returns (uint) {
