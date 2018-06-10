@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-package neko;
-
-message Town {
-    uint32 width = 1;
-    uint32 height = 2;
-}

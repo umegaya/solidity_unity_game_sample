@@ -1,10 +1,10 @@
 syntax = "proto3";
 
-package neko;
+package ch;
 
 import "Solidity.proto";
 
-message Cat {
+message Card {
     solidity.uint16 hp = 1;
     solidity.uint16 attack = 2;
     solidity.uint16 defense = 3;

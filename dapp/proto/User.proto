@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package ch;
+
+message User {
+    message Deck {
+        repeated uint32 cards = 1;
+    }
+    uint32 cost_limit = 1;
+    repeated Deck decks = 2;
+}
+

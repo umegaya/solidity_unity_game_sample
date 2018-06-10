@@ -1,20 +1,27 @@
 var Storage = artifacts.require("Storage");
-var NekoUtil = artifacts.require("NekoUtil");
+var CardUtil = artifacts.require("CardUtil");
 var Moritapo = artifacts.require("Moritapo");
 var Inventory = artifacts.require("Inventory");
 var World = artifacts.require("World");
-var Test = artifacts.require("Test");
 
 function deploy_pb(deployer) {
 	var PbRuntime = artifacts.require("_pb");
-	var CatCodec = artifacts.require("pb_neko_Cat");
-	var TownCodec = artifacts.require("pb_neko_Town");
+	var CatCodec = artifacts.require("pb_ch_Card");
+	var TownCodec = artifacts.require("pb_ch_Town");
+	var UserCodec = artifacts.require("pb_ch_User");
+	var MatchCodec = artifacts.require("pb_ch_Match");
 	return deployer.deploy(PbRuntime).then(function () {
 		CatCodec.link(PbRuntime);
 		return deployer.deploy(CatCodec);
 	}).then(function () {
 		TownCodec.link(PbRuntime);
 		return deployer.deploy(TownCodec);
+	}).then(function () {
+		UserCodec.link(PbRuntime);
+		return deployer.deploy(UserCodec);
+	}).then(function () {
+		MatchCodec.link(PbRuntime);
+		return deployer.deploy(MatchCodec);
 	});
 }
 
@@ -26,14 +33,16 @@ module.exports = function(deployer) {
   .then(function () {
     return deployer.deploy(Moritapo);
   }).then(function () {
-    return deployer.deploy(NekoUtil);
+    return deployer.deploy(CardUtil);
   }).then(function () {
-    return deployer.deploy(Test);
+    return deployer.deploy(CardUtil);
   }).then(function () {
-    Inventory.link(NekoUtil);
+    return deployer.deploy(CardUtil);
+  }).then(function () {
+    Inventory.link(CardUtil);
     return deployer.deploy(Inventory, Storage.address);
   }).then(function () {
-    World.link(NekoUtil);
+    World.link(CardUtil);
     return deployer.deploy(World, Moritapo.address, Inventory.address);
   }).then(function () {
     return Storage.at(Storage.address).then(function (instance) {

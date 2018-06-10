@@ -1,21 +1,46 @@
-## neko
-- test block chain game using truffle and Nethereum
+# caravan heroes XI --online--
 
-### Goal
-  - import or automatically create wallet when user launch app first time
-  - build private ethereum chain network
-    - build some token on it
-    - can buy / sell tokens with eth on this private chain
-    - can buy cats / sell cats / apply some operation (eg. breed) cats 
-  - send token to client wallet for IAP (maybe soon or immediately banned by apple lol)
-  - cashout your cat as token (then go somewhere and trade with eth. wow, now we are completely scrooge!!)
+### 概要
+- 縦画面
+  - 横に広い方がカードの動きがダイナミックになりそうだが、ドローしたカードの置き場が苦しい
+- コストの合計が制限を超えない形でデッキを組む
+- カードの種類は以下の通り
+  - クリーチャー
+    - 一旦配置した後移動できる
+    - 敵のクリーチャーを攻撃できる
+    - キャラバンを破壊できる
+  - アイテム
+    - 一旦配置した後は移動できない
+      - 特殊なクリーチャー（「運搬」もち）がいれば移動できる？
+    - 重なった他のカードに特殊な効果を与える
+- カードを盤面に配置し、任意の位置に移動させることができる
+  - ただし敵クリーチャーとは接することまでしかできない(=移動がブロックされる)
+  - 接すると戦闘状態になる
+- アイテムカードで補助しながらクリーチャーカードを動かし、敵クリーチャーを破壊しながら最終的にキャラバンを破壊すれば良い
 
-### sources
-  - solidity
-    - Moritapo.sol : erc20 token
-    - Inventory.sol : cats ownership mapping
-    - World.sol : non-restrictable, all entry of public contract call from users
-  - proto
-    - Cat.proto : declare cat data
-    - Town.proto : declare town data
-
+### プレイヤーの行動
+- カードのドロー
+  - 決められた秒数ごとにドローされる。最大５枚。最大枚数になっている間のドロータイミングはシンプルに無視される
+- カードの配置
+  - 画面内で、いちばん前に進んだカードの高さまでの任意の位置に配置できる
+- カードの移動
+  - 配置されているクリーチャーカードをドラッグして移動先を決める。ドロップすると移動が始まる。一瞬で移動するのではなく、ドロップした場所へ移動を始めるということ。移動の速度はカードごとに異なる
+    - ドラッグなのは実際の配置位置を見せるため。指に被って見えにくそうなのをなんとかしたい
+  - 敵のクリーチャーのカードが存在する領域には移動できない。ギリギリ接するまで
+- アイテムの効果
+  - 配置されたアイテムカードにクリーチャーが重なることでアイテムカードの効果を受ける
+    - 一度効果を与えたら破壊されるものもある　ポーションみたいなやつ
+- アイテムの移動？
+  - 運搬能力を持ったクリーチャーにアイテムを重ねることでクリーチャーの移動と共にアイテムの位置を変更できる
+  - 移動中は効果が出ない
+  - 移動状態をキャンセルすることで再び効果が出る
+- クリーチャーの戦闘
+  - 敵味方のクリーチャーが接することで戦闘が開始する
+  - シンプルに(ATK - DEF)が一定秒数ごとにHPから引かれる
+  - HPが０になるとカードは破壊される
+- 破壊されたカード
+  - 山札に戻る
+  - 山札に戻らない、完全破壊みたいな能力があってもよいかも
+- キャラバンへの攻撃
+  - 敵キャラバンに隣接した状態で普通に攻撃できる
+  - キャラバン自体の能力値はあるべきか？それはカードか？

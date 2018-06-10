@@ -13,7 +13,7 @@ K8S_PLATFORM?=
 
 
 define soliditize
-${CONTAINER_RUNARG} protoc -I/ -I/protoc/include --plugin=protoc-gen-sol=${SOLIDITY_PLUGIN} --sol_out=$2 $1
+${CONTAINER_RUNARG} protoc -I/ -I/in -I/protoc/include --plugin=protoc-gen-sol=${SOLIDITY_PLUGIN} --sol_out=$2 $1
 endef
 
 $(LOCAL_PROTO_DST_DIR)/%_pb.sol: $(LOCAL_PROTO_SRC_DIR)/%.proto

@@ -2,10 +2,11 @@ pragma solidity ^0.4.24;
 
 import "./libs/StorageAccessor.sol";
 import "./libs/Restrictable.sol";
-import "./libs/pb/Cat_pb.sol";
+import "./libs/pb/Card_pb.sol";
+import "./libs/pb/Payment_pb.sol";
 import "./libs/PRNG.sol";
 import "./libs/math/Math.sol";
-import "./NekoUtil.sol";
+import "./CalcUtil.sol";
 import "./Constants.sol";
 
 contract Inventory is StorageAccessor, Restrictable {
@@ -15,7 +16,8 @@ contract Inventory is StorageAccessor, Restrictable {
     uint price; //0 means not for sale
   }
   using PRNG for PRNG.Data;
-  using pb_neko_Cat for pb_neko_Cat.Data;
+  using pb_ch_Card for pb_ch_Card.Data;
+  using pb_ch_Payment for pb_ch_Payment.Data;
 
 
   //variables
@@ -24,8 +26,8 @@ contract Inventory is StorageAccessor, Restrictable {
 
 
   //events
-  event AddCat(address indexed user, uint id, bytes created);
-  event Breed(address indexed user_a, address indexed user_b, uint id_a, uint id_b, uint new_id);
+  event AddCard(address indexed user, uint id, bytes created);
+  event Merge(address indexed user_a, address indexed user_b, uint id_a, uint id_b, uint new_id);
 
 
   //ctor
@@ -64,60 +66,58 @@ contract Inventory is StorageAccessor, Restrictable {
     }
     return 0;
   }
-  function getCat(address user, uint id) internal view returns (pb_neko_Cat.Data cat, bool found) {
+  function getCard(address user, uint id) internal view returns (pb_ch_Card.Data cat, bool found) {
     Slot[] memory iv = inventories_[user];
     for (uint i = 0; i < iv.length; i++) {
       if (iv[i].id == id) {
         bytes memory c = loadBytes(id);
-        cat = pb_neko_Cat.decode(c);
+        cat = pb_ch_Card.decode(c);
         found = true;
         return;
       }
     }
     found = false;
   }
-  function canReleaseCat(address user) public view returns (bool) {
+  function canReleaseCard(address user) public view returns (bool) {
     //cannot be the 'no cat' status
     return inventories_[user].length > 1;
   }
-  function estimateBreedValue(address breeder, uint breeder_cat_id,
-    address breedee, uint breedee_cat_id, int debug_rate) public view returns (uint) {
-    pb_neko_Cat.Data memory kitty = createKitty(breeder, breeder_cat_id, breedee, breedee_cat_id, debug_rate);
-    return NekoUtil.evaluateCat(kitty);
+  function estimateResultValue(address source, uint source_card_id,
+    address target, uint target_card_id, int debug_rate) public view returns (uint) {
+    pb_ch_Card.Data memory new_card = createCard(source, source_card_id, target, target_card_id, debug_rate);
+    return CalcUtil.evaluate(new_card);
   }
-  function createKitty(
-    address a, uint a_cat_id, 
-    address b, uint b_cat_id, int rate) internal view returns (pb_neko_Cat.Data kitty) {
+  function createCard(
+    address a, uint a_card_id, 
+    address b, uint b_card_id, int rate) internal view returns (pb_ch_Card.Data card) {
     bool tmp;
-    pb_neko_Cat.Data memory ca;
-    (ca, tmp) = getCat(a, a_cat_id);
+    pb_ch_Card.Data memory ca;
+    (ca, tmp) = getCard(a, a_card_id);
     require(tmp);
 
-    pb_neko_Cat.Data memory cb;
-    (cb, tmp) = getCat(b, b_cat_id);
+    pb_ch_Card.Data memory cb;
+    (cb, tmp) = getCard(b, b_card_id);
     require(tmp); //*/
-
-    require(ca.is_male != cb.is_male);
 
     if (rate < 0) {
       tmp = false;
-      rate = int(Math.max256(a_cat_id % 16, b_cat_id % 16) - Math.min256(a_cat_id % 16, b_cat_id % 16));
+      rate = int(Math.max256(a_card_id % 16, b_card_id % 16) - Math.min256(a_card_id % 16, b_card_id % 16));
     } else {
       tmp = true;
     }//*/
 
     PRNG.Data memory rnd;
-    kitty.hp = uint16(NekoUtil.mixParam(rnd, ca.hp, cb.hp, rate, tmp ? 0 : 10));
-    kitty.attack = uint16(NekoUtil.mixParam(rnd, ca.attack, cb.attack, rate, tmp ? 0 : 3));
-    kitty.defense = uint16(NekoUtil.mixParam(rnd, ca.defense, cb.defense, rate, tmp ? 0 : 3));
+    card.hp = uint16(CalcUtil.mixParam(rnd, ca.hp, cb.hp, rate, tmp ? 0 : 10));
+    card.attack = uint16(CalcUtil.mixParam(rnd, ca.attack, cb.attack, rate, tmp ? 0 : 3));
+    card.defense = uint16(CalcUtil.mixParam(rnd, ca.defense, cb.defense, rate, tmp ? 0 : 3));
     uint a_skill_inherit = tmp ? 1 : rnd.gen2(0, ca.skills.length);
     uint total_skill = a_skill_inherit + (tmp ? 1 : rnd.gen2(0, cb.skills.length));
-    kitty.skills = new pb_neko_Cat_Skill.Data[](total_skill);
+    card.skills = new pb_ch_Card_Skill.Data[](total_skill);
     for (uint i = 0; i < a_skill_inherit; i++) {
-      kitty.skills[i] = ca.skills[i];
+      card.skills[i] = ca.skills[i];
     }
     for (; i < total_skill; i++) {
-      kitty.skills[i] = ca.skills[i - a_skill_inherit];
+      card.skills[i] = ca.skills[i - a_skill_inherit];
     }
   }
 
@@ -133,15 +133,28 @@ contract Inventory is StorageAccessor, Restrictable {
     iv[index].price = price;
     return true;
   }
-  function transferCat(address from, address to, uint cat_id) public writer returns (bool) {
+  //record payment, if fails, related transation rolled back.
+  function recordPayment(address user, string tx_id) public returns (bool) {
+    uint tx_id_hash = uint(keccak256(abi.encodePacked("payment", tx_id)));
+    bytes memory bs = loadBytes(tx_id_hash);
+    if (bs.length <= 0) {
+      pb_ch_Payment.Data memory p;
+      p.payer = user;
+      saveBytes(tx_id_hash, p.encode());
+      return true;
+    } else {
+      return false;
+    }
+  }
+  function transferCard(address from, address to, uint card_id) public writer returns (bool) {
     Slot[] storage iv = inventories_[from];
     bool found = false;
     for (uint i = 0; i < iv.length; i++) {
       if (!found) {
-        if (cat_id == iv[i].id) {
+        if (card_id == iv[i].id) {
           found = true;
           Slot memory s;
-          s.id = cat_id;
+          s.id = card_id;
           inventories_[to].push(s);              
         }
       } else {
@@ -153,57 +166,52 @@ contract Inventory is StorageAccessor, Restrictable {
     }
     return found;    
   }
-  function breed(string name, 
-    address breeder, uint breeder_cat_id,
-    address breedee, uint breedee_cat_id,
+  function merge(
+    address source, uint source_card_id,
+    address target, uint target_card_id,
     int debug_rate) public writer returns (bool) {
-    pb_neko_Cat.Data memory kitty = createKitty(breeder, breeder_cat_id, breedee, breedee_cat_id, debug_rate);
-    kitty.name = name;
-    uint new_id = addFixedCat(breeder, kitty);
-    emit Breed(breeder, breedee, breeder_cat_id, breedee_cat_id, new_id);
+    pb_ch_Card.Data memory card = createCard(source, source_card_id, target, target_card_id, debug_rate);
+    uint new_id = addFixedCard(source, card);
+    emit Merge(source, target, source_card_id, target_card_id, new_id);
     return true;
   }
-  function addCat(address user, string name) public writer returns (uint) {
-    require(bytes(name).length <= 32);
+  function addCard(address user) public writer returns (uint) {
     PRNG.Data memory rnd;
     uint n_skills = rnd.gen2(1, 3);
     uint16[] memory skills = new uint16[](n_skills);
     for (uint i = 0; i < n_skills; i++) {
       skills[i] = uint16(rnd.gen2(1, 16));
     }
-    return addFixedCat(user, name, 
+    return addFixedCard(user, 
                 uint16(rnd.gen2(50, 100)), 
                 uint16(rnd.gen2(10, 30)), uint16(rnd.gen2(10, 30)),
-                skills, rnd.gen2(0, 1) == 0);
+                skills);
   }
-  function addFixedCat(address user, string name, 
+  function addFixedCard(address user, 
                       uint16 hp, uint16 atk, uint16 def, 
-                      uint16[] skills, bool is_male) public writer returns (uint) {
-    require(bytes(name).length <= 32);
-    pb_neko_Cat.Data memory c;
+                      uint16[] skills) public writer returns (uint) {
+    pb_ch_Card.Data memory c;
     c.hp = hp;
     c.attack = atk;
     c.defense = def;
     c.exp = 0;
-    c.skills = new pb_neko_Cat_Skill.Data[](skills.length);
+    c.skills = new pb_ch_Card_Skill.Data[](skills.length);
     for (uint i = 0; i < skills.length; i++) {
       c.skills[i].id = skills[i];
       c.skills[i].exp = 0;
     }
-    c.name = name;
-    c.is_male = is_male;
-    return addFixedCat(user, c); //*/
+    return addFixedCard(user, c); //*/
   }
-  function addFixedCat(address user, pb_neko_Cat.Data cat) internal writer returns (uint) {
+  function addFixedCard(address user, pb_ch_Card.Data card) internal writer returns (uint) {
     uint id = idSeed_++;
-    bytes memory bs = cat.encode();
+    bytes memory bs = card.encode();
     saveBytes(id, bs);
 
     Slot memory s;
     s.id = id;
     inventories_[user].push(s);  
 
-    emit AddCat(user, id, bs);
+    emit AddCard(user, id, bs);
     return id;  
   }
 }
