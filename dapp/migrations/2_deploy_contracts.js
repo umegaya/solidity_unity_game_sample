@@ -1,8 +1,9 @@
 var Storage = artifacts.require("Storage");
-var CardUtil = artifacts.require("CardUtil");
+var CalcUtil = artifacts.require("CalcUtil");
 var Moritapo = artifacts.require("Moritapo");
 var Inventory = artifacts.require("Inventory");
 var World = artifacts.require("World");
+var History = artifacts.require("History");
 
 function deploy_pb(deployer) {
 	var PbRuntime = artifacts.require("_pb");
@@ -25,6 +26,8 @@ function deploy_pb(deployer) {
 	});
 }
 
+var PRIV_WRITABLE = 2;
+
 module.exports = function(deployer) {
   deployer.deploy(Storage)
   /*.then(function() {
@@ -33,32 +36,28 @@ module.exports = function(deployer) {
   .then(function () {
     return deployer.deploy(Moritapo);
   }).then(function () {
-    return deployer.deploy(CardUtil);
+    return deployer.deploy(CalcUtil);
   }).then(function () {
-    return deployer.deploy(CardUtil);
-  }).then(function () {
-    return deployer.deploy(CardUtil);
-  }).then(function () {
-    Inventory.link(CardUtil);
+    Inventory.link(CalcUtil);
     return deployer.deploy(Inventory, Storage.address);
   }).then(function () {
-    World.link(CardUtil);
+    World.link(CalcUtil);
     return deployer.deploy(World, Moritapo.address, Inventory.address);
   }).then(function () {
     return Storage.at(Storage.address).then(function (instance) {
-      return instance.setPrivilege(Inventory.address, 1);
+      return instance.setPrivilege(Inventory.address, PRIV_WRITABLE);
     });
   }).then(function () {
     return Inventory.at(Inventory.address).then(function (instance) {
-      return instance.setPrivilege(World.address, 1);
+      return instance.setPrivilege(World.address, PRIV_WRITABLE);
     });
   }).then(function () {
     return Moritapo.at(Moritapo.address).then(function (instance) {
-      return instance.setPrivilege(World.address, 1);
+      return instance.setPrivilege(World.address, PRIV_WRITABLE);
     });
   }).then(function () {
     return World.at(World.address).then(function (instance) {
-      return instance.setPrivilege(World.address, 1);
+      return instance.setPrivilege(World.address, PRIV_WRITABLE);
     });
   });
 };

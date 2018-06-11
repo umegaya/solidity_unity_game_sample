@@ -98,7 +98,7 @@ function MultiWalletProvider(opts) {
     this.engine.start();
 }
 
-MultiWalletProvider.prototype.sendAsync = function() {
+MultiWalletProvider.prototype.sendAsync = function(req, cb) {
     this.engine.sendAsync.apply(this.engine, arguments);
 };
   

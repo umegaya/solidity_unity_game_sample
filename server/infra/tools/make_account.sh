@@ -67,7 +67,7 @@ for idx in ${!NODES[@]} ; do
 	VALIDATOR_ADDRESSES+=(`cat ${SECRET_ROOT}/node-${m}.addr`)
 	# get user creation node
 	if [ -z "${USER_CREATION_NODE}" ]; then
-		USER_CREATION_NODE=$a
+		USER_CREATION_NODE=${a}
 	fi
 done
 
@@ -83,10 +83,19 @@ done
 # ----------------------------------
 # create node settings
 # ----------------------------------
-for idx in ${!MACHINES[@]} ; do
+if [ ${#MACHINES[@]} -eq 1 ]; then
 	cat ${ROOT}/volume/config/path1.toml.tmpl \
-		| sed -e "s/__SIGNER__/${VALIDATOR_ADDRESSES[$idx]}/" \
+		| sed -e "s/__SIGNER__/${VALIDATOR_ADDRESSES[0]}/" \
 		| sed -e "s/__PLATFORM__/${K8S_PLATFORM}/" \
-		| sed -e "s/__EXTIP__/${NODES[$idx]}/" \
-	> ${ROOT}/volume/config/${MACHINES[$idx]}.toml
-done
+		| sed -e "s/__EXTIP__/${NODES[0]}/" \
+	> ${ROOT}/volume/config/${K8S_PLATFORM}.toml
+else
+	for idx in ${!MACHINES[@]} ; do
+		cat ${ROOT}/volume/config/path1.toml.tmpl \
+			| sed -e "s/__SIGNER__/${VALIDATOR_ADDRESSES[$idx]}/" \
+			| sed -e "s/__PLATFORM__/${K8S_PLATFORM}/" \
+			| sed -e "s/__EXTIP__/${NODES[$idx]}/" \
+		> ${ROOT}/volume/config/${MACHINES[$idx]}.toml
+	done
+fi
+

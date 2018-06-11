@@ -10,9 +10,9 @@ class Progress {
     step(msg) {
         this.counter++;
         if (msg) {
-            if (this.verbose) console.log(this.counter,msg);
+            if (this.verbose) console.log('prg', this.counter,msg);
         } else {
-            if (this.verbose) console.log(this.counter);
+            if (this.verbose) console.log('prg', this.counter);
         }
     }
     raise(err) {
