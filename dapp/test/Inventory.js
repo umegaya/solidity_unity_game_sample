@@ -35,6 +35,16 @@ var cardCheck = (card, opts) => {
         assert(found, "skill id should be found:" + card.skills[i].id.toNumber());
     }    
 }
+var consumeCheck = (ret) => {
+    //search AddCard log
+    for (var i = 0; i < ret.logs.length; i++) {
+        var l = ret.logs[i];
+        if (l.event == 'ConsumeTx') { 
+            return true;
+        }
+    }
+    return false;
+}
 
 var pgrs = new helper.Progress();
 //pgrs.verbose = true;
@@ -188,6 +198,20 @@ contract('Inventory', () => {
             return c.getSlotSize.call(accounts[0]);
         }).then((ret) => { 
             assert.equal(ret.toNumber(), 0, "slot size should be correct");
+            return c.recordPayment(accounts[0], TX_ID_1);
+        }).then((ret) => {
+            pgrs.step();
+            assert(consumeCheck(ret));
+            return c.recordPayment(accounts[0], TX_ID_2);
+        }).then((ret) => {
+            pgrs.step();
+            assert(consumeCheck(ret));
+            return c.recordPayment(accounts[0], TX_ID_1);
+        }).then((ret) => {
+            assert(!consumeCheck(ret), "should not be able to use same tx_id twice");
+            return c.recordPayment(accounts[1], TX_ID_1);            
+        }).then((ret) => {
+            assert(ret);
             if (pgrs.err_counter != 3) {
                 console.log(pgrs.err);  
                 assert(false, "should not got halfway throw");

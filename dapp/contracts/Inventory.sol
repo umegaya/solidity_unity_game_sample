@@ -28,6 +28,7 @@ contract Inventory is StorageAccessor, Restrictable {
   //events
   event AddCard(address indexed user, uint id, bytes created);
   event Merge(address indexed user_a, address indexed user_b, uint id_a, uint id_b, uint new_id);
+  event ConsumeTx(address indexed user, string tx_id);
 
 
   //ctor
@@ -141,6 +142,7 @@ contract Inventory is StorageAccessor, Restrictable {
       pb_ch_Payment.Data memory p;
       p.payer = user;
       saveBytes(tx_id_hash, p.encode());
+      emit ConsumeTx(user, tx_id);
       return true;
     } else {
       return false;

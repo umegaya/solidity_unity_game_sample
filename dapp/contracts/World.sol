@@ -8,7 +8,7 @@ import "./libs/pb/Card_pb.sol";
 import "./libs/PRNG.sol";
 import "./CalcUtil.sol";
 
-
+//TODO: make this ERC721 token
 contract World is Restrictable, Constants {
   //defs
   using PRNG for PRNG.Data;
@@ -47,7 +47,7 @@ contract World is Restrictable, Constants {
   function estimateMergeFee(uint cat_id, address target, uint target_cat_id) public view returns (uint) {
     return estimateMergeFee(msg.sender, cat_id, target, target_cat_id);
   }
-  function estimateReclaimToken(uint index) internal view returns (uint256) {
+  function estimateReclaimToken(uint index) public view returns (uint256) {
     bytes memory c = inventory_.getSlotBytes(msg.sender, index);
     pb_ch_Card.Data memory card = pb_ch_Card.decode(c);
     return mergeFeeFromCardValue(CalcUtil.evaluate(card));
@@ -98,7 +98,7 @@ contract World is Restrictable, Constants {
   }
   //buy cat with set token price
   //sender have to approve from to spend 'price' token.
-  function buyCat(address from, uint cat_id) public returns (bool) {
+  function buyCard(address from, uint cat_id) public returns (bool) {
     require(inventory_.canReleaseCard(from));
     uint price = inventory_.getPrice(from, cat_id);
     require(price > 0); //ensure address 'from' has cat and for sale
