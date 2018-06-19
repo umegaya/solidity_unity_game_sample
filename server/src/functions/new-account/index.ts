@@ -1,56 +1,33 @@
 import { Request, Response } from 'express';
-import {MysqlError} from 'mysql';
-import { Config, Contracts, DbConn } from '../../common/config';
-import * as mysql from 'mysql';
-import * as Web3 from 'web3/types.d';
+import { Config, Contracts } from '../../common/config';
 
-var OnAlreadyRegistered = (address: string, iap_tx: any): Promise<any> => {
-    //if iap tx is not stored into database, act like buy-token
-    return Contracts.World.methods.buyToken(address, iap_tx.coin_amount).send();
-}
+var sender: string = Config.rpc.addresses[0];
 
-var OnNeedRegister = (address: string, iap_tx: any, sel_idx: number, name: string): Promise<any> => {
-    //if iap tx is not stored into database, create initial slot and token
-    return Contracts.World.methods.createInitialCat(
-        address, iap_tx.coin_amount, sel_idx, name, false).send();
-}
-
-var Handler = (req: Request, cb: (res: any) => void, ecb: (err: Error) => void) => {
-    console.log('body', JSON.stringify(req.body));
-    //check req.address already has slot for inventory
-    new Promise((resolve: (r: any) => void, reject: (e: Error) => void) => {
-        DbConn.query("SELECT * FROM payment WHERE user_id = ?", 
-            [req.body.iap_tx.id], (e: MysqlError, r: any) => {
-            if (e) { reject(e); }
-            else { resolve(r); }
-        });
-    }).then((r: any) => {
-        if (r.length > 0) {
-            //if iap tx is stored into database, log it (because it may try replay attack) and return ok 
-            cb({});
+export async function new_account(req: Request, res: Response) {
+    var iap_tx: any = req.body.iap_tx;
+    var selected_idx: number = req.body.selected_idx;
+    var address: string = req.body.address;
+    var n_slot: any = await Contracts.Inventory.methods.getSlotSize(address).call({from: address});
+    try {
+        //TODO: validate iap_tx.id is real tx id
+        if (n_slot.toNumber() > 0) {
+            //if already has registered, act like buy-token
+            await Contracts.World.methods.buyToken(address, iap_tx.id, iap_tx.coin_amount).send();
         } else {
-            return Contracts.Inventory.methods.getSlotSize(req.body.address).call({from: req.body.address})
-            .then((r: any) => {
-                if (r.toNumber() > 0) {
-                    //if iap tx is not stored into database, act like buy-token
-                    return OnAlreadyRegistered(req.body.address, req.body.iap_tx);
-                } else { //if not have (and has transaction)
-                    //if iap tx is not stored into database, create initial slot and token
-                    return OnNeedRegister(req.body.address, req.body.iap_tx, req.body.sel_idx, req.body.name);
-                }
+            //send initial fuel
+            await Contracts.web3.eth.sendTransaction({
+                to:address, from:sender, value:Contracts.web3.utils.toWei("1", "ether")
             });
+            //create deck
+            await Contracts.World.methods.createInitialDeck(
+                address, iap_tx.id, iap_tx.coin_amount, selected_idx).send({from: sender});
         }
-    }, ecb);
-}
-
-export function new_account(req: Request, res: Response) {
-    Handler(req, (r: any) => {
-        console.log(r);
         res.status(200);
-        res.send(r);
-    }, (err: Error) => {
-        console.log(err);
+        //TODO: returns initial card lists or added token
+        res.send({});
+    } catch (e) {
+        console.log("error new-account", e);
         res.status(500);
-        res.send(err);
-    });
+        res.send(e);
+    }
 }

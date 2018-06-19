@@ -1,22 +1,21 @@
-const Web3Class = require("web3")
-import Web3 from 'web3/index.d'
-import * as Web3Types from 'web3/types.d'
-import * as fs from "fs";
-var ProviderFactory = require('./provider');
+var Web3Ctor = require('web3');
+import Web3Class from 'web3/index';
+import * as Web3 from 'web3/types';
+import ProviderFactory = require('./provider');
 
-function CreateContract(web3: Web3, contract_json: any, addr: string):Web3Types.Contract {
+function CreateContract(web3: Web3Class, contract_json: any, addr: string):Web3.Contract {
     return new web3.eth.Contract(contract_json.abi, addr);
 }
 
 export class ContractSet {
-    web3: Web3;
-    World: Web3Types.Contract;
-    Inventory: Web3Types.Contract;
-    Token: Web3Types.Contract;
+    web3: Web3Class;
+    World: Web3.Contract;
+    Inventory: Web3.Contract;
+    Token: Web3.Contract;
 }
 export function Factory(url: string, key_store: string, pass: string, addrs:{[name:string]:string}):ContractSet {
-    var provider: Web3Types.HttpProvider = ProviderFactory(url, key_store, pass);
-    var web3: Web3 = new Web3Class(provider);
+    var provider: Web3.HttpProvider = null; //ProviderFactory(url, key_store, pass);
+    var web3: Web3Class = new Web3Ctor(provider);
     return {
         web3: web3,
         World: CreateContract(web3, require('./dapp/build/contracts/World.json'), addrs.World),

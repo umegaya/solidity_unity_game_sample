@@ -1,8 +1,7 @@
 {
   "dependencies": {
     "keythereum": "^1.0.3",
-    "mysql": "^2.14.1",
-    "truffle-privatekey-provider": "^0.0.6",
+    "truffle-privatekey-provider": "0.0.6",
     "web3": "^1.0.0-beta.34"
   },
   "devDependencies": {
@@ -12,7 +11,7 @@
     "body-parser": "^1.18.3",
     "express": "^4.16.3",
     "json-loader": "^0.5.7",
-    "nodemon": "^1.17.4",
+    "nodemon": "^1.17.5",
     "raw-loader": "^0.5.1",
     "ts-loader": "^4.3.0",
     "typescript": "^2.8.3",

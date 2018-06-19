@@ -1,8 +1,9 @@
 {
     "compilerOptions": {
         "target": "es6",
-        "lib": ["es6"],
-        "allowJs": true
+        "lib": ["es5", "es6"],
+        "module": "commonjs",
+        "moduleResolution": "node",
     },
     "include": [
         "./node_modules/web3/*.d.ts",
