@@ -55,8 +55,8 @@ public class ViewModelMgr : MonoBehaviour {
                 var rr = r.Result[0].Result;
                 var slot_size = (BigInteger)rr;
                 if (slot_size <= 0) {
-                    Debug.Log("create initial cat");
-                    yield return StartCoroutine(CreateInitialCat());
+                    Debug.Log("create initial deck");
+                    yield return StartCoroutine(CreateInitialDeck());
                 } else {
                     Debug.Log("Inventory getSlotSize:" + slot_size);
                     for (int i = 0; i < slot_size; i++) {
@@ -67,7 +67,7 @@ public class ViewModelMgr : MonoBehaviour {
                         } else {
                             var id = (System.Numerics.BigInteger)r.Result[0].Result;
                             var card = r.As<Ch.Card>(Ch.Card.Parser);
-                            Debug.Log("Inventory.getSlotBytes cat[" + id.ToString() + "]:" + card.Name);
+                            Debug.Log("Inventory.getSlotBytes card[" + id.ToString() + "]:" + card.Name);
                             Inventory.AddCard(id, card);
                         }
                     }
@@ -85,14 +85,14 @@ public class ViewModelMgr : MonoBehaviour {
         TokenBalance = (BigInteger)Web3Mgr.Rpc.CallResponse.Result[0].Result;
         Debug.Log("new balance:" + TokenBalance + "(" + Balance + ")");
     }
-    IEnumerator CreateInitialCat() {
-        yield return Web3Mgr.Rpc["World"].Send2("payForInitialCat", 1e18, 0, "testcat");
-        Debug.Log("create initial cat: created");
+    IEnumerator CreateInitialDeck() {
+        yield return Web3Mgr.Rpc["World"].Send2("payForInitialDeck", 1e18, 0);
+        Debug.Log("create initial deck: created");
         var r = Web3Mgr.Rpc.SendResponse;
         if (r.Error == null) {
             yield return StartCoroutine(UpdateBalance());
         } else {
-            Debug.LogError("World.createInitialCat fails:" + r.Error.Message + "|" + r.Error.InnerException.Message);
+            Debug.LogError("World.createInitialCard fails:" + r.Error.Message + "|" + r.Error.InnerException.Message);
         }                    
     }
 }
