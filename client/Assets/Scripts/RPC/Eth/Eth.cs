@@ -10,10 +10,11 @@ using Nethereum.Contracts;
 
 using UnityEngine;
 
-using Game.Web3Util;
+using Game.Eth;
+using Game.Eth.Util;
 
 namespace Game.RPC {
-public class Web3 : MonoBehaviour {
+public class Eth : MonoBehaviour {
     public enum Event {
         Inititalized,
         TxEvent,
@@ -41,9 +42,9 @@ public class Web3 : MonoBehaviour {
         }
 
         public Contract c_;
-        Web3 owner_;
+        Eth owner_;
 
-        public ContractWrapper(Web3 owner, string abi, string addr) {
+        public ContractWrapper(Eth owner, string abi, string addr) {
             owner_ = owner;
             c_ = new Contract(null, abi, addr);
         }
@@ -149,7 +150,7 @@ public class Web3 : MonoBehaviour {
         send_resp_ = new ContractWrapper.SendResponse();
     }
 
-    void InitRPC() {
+    void Initialize() {
         contracts_ = new Dictionary<string, ContractWrapper>();
         foreach (var e in contract_entries_) {
             //TODO: load addresses from addresses_
@@ -173,7 +174,7 @@ public class Web3 : MonoBehaviour {
         case Account.InitEvent.EndFailure:
             break;
         case Account.InitEvent.EndSuccess:
-            InitRPC();
+            Initialize();
             callback_(Event.Inititalized, null);
             break;
         }

@@ -5,8 +5,8 @@ using Nethereum.Hex.HexTypes;
 using Nethereum.Contracts;
 using Nethereum.ABI.FunctionEncoding;
 
-namespace Game.Web3Util {
-public static class Web3ResultParseHelper
+namespace Game.Eth.Util {
+public static class EthResultParseHelper
 {
     public static HexBigInteger HexZero = new HexBigInteger(System.Numerics.BigInteger.Zero);
     public static HexBigInteger AsInt(this string ret) {

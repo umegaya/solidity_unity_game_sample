@@ -296,7 +296,7 @@ GameObject:
   - component: {fileID: 1038119388}
   - component: {fileID: 1038119387}
   m_Layer: 0
-  m_Name: Web3
+  m_Name: RPC
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -310,30 +310,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 1038119386}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70420937ee719426fa58552e3eb295fb, type: 3}
+  m_Script: {fileID: 11500000, guid: 2d38f0960fe1844c38dfbac765aa8357, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  end_point_: http://localhost:5000/functions
 --- !u!114 &1038119388
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1038119386}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b1441f8a3162466199fe08bba9ee852, type: 3}
+  m_Script: {fileID: 11500000, guid: 727918ed178544def8d56b072103e8b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target_entries_:
-  - label_: World
-    address_: 0xf015979938513f25babd2b226f9fd1b657b052aa
-    abi_: {fileID: 4900000, guid: 9e9588cee7174400eb9c62efb315044c, type: 3}
-  - label_: Inventory
-    address_: 0xb17b9128ec40ffe6d827a07bf5c3e6aaa762b0c5
-    abi_: {fileID: 4900000, guid: f581641a53d224414960a5c4710b4594, type: 3}
-  - label_: Moritapo
-    address_: 0x48b54e91fc26a98a8a60830cd0b7e76a604c4a94
-    abi_: {fileID: 4900000, guid: b422af85e1e1940ba99edf34e8130169, type: 3}
+  addresses_: {fileID: 0}
+  contract_entries_: []
   default_gas_: 4000000
 --- !u!114 &1038119389
 MonoBehaviour:

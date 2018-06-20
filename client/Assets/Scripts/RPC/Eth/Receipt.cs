@@ -13,11 +13,11 @@ using Nethereum.ABI.FunctionEncoding;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using Game.Web3Util;
+using Game.Eth.Util;
 
 using UnityEngine;
 
-namespace Game.Web3 {
+namespace Game.Eth {
 public class GetTransactionReceiptRequest:UnityRpcClient<Dictionary<string, object>>
 {
     private readonly Nethereum.RPC.Eth.Transactions.EthGetTransactionReceipt _ethGetTransactionReceipt;

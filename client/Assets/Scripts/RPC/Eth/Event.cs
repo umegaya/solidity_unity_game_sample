@@ -7,7 +7,7 @@ using Nethereum.ABI.FunctionEncoding.Attributes;
 
 using BigInteger = System.Numerics.BigInteger;
 
-namespace Game.Web3.Event {
+namespace Game.Eth.Event {
 class Transfer {
     public Transfer() {}
     [ParameterAttribute("address", null, 1, true)]
@@ -59,8 +59,8 @@ class Approval {
         return "Approval " + Owner + " => " + Spender + "(" + Value.ToString() + ")";
     }
 }
-class AddCat {
-    public AddCat() {}
+class AddCard {
+    public AddCard() {}
     [ParameterAttribute("address", null, 1, true)]
     public string User { get; set; }
 

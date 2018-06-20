@@ -8,15 +8,15 @@ public class RPCMgr : MonoBehaviour {
     static public RPCMgr instance {
         get; private set;
     }
-    [HideInInspector] public Web3.Account Web3.Account {
+    [HideInInspector] public Game.Eth.Account Account {
         get; private set;
     }
-    [HideInInspector] public Web3 Web3 {
+    [HideInInspector] public Eth Eth {
         get; private set;
     }
-/*    [HideInInspector] public API API {
+    [HideInInspector] public Web Web {
         get; private set;
-    } */
+    }
 
     public void Awake() {
 		if (instance == null) {
@@ -27,9 +27,9 @@ public class RPCMgr : MonoBehaviour {
 		}
 		DontDestroyOnLoad(gameObject);
 
-        Account = gameObject.GetComponent<Account>();
-        Web3 = gameObject.GetComponent<Web3>();
-        //API = gameObject.GetComponent<API>();
+        Account = gameObject.GetComponent<Game.Eth.Account>();
+        Eth = gameObject.GetComponent<Eth>();
+        Web = gameObject.GetComponent<Web>();
     }
 }
 }

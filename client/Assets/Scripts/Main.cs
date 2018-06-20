@@ -5,8 +5,8 @@ using UnityEngine;
 
 namespace Game {
 public class Main : MonoBehaviour {
-    static public Web3.Web3Mgr Web3Mgr {
-        get { return Web3.Web3Mgr.instance; }
+    static public RPC.RPCMgr RPCMgr {
+        get { return RPC.RPCMgr.instance; }
     }
     static public ViewModel.ViewModelMgr ViewModelMgr {
         get { return ViewModel.ViewModelMgr.instance; }
@@ -16,23 +16,23 @@ public class Main : MonoBehaviour {
     }
 
     void Awake() {
-        Web3Mgr.Rpc.callback_ += OnRpcEvent;
+        RPCMgr.Eth.callback_ += OnEthEvent;
         ViewModelMgr.callback_ += OnViewModelEvent;
     }
 
-    void OnRpcEvent(RPC.Web3.Event ev, object arg) {
-        if (ev == RPC.Web3.Event.Inititalized) {
+    void OnEthEvent(RPC.Eth.Event ev, object arg) {
+        if (ev == RPC.Eth.Event.Inititalized) {
             StartCoroutine(ViewModelMgr.InititalizeTask());
-        } else if (ev == RPC.Web3.Event.TxEvent) {
-            var log = (Web3.Receipt.Log)arg;
+        } else if (ev == RPC.Eth.Event.TxEvent) {
+            var log = (Eth.Receipt.Log)arg;
             if (log.Name == "Transfer") {
-                Debug.Log("TxEvent Happen:" + log.As<Web3.Event.Transfer>().ToString());
+                Debug.Log("TxEvent Happen:" + log.As<Eth.Event.Transfer>().ToString());
             } else if (log.Name == "Approval") {
-                Debug.Log("TxEvent Happen:" + log.As<Web3.Event.Approval>().ToString());
-            } else if (log.Name == "AddCat") {
-                Debug.Log("TxEvent Happen:" + log.As<Web3.Event.AddCat>().ToString());
+                Debug.Log("TxEvent Happen:" + log.As<Eth.Event.Approval>().ToString());
+            } else if (log.Name == "AddCard") {
+                Debug.Log("TxEvent Happen:" + log.As<Eth.Event.AddCard>().ToString());
             } else if (log.Name == "Exchange") {
-                Debug.Log("TxEvent Happen:" + log.As<Web3.Event.Exchange>().ToString());
+                Debug.Log("TxEvent Happen:" + log.As<Eth.Event.Exchange>().ToString());
             } else {
                 Debug.LogError("invalid event log:" + log.Name);
             }

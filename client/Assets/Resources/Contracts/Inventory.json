@@ -11,11 +11,7 @@
     "outputs": [
       {
         "name": "",
-        "type": "bytes1[256]"
-      },
-      {
-        "name": "",
-        "type": "uint256"
+        "type": "bytes"
       }
     ],
     "payable": false,
@@ -30,6 +26,25 @@
       {
         "name": "",
         "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "sender",
+        "type": "address"
+      }
+    ],
+    "name": "checkReadableFrom",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
       }
     ],
     "payable": false,
@@ -150,7 +165,7 @@
         "type": "bytes"
       }
     ],
-    "name": "AddCat",
+    "name": "AddCard",
     "type": "event"
   },
   {
@@ -182,7 +197,24 @@
         "type": "uint256"
       }
     ],
-    "name": "Breed",
+    "name": "Merge",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "tx_id",
+        "type": "string"
+      }
+    ],
+    "name": "ConsumeTx",
     "type": "event"
   },
   {
@@ -220,11 +252,7 @@
     "outputs": [
       {
         "name": "",
-        "type": "bytes1[256]"
-      },
-      {
-        "name": "",
-        "type": "uint256"
+        "type": "bytes"
       }
     ],
     "payable": false,
@@ -251,11 +279,7 @@
       },
       {
         "name": "",
-        "type": "bytes1[256]"
-      },
-      {
-        "name": "",
-        "type": "uint256"
+        "type": "bytes"
       }
     ],
     "payable": false,
@@ -316,7 +340,7 @@
         "type": "address"
       }
     ],
-    "name": "canReleaseCat",
+    "name": "canReleaseCard",
     "outputs": [
       {
         "name": "",
@@ -331,19 +355,19 @@
     "constant": true,
     "inputs": [
       {
-        "name": "breeder",
+        "name": "source",
         "type": "address"
       },
       {
-        "name": "breeder_cat_id",
+        "name": "source_card_id",
         "type": "uint256"
       },
       {
-        "name": "breedee",
+        "name": "target",
         "type": "address"
       },
       {
-        "name": "breedee_cat_id",
+        "name": "target_card_id",
         "type": "uint256"
       },
       {
@@ -351,7 +375,7 @@
         "type": "int256"
       }
     ],
-    "name": "estimateBreedValue",
+    "name": "estimateResultValue",
     "outputs": [
       {
         "name": "",
@@ -407,6 +431,29 @@
     "constant": false,
     "inputs": [
       {
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "name": "tx_id",
+        "type": "string"
+      }
+    ],
+    "name": "recordPayment",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
         "name": "from",
         "type": "address"
       },
@@ -415,11 +462,11 @@
         "type": "address"
       },
       {
-        "name": "cat_id",
+        "name": "card_id",
         "type": "uint256"
       }
     ],
-    "name": "transferCat",
+    "name": "transferCard",
     "outputs": [
       {
         "name": "",
@@ -434,23 +481,19 @@
     "constant": false,
     "inputs": [
       {
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "name": "breeder",
+        "name": "source",
         "type": "address"
       },
       {
-        "name": "breeder_cat_id",
+        "name": "source_card_id",
         "type": "uint256"
       },
       {
-        "name": "breedee",
+        "name": "target",
         "type": "address"
       },
       {
-        "name": "breedee_cat_id",
+        "name": "target_card_id",
         "type": "uint256"
       },
       {
@@ -458,7 +501,7 @@
         "type": "int256"
       }
     ],
-    "name": "breed",
+    "name": "merge",
     "outputs": [
       {
         "name": "",
@@ -475,13 +518,9 @@
       {
         "name": "user",
         "type": "address"
-      },
-      {
-        "name": "name",
-        "type": "string"
       }
     ],
-    "name": "addCat",
+    "name": "addCard",
     "outputs": [
       {
         "name": "",
@@ -498,10 +537,6 @@
       {
         "name": "user",
         "type": "address"
-      },
-      {
-        "name": "name",
-        "type": "string"
       },
       {
         "name": "hp",
@@ -518,13 +553,9 @@
       {
         "name": "skills",
         "type": "uint16[]"
-      },
-      {
-        "name": "is_male",
-        "type": "bool"
       }
     ],
-    "name": "addFixedCat",
+    "name": "addFixedCard",
     "outputs": [
       {
         "name": "",

@@ -43,6 +43,25 @@
   },
   {
     "constant": true,
+    "inputs": [
+      {
+        "name": "sender",
+        "type": "address"
+      }
+    ],
+    "name": "checkReadableFrom",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
     "inputs": [],
     "name": "administrator_",
     "outputs": [
@@ -200,7 +219,7 @@
         "type": "bytes"
       }
     ],
-    "name": "AddCat",
+    "name": "AddCard",
     "type": "event"
   },
   {
@@ -276,7 +295,7 @@
         "type": "uint256"
       }
     ],
-    "name": "Breed",
+    "name": "Merge",
     "type": "event"
   },
   {
@@ -316,7 +335,7 @@
     "type": "function"
   },
   {
-    "constant": false,
+    "constant": true,
     "inputs": [
       {
         "name": "index",
@@ -331,7 +350,7 @@
       }
     ],
     "payable": false,
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -342,23 +361,19 @@
         "type": "address"
       },
       {
+        "name": "tx_id",
+        "type": "string"
+      },
+      {
         "name": "payment_unit",
         "type": "uint256"
       },
       {
         "name": "sel_idx",
         "type": "uint256"
-      },
-      {
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "name": "debug_is_male",
-        "type": "bool"
       }
     ],
-    "name": "createInitialCat",
+    "name": "createInitialDeck",
     "outputs": [
       {
         "name": "",
@@ -375,17 +390,9 @@
       {
         "name": "sel_idx",
         "type": "uint256"
-      },
-      {
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "name": "debug_is_mail",
-        "type": "bool"
       }
     ],
-    "name": "payForInitialCat",
+    "name": "payForInitialCard",
     "outputs": [],
     "payable": true,
     "stateMutability": "payable",
@@ -397,6 +404,10 @@
       {
         "name": "target",
         "type": "address"
+      },
+      {
+        "name": "tx_id",
+        "type": "string"
       },
       {
         "name": "payment_unit",
@@ -421,7 +432,7 @@
         "type": "uint256"
       }
     ],
-    "name": "buyCat",
+    "name": "buyCard",
     "outputs": [
       {
         "name": "",
@@ -455,10 +466,6 @@
     "constant": false,
     "inputs": [
       {
-        "name": "name",
-        "type": "string"
-      },
-      {
         "name": "cat_id",
         "type": "uint256"
       },
@@ -471,7 +478,7 @@
         "type": "uint256"
       }
     ],
-    "name": "breedCat",
+    "name": "mergeCard",
     "outputs": [
       {
         "name": "required_token",
@@ -548,7 +555,7 @@
         "type": "uint256"
       }
     ],
-    "name": "estimateBreedFee",
+    "name": "estimateMergeFee",
     "outputs": [
       {
         "name": "",

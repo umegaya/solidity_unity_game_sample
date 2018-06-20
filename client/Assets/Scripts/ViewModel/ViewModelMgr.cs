@@ -4,7 +4,7 @@ using System.Numerics;
 
 using UnityEngine;
 
-using Game.Web3Util;
+using Game.Eth.Util;
 
 namespace Game.ViewModel {
 public class ViewModelMgr : MonoBehaviour {
@@ -25,8 +25,8 @@ public class ViewModelMgr : MonoBehaviour {
         get; set;
     }
     public OnViewModelChange callback_;
-    public Web3.Web3Mgr Web3Mgr {
-        get { return Main.Web3Mgr; }
+    public RPC.RPCMgr RPCMgr {
+        get { return Main.RPCMgr; }
     }
 
     public void Awake() {
@@ -44,10 +44,10 @@ public class ViewModelMgr : MonoBehaviour {
 
     public IEnumerator InititalizeTask() {
         yield return StartCoroutine(UpdateBalance());
-        var myaddr = Web3Mgr.Account.address_;
+        var myaddr = RPCMgr.Account.address_;
         while (true) {
-            yield return Web3Mgr.Rpc["Inventory"].Call("getSlotSize", myaddr);
-            var r = Web3Mgr.Rpc.CallResponse;
+            yield return RPCMgr.Eth["Inventory"].Call("getSlotSize", myaddr);
+            var r = RPCMgr.Eth.CallResponse;
             if (r.Error != null) {
                 Debug.LogError("Inventory.getSlotSize fails:" + r.Error.Message);    
                 break;            
@@ -60,8 +60,8 @@ public class ViewModelMgr : MonoBehaviour {
                 } else {
                     Debug.Log("Inventory getSlotSize:" + slot_size);
                     for (int i = 0; i < slot_size; i++) {
-                        yield return Web3Mgr.Rpc["Inventory"].Call("getSlotBytesAndId", myaddr, i);
-                        r = Web3Mgr.Rpc.CallResponse;
+                        yield return RPCMgr.Eth["Inventory"].Call("getSlotBytesAndId", myaddr, i);
+                        r = RPCMgr.Eth.CallResponse;
                         if (r.Error != null) {
                             Debug.LogError("Inventory.getSlotBytes fails:" + r.Error.Message);
                         } else {
@@ -78,17 +78,17 @@ public class ViewModelMgr : MonoBehaviour {
         callback_(Event.Initialized);
     }
     IEnumerator UpdateBalance() {
-        yield return Web3Mgr.Rpc.GetSelfBalance((balance) => {
+        yield return RPCMgr.Eth.GetSelfBalance((balance) => {
             Balance = balance;
         });
-        yield return Web3Mgr.Rpc["Moritapo"].Call("balanceOf", Web3Mgr.Account.address_);
-        TokenBalance = (BigInteger)Web3Mgr.Rpc.CallResponse.Result[0].Result;
+        yield return RPCMgr.Eth["Moritapo"].Call("balanceOf", RPCMgr.Account.address_);
+        TokenBalance = (BigInteger)RPCMgr.Eth.CallResponse.Result[0].Result;
         Debug.Log("new balance:" + TokenBalance + "(" + Balance + ")");
     }
     IEnumerator CreateInitialDeck() {
-        yield return Web3Mgr.Rpc["World"].Send2("payForInitialDeck", 1e18, 0);
+        yield return RPCMgr.Eth["World"].Send2("payForInitialDeck", 1e18, 0);
         Debug.Log("create initial deck: created");
-        var r = Web3Mgr.Rpc.SendResponse;
+        var r = RPCMgr.Eth.SendResponse;
         if (r.Error == null) {
             yield return StartCoroutine(UpdateBalance());
         } else {

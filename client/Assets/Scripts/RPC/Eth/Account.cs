@@ -6,7 +6,7 @@ using Nethereum.KeyStore;
 
 using UnityEngine;
 
-namespace Game.Web3 {
+namespace Game.Eth {
 public class Account : MonoBehaviour {
 	//definitions
 	internal class AccountInitializer {
