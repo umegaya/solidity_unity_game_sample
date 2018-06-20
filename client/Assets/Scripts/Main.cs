@@ -20,10 +20,10 @@ public class Main : MonoBehaviour {
         ViewModelMgr.callback_ += OnViewModelEvent;
     }
 
-    void OnRpcEvent(Web3.RPC.Event ev, object arg) {
-        if (ev == Web3.RPC.Event.Inititalized) {
+    void OnRpcEvent(RPC.Web3.Event ev, object arg) {
+        if (ev == RPC.Web3.Event.Inititalized) {
             StartCoroutine(ViewModelMgr.InititalizeTask());
-        } else if (ev == Web3.RPC.Event.TxEvent) {
+        } else if (ev == RPC.Web3.Event.TxEvent) {
             var log = (Web3.Receipt.Log)arg;
             if (log.Name == "Transfer") {
                 Debug.Log("TxEvent Happen:" + log.As<Web3.Event.Transfer>().ToString());

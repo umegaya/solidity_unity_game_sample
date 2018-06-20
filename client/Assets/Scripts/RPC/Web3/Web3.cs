@@ -12,14 +12,14 @@ using UnityEngine;
 
 using Game.Web3Util;
 
-namespace Game.Web3 {
-public class RPC : MonoBehaviour {
+namespace Game.RPC {
+public class Web3 : MonoBehaviour {
     public enum Event {
         Inititalized,
         TxEvent,
     };
     public delegate void OnEventDelegate(Event ev, object arg);
-    public class Target {
+    public class ContractWrapper {
         public class CallResponse {
             public List<ParameterOutput> Result { get; set; }
             public System.Exception Error { get; set; }
@@ -41,9 +41,9 @@ public class RPC : MonoBehaviour {
         }
 
         public Contract c_;
-        RPC owner_;
+        Web3 owner_;
 
-        public Target(RPC owner, string abi, string addr) {
+        public ContractWrapper(Web3 owner, string abi, string addr) {
             owner_ = owner;
             c_ = new Contract(null, abi, addr);
         }
@@ -52,7 +52,7 @@ public class RPC : MonoBehaviour {
         public IEnumerator Call3(string func, double gas, double value_wei, params object[] args) {
             var fn = c_.GetFunction(func);
             yield return owner_.call_.SendRequest(
-                fn.CreateCallInput(Web3Mgr.instance.Account.address_,
+                fn.CreateCallInput(RPCMgr.instance.Account.address_,
                     new HexBigInteger(new BigInteger(gas)), 
                     new HexBigInteger(new BigInteger(value_wei)), 
                     args), 
@@ -65,7 +65,7 @@ public class RPC : MonoBehaviour {
             Debug.Log("gas/value = " + gas + "|" + value_wei);
             var fn = c_.GetFunction(func);
             yield return owner_.send_.SignAndSendTransaction(
-                fn.CreateTransactionInput(Web3Mgr.instance.Account.address_, 
+                fn.CreateTransactionInput(RPCMgr.instance.Account.address_, 
                     new HexBigInteger(new BigInteger(gas)), 
                     new HexBigInteger(new BigInteger(value_wei)), args));
             int retry = 0;
@@ -121,45 +121,47 @@ public class RPC : MonoBehaviour {
             }
         }
     }
-    [System.Serializable] public struct TargetEntry {
-        public string label_, address_;
+    [System.Serializable] public struct ContractEntry {
+        public string label_;
         public TextAsset abi_;
     }
+    public TextAsset addresses_;
 
-    public List<TargetEntry> target_entries_ = new List<TargetEntry>();
+    public List<ContractEntry> contract_entries_ = new List<ContractEntry>();
     public OnEventDelegate callback_;
     public double default_gas_ = 4000000;
 
     public Newtonsoft.Json.JsonSerializerSettings settings_ = null;
 
-    Dictionary<string, Target> targets_;
+    Dictionary<string, ContractWrapper> contracts_;
     EthGetBalanceUnityRequest get_balance_;
     EthBlockNumberUnityRequest block_number_;
     EthCallUnityRequest call_;
     TransactionSignedUnityRequest send_;
     GetTransactionReceiptRequest get_receipt_;
 
-    Target.CallResponse call_resp_;
-    Target.SendResponse send_resp_;
+    ContractWrapper.CallResponse call_resp_;
+    ContractWrapper.SendResponse send_resp_;
     
     public void Awake() {
-        Web3Mgr.instance.Account.callback_ += OnAccountInitEvent;
-        call_resp_ = new Target.CallResponse();
-        send_resp_ = new Target.SendResponse();
+        RPCMgr.instance.Account.callback_ += OnAccountInitEvent;
+        call_resp_ = new ContractWrapper.CallResponse();
+        send_resp_ = new ContractWrapper.SendResponse();
     }
 
     void InitRPC() {
-        targets_ = new Dictionary<string, Target>();
-        foreach (var e in target_entries_) {
-            targets_[e.label_] = new Target(this, e.abi_.text, e.address_);
+        contracts_ = new Dictionary<string, ContractWrapper>();
+        foreach (var e in contract_entries_) {
+            //TODO: load addresses from addresses_
+            contracts_[e.label_] = new ContractWrapper(this, e.abi_.text, addresses_.text);
         }
-        var url = Web3Mgr.instance.Account.chain_url_;
+        var url = RPCMgr.instance.Account.chain_url_;
         get_balance_ = new EthGetBalanceUnityRequest(url, settings_);
         block_number_ = new EthBlockNumberUnityRequest(url);
         call_ = new EthCallUnityRequest(url);
         send_ = new TransactionSignedUnityRequest(url, 
-                    Web3Mgr.instance.Account.PrivateKey,
-                    Web3Mgr.instance.Account.address_);
+                    RPCMgr.instance.Account.PrivateKey,
+                    RPCMgr.instance.Account.address_);
         get_receipt_ = new GetTransactionReceiptRequest(url);
     }
 
@@ -187,19 +189,19 @@ public class RPC : MonoBehaviour {
 		}
 	}
     public IEnumerator GetSelfBalance(System.Action<decimal> callback) {
-        return GetBalance(Web3Mgr.instance.Account.address_, callback);
+        return GetBalance(RPCMgr.instance.Account.address_, callback);
     }
 
-    public Target this[string key] {
+    public ContractWrapper this[string key] {
         get {
-            Target t;
-            return targets_.TryGetValue(key, out t) ? t : null;
+            ContractWrapper c;
+            return contracts_.TryGetValue(key, out c) ? c : null;
         }
     }
-    public Target.CallResponse CallResponse {
+    public ContractWrapper.CallResponse CallResponse {
         get { return call_resp_; }
     }
-    public Target.SendResponse SendResponse {
+    public ContractWrapper.SendResponse SendResponse {
         get { return send_resp_; }
     }
 }
