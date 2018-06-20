@@ -14,7 +14,7 @@ class TopScreen : MonoBehaviour {
     }
     public uGUI.Text balance_;
     public uGUI.Button[] buttons_;
-    public CatListScrollController scroll_;
+    public CardListScrollController scroll_;
 
     void Start() {
         balance_ = transform.Find("Balance").gameObject.GetComponent<uGUI.Text>();
@@ -22,7 +22,7 @@ class TopScreen : MonoBehaviour {
         buttons_[(int)Menu.MarketMenu].GetComponent<uGUI.Button>().onClick.AddListener(OnMarketMenu);
         buttons_[(int)Menu.BreedMenu].GetComponent<uGUI.Button>().onClick.AddListener(OnBreedMenu);
         UpdateView();
-        scroll_.Cats = ViewModel.ViewModelMgr.instance.Inventory.Cats;
+        scroll_.Cards = ViewModel.ViewModelMgr.instance.Inventory.Cards;
     }
 
     public void UpdateView() {
@@ -31,17 +31,17 @@ class TopScreen : MonoBehaviour {
 
     void OnInventoryMenu() {
         Debug.Log("OnInventory");
-        scroll_.UpdateCatList(ViewModel.ViewModelMgr.instance.Inventory.Cats);
+        scroll_.UpdateCardList(ViewModel.ViewModelMgr.instance.Inventory.Cards);
     }
     void OnMarketMenu() {
         Debug.Log("Market");
         //TODO: retrieve list of cats on sale 
-        scroll_.UpdateCatList(new List<KeyValuePair<BigInteger, Neko.Cat>>());        
+        scroll_.UpdateCardList(new List<KeyValuePair<BigInteger, Ch.Card>>());        
     }
     void OnBreedMenu() {
         Debug.Log("Breed");        
         //TODO: retrieve list of cats which can breed 
-        scroll_.UpdateCatList(new List<KeyValuePair<BigInteger, Neko.Cat>>());
+        scroll_.UpdateCardList(new List<KeyValuePair<BigInteger, Ch.Card>>());
     }
 }
 }

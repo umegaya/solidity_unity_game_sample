@@ -6,18 +6,18 @@ using UnityEngine;
 
 namespace Game.ViewModel {
 public class Inventory {
-    public List<KeyValuePair<BigInteger, Neko.Cat>> Cats {
+    public List<KeyValuePair<BigInteger, Ch.Card>> Cards {
         get; private set;
     }
 
     public int debugDupCount = 0;
 
     public Inventory() {
-        Cats = new List<KeyValuePair<BigInteger, Neko.Cat>>();
+        Cards = new List<KeyValuePair<BigInteger, Ch.Card>>();
     }
 
     protected void Sort() {
-		Cats.Sort(delegate (KeyValuePair<BigInteger, Neko.Cat> a, KeyValuePair<BigInteger, Neko.Cat> b) {
+		Cards.Sort(delegate (KeyValuePair<BigInteger, Ch.Card> a, KeyValuePair<BigInteger, Ch.Card> b) {
 			//newest come first
 			if (a.Key < b.Key) {
 				return 1;
@@ -28,19 +28,19 @@ public class Inventory {
 			}
 		});
     }
-    public void AddCat(BigInteger id, Neko.Cat cat) {
-    	Cats.Add(new KeyValuePair<BigInteger, Neko.Cat>(id, cat));
+    public void AddCard(BigInteger id, Ch.Card cat) {
+    	Cards.Add(new KeyValuePair<BigInteger, Ch.Card>(id, cat));
 #if UNITY_EDITOR
         for (int i = 0; i < debugDupCount; i++) {
-            Cats.Add(new KeyValuePair<BigInteger, Neko.Cat>(id + i, cat));
+            Cards.Add(new KeyValuePair<BigInteger, Ch.Card>(id + i, cat));
         }
 #endif
     	Sort();
     }
-    public void RemoveCat(BigInteger id) {
-    	foreach (var kv in Cats) {
+    public void RemoveCard(BigInteger id) {
+    	foreach (var kv in Cards) {
     		if (kv.Key == id) {
-    			Cats.Remove(kv);
+    			Cards.Remove(kv);
     			Sort();
     			return;
     		}

@@ -66,9 +66,9 @@ public class ViewModelMgr : MonoBehaviour {
                             Debug.LogError("Inventory.getSlotBytes fails:" + r.Error.Message);
                         } else {
                             var id = (System.Numerics.BigInteger)r.Result[0].Result;
-                            var cat = r.As<Neko.Cat>(Neko.Cat.Parser);
-                            Debug.Log("Inventory.getSlotBytes cat[" + id.ToString() + "]:" + cat.Name);
-                            Inventory.AddCat(id, cat);
+                            var card = r.As<Ch.Card>(Ch.Card.Parser);
+                            Debug.Log("Inventory.getSlotBytes cat[" + id.ToString() + "]:" + card.Name);
+                            Inventory.AddCard(id, card);
                         }
                     }
                     break;
