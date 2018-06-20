@@ -32,5 +32,5 @@ compile_if_not: proto
 migrate: proto
 	truffle migrate
 
-addresses: migrate
+deploy: migrate
 	CONFIG_NAME=$(K8S_PLATFORM) truffle exec ./tools/admin/make_address_map.js

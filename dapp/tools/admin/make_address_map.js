@@ -15,6 +15,6 @@ var addresses = {
 };
 
 module.exports = function(finish) {
-	fs.writeFileSync(__dirname + "/../../build/contracts/__" +  cnf + "__addresses__.json", JSON.stringify(addresses));
+	fs.writeFileSync(__dirname + "/../../build/addresses/" +  cnf + ".json", JSON.stringify(addresses));
 	finish();
 }
