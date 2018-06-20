@@ -124,7 +124,7 @@ public class Eth : MonoBehaviour {
     }
     [System.Serializable] public struct ContractEntry {
         public string label_;
-        public TextAsset abi_;
+        public string addr_;
     }
     public TextAsset addresses_;
 
@@ -152,9 +152,15 @@ public class Eth : MonoBehaviour {
 
     void Initialize() {
         contracts_ = new Dictionary<string, ContractWrapper>();
-        foreach (var e in contract_entries_) {
-            //TODO: load addresses from addresses_
-            contracts_[e.label_] = new ContractWrapper(this, e.abi_.text, addresses_.text);
+        var addrs = JsonUtility.FromJson<Dictionary<string, string>>(addresses_.text);
+        foreach (var e in addrs) {
+            Debug.Log("contract:" + e.Key + " => " + e.Value);
+            contract_entries_.Add(new ContractEntry {
+                label_ = e.Key,
+                addr_ = e.Value,
+            });
+            var text_asset = Resources.Load<TextAsset>("Contracts/" + e.Key);
+            contracts_[e.Key] = new ContractWrapper(this, text_asset.text, e.Value);
         }
         var url = RPCMgr.instance.Account.chain_url_;
         get_balance_ = new EthGetBalanceUnityRequest(url, settings_);

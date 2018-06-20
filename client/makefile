@@ -3,6 +3,9 @@ ABI_CONTAINER=realguess/jq
 ABI_IN=../dapp/build/contracts
 ABI_OUT=./Assets/Resources/Contracts
 ABI_SRCS=$(addprefix $(ABI_OUT)/,World.json Inventory.json Moritapo.json History.json)
+ADDR_IN=../dapp/build/addresses
+ADDR_OUT=./Assets/Resources/Contracts
+ADDR_SRCS=$(addprefix $(ADDR_OUT)/,dev.json)
 
 define strip_abi
 	docker run --rm \
@@ -13,11 +16,13 @@ endef
 $(ABI_OUT)/%.json: $(ABI_IN)/%.json
 	$(call strip_abi,$(basename $(notdir $<)))
 
+$(ADDR_OUT)/%.json: $(ADDR_IN)/%.json
+	cp $< $@
+
 compile_json: 
 	@make -C ../dapp compile_if_not
 
-abi: compile_json $(ABI_SRCS)
-
+abi: compile_json $(ABI_SRCS) $(ADDR_SRCS)
 
 
 #### generate csharp source from proto
