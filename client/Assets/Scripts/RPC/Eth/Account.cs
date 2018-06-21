@@ -92,6 +92,7 @@ public class Account : MonoBehaviour {
 			Debug.Log("remove wallet data. this is unrecoverable.");
 			PlayerPrefs.SetString(KEY_PREFIX + "_key_store", "");
 		}
+		chain_url_ = chain_url_.EvalBackTick();
 		#else
 		encyption_ = false;
 		#endif

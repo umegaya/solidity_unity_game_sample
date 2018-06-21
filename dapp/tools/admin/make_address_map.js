@@ -7,12 +7,11 @@ var Inventory = artifacts.require("Inventory");
 var World = artifacts.require("World");
 //var History = artifacts.require("History");
 
-var addresses = {
-	World: World.address,
-	Inventory: Inventory.address,
-	Moritapo: Moritapo.address,
-	//History: History.address,
-};
+var addresses = [
+	{label: "World", address:World.address},
+	{label: "Inventory", address:Inventory.address},
+	{label: "Moritapo", address:Moritapo.address},
+];
 
 module.exports = function(finish) {
 	fs.writeFileSync(__dirname + "/../../build/addresses/" +  cnf + ".json", JSON.stringify(addresses));

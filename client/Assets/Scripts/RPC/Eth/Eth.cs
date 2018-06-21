@@ -10,6 +10,8 @@ using Nethereum.Contracts;
 
 using UnityEngine;
 
+using Newtonsoft.Json;
+
 using Game.Eth;
 using Game.Eth.Util;
 
@@ -123,12 +125,12 @@ public class Eth : MonoBehaviour {
         }
     }
     [System.Serializable] public struct ContractEntry {
-        public string label_;
-        public string addr_;
+        public string label;
+        public string address;
     }
     public TextAsset addresses_;
 
-    public List<ContractEntry> contract_entries_ = new List<ContractEntry>();
+    public List<ContractEntry> contract_entries_;
     public OnEventDelegate callback_;
     public double default_gas_ = 4000000;
 
@@ -152,15 +154,12 @@ public class Eth : MonoBehaviour {
 
     void Initialize() {
         contracts_ = new Dictionary<string, ContractWrapper>();
-        var addrs = JsonUtility.FromJson<Dictionary<string, string>>(addresses_.text);
-        foreach (var e in addrs) {
-            Debug.Log("contract:" + e.Key + " => " + e.Value);
-            contract_entries_.Add(new ContractEntry {
-                label_ = e.Key,
-                addr_ = e.Value,
-            });
-            var text_asset = Resources.Load<TextAsset>("Contracts/" + e.Key);
-            contracts_[e.Key] = new ContractWrapper(this, text_asset.text, e.Value);
+        contract_entries_ = JsonConvert.DeserializeObject<List<ContractEntry>>(addresses_.text);
+            Debug.Log("addrs:" + contract_entries_.Count + " => " + addresses_.text);
+        foreach (var e in contract_entries_) {
+            Debug.Log("contract:" + e.label + " => " + e.address);
+            var text_asset = Resources.Load<TextAsset>("Contracts/" + e.label);
+            contracts_[e.label] = new ContractWrapper(this, text_asset.text, e.address);
         }
         var url = RPCMgr.instance.Account.chain_url_;
         get_balance_ = new EthGetBalanceUnityRequest(url, settings_);
