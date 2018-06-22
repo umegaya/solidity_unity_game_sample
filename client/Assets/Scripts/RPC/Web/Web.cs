@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
+using Newtonsoft.Json;
+
 namespace Game.RPC {
 public class Web : MonoBehaviour {
     public string end_point_;
@@ -19,7 +21,7 @@ public class Web : MonoBehaviour {
             owner_.requests_[msgid_] = this;
         }
         public IEnumerator Call<REQ>(string func, REQ args) { 
-            var json = JsonUtility.ToJson(args);
+            var json = JsonConvert.SerializeObject(args);
             Debug.Log("encoded json:" + json);
             www_ = new WWW(owner_.end_point_ + "/" + func,  System.Text.Encoding.UTF8.GetBytes(json), 
                 new Dictionary<string, string> {
@@ -27,14 +29,26 @@ public class Web : MonoBehaviour {
                 }
             );
             yield return www_;
+            Debug.Log("end request:" + www_.error + "|" + System.Text.Encoding.UTF8.GetString(www_.bytes));
             owner_.requests_.Remove(msgid_);
         }
         public RES As<RES>() {
             try {
+                if (www_.error != null) {
+                    return default(RES);
+                }
                 var json = System.Text.Encoding.UTF8.GetString(www_.bytes);
-                return JsonUtility.FromJson<RES>(json);
+                return JsonConvert.DeserializeObject<RES>(json);
             } finally {
                 owner_.requests_.Remove(msgid_);
+            }
+        }
+        public System.Exception Error {
+            get {
+                if (www_.error == null) {
+                    return null;
+                }
+                return new System.Exception(www_.error);
             }
         }
     }

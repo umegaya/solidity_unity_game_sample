@@ -20,7 +20,7 @@ export function Factory(url: string, key_store: string, pass: string,
         instances:{}
     }
     addrs.forEach((e:{label:string, address:string}) => {
-        cs[e.label] = CreateContract(web3, require('./dapp/build/contracts/' + e.label + '.json'), e.address);
+        cs.instances[e.label] = CreateContract(web3, require('./dapp/build/contracts/' + e.label + '.json'), e.address);
     })
     return cs;
 }

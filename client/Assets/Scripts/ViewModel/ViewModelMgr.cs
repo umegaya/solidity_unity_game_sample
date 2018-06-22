@@ -78,21 +78,33 @@ public class ViewModelMgr : MonoBehaviour {
         callback_(Event.Initialized);
     }
     IEnumerator UpdateBalance() {
-        yield return RPCMgr.Eth.GetSelfBalance((balance) => {
-            Balance = balance;
+        var req = RPCMgr.Web.NewReq();
+        yield return req.Call("balance", new Dictionary<string, object>{
+            {"address", RPCMgr.Account.address_}
         });
+        if (req.Error != null) {
+            yield break;
+        }
+        Balance = (decimal)req.As<Dictionary<string, object>>()["balance"];
         yield return RPCMgr.Eth["Moritapo"].Call("balanceOf", RPCMgr.Account.address_);
         TokenBalance = (BigInteger)RPCMgr.Eth.CallResponse.Result[0].Result;
         Debug.Log("new balance:" + TokenBalance + "(" + Balance + ")");
     }
-    IEnumerator CreateInitialDeck() {
-        yield return RPCMgr.Eth["World"].Send2("payForInitialDeck", 1e18, 0);
-        Debug.Log("create initial deck: created");
-        var r = RPCMgr.Eth.SendResponse;
-        if (r.Error == null) {
+    IEnumerator CreateInitialDeck(uint selected_idx = 0) {
+        var req = RPCMgr.Web.NewReq();
+        yield return req.Call("new_account", new Dictionary<string, object>{
+            {"address", RPCMgr.Account.address_},
+            {"selected_idx", selected_idx},
+            {"iap_tx", new Dictionary<string, object> {
+                {"id", RPCMgr.Account.address_}, //temporary uses own address
+                {"coin_amount", 10000},
+            }},
+        });
+        if (req.Error == null) {
+            Debug.Log("create account: created");
             yield return StartCoroutine(UpdateBalance());
         } else {
-            Debug.LogError("World.createInitialCard fails:" + r.Error.Message + "|" + r.Error.InnerException.Message);
+            Debug.LogError("World.createInitialCard fails:" + req.Error.Message);
         }                    
     }
 }

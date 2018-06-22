@@ -147,9 +147,12 @@ public class Eth : MonoBehaviour {
     ContractWrapper.SendResponse send_resp_;
     
     public void Awake() {
-        RPCMgr.instance.Account.callback_ += OnAccountInitEvent;
         call_resp_ = new ContractWrapper.CallResponse();
         send_resp_ = new ContractWrapper.SendResponse();
+    }
+
+    public void Start() {
+        RPCMgr.instance.Account.callback_ += OnAccountInitEvent;
     }
 
     void Initialize() {

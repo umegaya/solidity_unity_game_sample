@@ -293,9 +293,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1038119390}
   - component: {fileID: 1038119391}
-  - component: {fileID: 1038119389}
   - component: {fileID: 1038119388}
   - component: {fileID: 1038119387}
+  - component: {fileID: 1038119389}
   m_Layer: 0
   m_Name: RPC
   m_TagString: Untagged
