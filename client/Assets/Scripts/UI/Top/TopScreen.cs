@@ -22,7 +22,6 @@ class TopScreen : MonoBehaviour {
         buttons_[(int)Menu.MarketMenu].GetComponent<uGUI.Button>().onClick.AddListener(OnMarketMenu);
         buttons_[(int)Menu.BreedMenu].GetComponent<uGUI.Button>().onClick.AddListener(OnBreedMenu);
         UpdateView();
-        Debug.Log("sc:" + scroll_.Cards + " & " + ViewModel.ViewModelMgr.instance);
         scroll_.Cards = ViewModel.ViewModelMgr.instance.Inventory.Cards;
     }
 

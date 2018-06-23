@@ -10,7 +10,6 @@ namespace Solidity {
 
     public sealed partial class uint16 {
         public uint ToNumber() {
-            UnityEngine.Debug.Log("dlen:" + Data.Length);
             var ba = Data.ToByteArray();
             Array.Reverse(ba);
             return (uint)BitConverter.ToUInt16(ba, 0);
