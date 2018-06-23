@@ -29,7 +29,7 @@ public class Web : MonoBehaviour {
                 }
             );
             yield return www_;
-            Debug.Log("end request:" + www_.error + "|" + System.Text.Encoding.UTF8.GetString(www_.bytes));
+            Debug.Log(owner_.end_point_ + " => end request:" + www_.error + "|" + System.Text.Encoding.UTF8.GetString(www_.bytes));
             owner_.requests_.Remove(msgid_);
         }
         public RES As<RES>() {
@@ -41,6 +41,11 @@ public class Web : MonoBehaviour {
                 return JsonConvert.DeserializeObject<RES>(json);
             } finally {
                 owner_.requests_.Remove(msgid_);
+            }
+        }
+        public string ResponseText {
+            get {
+                return System.Text.Encoding.UTF8.GetString(www_.bytes);
             }
         }
         public System.Exception Error {

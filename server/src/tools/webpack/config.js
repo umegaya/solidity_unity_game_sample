@@ -18,6 +18,7 @@ module.exports = {
     rules: [
         { test: /\.ts$/, use: 'ts-loader' },
         { test: /\.pass$/, use: 'raw-loader' },
+        { test: /\.addr$/, use: 'raw-loader' },
         { test: /\.ks$/, use: 'json-loader' },
     ],
   },

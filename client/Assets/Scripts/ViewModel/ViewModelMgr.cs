@@ -18,7 +18,7 @@ public class ViewModelMgr : MonoBehaviour {
     public Inventory Inventory {
         get; private set;
     }
-    public decimal Balance {
+    public BigInteger Balance {
         get; set; 
     }
     public BigInteger TokenBalance {
@@ -67,7 +67,7 @@ public class ViewModelMgr : MonoBehaviour {
                         } else {
                             var id = (System.Numerics.BigInteger)r.Result[0].Result;
                             var card = r.As<Ch.Card>(Ch.Card.Parser);
-                            Debug.Log("Inventory.getSlotBytes card[" + id.ToString() + "]:" + card.Name);
+                            Debug.Log("Inventory.getSlotBytes card[" + id.ToString() + "]:" + card.Hp.ToNumber());
                             Inventory.AddCard(id, card);
                         }
                     }
@@ -83,9 +83,16 @@ public class ViewModelMgr : MonoBehaviour {
             {"address", RPCMgr.Account.address_}
         });
         if (req.Error != null) {
+            yield return new WaitForSeconds(1.0f);
             yield break;
         }
-        Balance = (decimal)req.As<Dictionary<string, object>>()["balance"];
+        var json = req.As<Dictionary<string, object>>();
+        BigInteger bi;
+        if (!BigInteger.TryParse((string)json["balance"], out bi)) {
+            Debug.Log("fail to parse as biginteger:" + (string)json["balance"]);
+            yield break;
+        }
+        Balance = bi;
         yield return RPCMgr.Eth["Moritapo"].Call("balanceOf", RPCMgr.Account.address_);
         TokenBalance = (BigInteger)RPCMgr.Eth.CallResponse.Result[0].Result;
         Debug.Log("new balance:" + TokenBalance + "(" + Balance + ")");
@@ -105,6 +112,7 @@ public class ViewModelMgr : MonoBehaviour {
             yield return StartCoroutine(UpdateBalance());
         } else {
             Debug.LogError("World.createInitialCard fails:" + req.Error.Message);
+            yield return new WaitForSeconds(1.0f);
         }                    
     }
 }

@@ -28,13 +28,7 @@ public class Eth : MonoBehaviour {
             public System.Exception Error { get; set; }
 
             public M As<M>(Google.Protobuf.MessageParser<M> p, int startIndex = 1) where M : Google.Protobuf.IMessage<M> {
-                var len = (int)(System.Numerics.BigInteger)Result[startIndex + 1].Result;
-                var bs = new byte[len];
-                var ls = (List<object>)Result[startIndex].Result;
-                for (int j = 0; j < len; j++) {
-                    bs[j] = (byte)ls[j];
-                }
-                return p.ParseFrom(bs);
+                return p.ParseFrom((byte[])Result[startIndex].Result);
             }
         }
 
@@ -158,7 +152,6 @@ public class Eth : MonoBehaviour {
     void Initialize() {
         contracts_ = new Dictionary<string, ContractWrapper>();
         contract_entries_ = JsonConvert.DeserializeObject<List<ContractEntry>>(addresses_.text);
-            Debug.Log("addrs:" + contract_entries_.Count + " => " + addresses_.text);
         foreach (var e in contract_entries_) {
             Debug.Log("contract:" + e.label + " => " + e.address);
             var text_asset = Resources.Load<TextAsset>("Contracts/" + e.label);
