@@ -28,13 +28,25 @@ abi: compile_json $(ABI_SRCS) $(ADDR_SRCS)
 #### generate csharp source from proto
 PROTO_CONTAINER=umegaya/pb3sol
 PROTO_IN=../dapp/proto
-PROTO_OUT=./Assets/Scripts/Proto
+PROTO_OUT=./Assets/Scripts/Proto/Dapp
 PROTO_FILES=$(shell cd $(PROTO_IN) && ls *.proto)
 PROTO_SRCS=$(addprefix $(PROTO_OUT)/,$(PROTO_FILES:%.proto=%.g.cs))
+
+CLIENT_PROTO_IN=./Assets/Resources/ClientProto
+CLIENT_PROTO_OUT=./Assets/Scripts/Proto/Client
+CLIENT_PROTO_FILES=$(shell cd $(CLIENT_PROTO_IN) && ls *.proto)
+CLIENT_PROTO_SRCS=$(addprefix $(CLIENT_PROTO_OUT)/,$(CLIENT_PROTO_FILES:%.proto=%.g.cs))
 
 define protoc
 docker run --rm -v `pwd`/$(PROTO_IN):/in -v `pwd`/$(PROTO_OUT):/out $(PROTO_CONTAINER) bash -c "cd /in && protoc -I. -I/protoc/include $1"
 endef
+
+define cprotoc
+docker run --rm -v `pwd`/$(CLIENT_PROTO_IN):/in -v `pwd`/$(CLIENT_PROTO_OUT):/out $(PROTO_CONTAINER) bash -c "cd /in && protoc -I. $1"
+endef
+
+$(CLIENT_PROTO_OUT)/%.g.cs: $(CLIENT_PROTO_IN)/%.proto
+	$(call cprotoc,--csharp_out=/out --csharp_opt=file_extension=.g.cs $(notdir $<))
 
 $(PROTO_OUT)/Solidity.g.cs: 
 	$(call protoc,--csharp_out=/out --csharp_opt=file_extension=.g.cs /protoc/include/Solidity.proto)
@@ -42,5 +54,4 @@ $(PROTO_OUT)/Solidity.g.cs:
 $(PROTO_OUT)/%.g.cs: $(PROTO_IN)/%.proto
 	$(call protoc,--csharp_out=/out --csharp_opt=file_extension=.g.cs $(notdir $<))
 
-proto: $(PROTO_OUT)/Solidity.g.cs $(PROTO_SRCS)
-
+proto: $(PROTO_OUT)/Solidity.g.cs $(PROTO_SRCS) $(CLIENT_PROTO_SRCS)

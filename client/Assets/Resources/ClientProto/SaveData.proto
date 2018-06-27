@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package ch;
+
+message GameData {
+    message Deck {
+        repeated uint64 cards = 1;
+    }
+    repeated Deck decks = 1;
+}
+
+message Config {
+    bool sound = 1;
+}
