@@ -25,8 +25,8 @@ contract Inventory is StorageAccessor, Restrictable {
 
 
   //events
-  event AddCard(address indexed user, uint id, bytes created);
-  event updateCard(address indexed user, uint id, bytes created);
+  event MintCard(address indexed user, uint id, bytes created);
+  event UpdateCard(address indexed user, uint id, bytes created);
   event Merge(address indexed user, uint remain_card_id, uint marged_card_id, bytes created);
   event ConsumeTx(address indexed user, string tx_id);
 
@@ -119,7 +119,8 @@ contract Inventory is StorageAccessor, Restrictable {
     //return all tokens to admin
     for (uint i = 0; i < cards_.balanceOf(user); i++) {
       uint id = cards_.tokenOfOwnerByIndex(user, i);
-      transferCard(user, administrator_, id);
+      prices_[id] = 0;
+      cards_.privilegedTransfer(user, administrator_, id);
     }
   }
   function setForSale(address user, uint id, uint price) public writer {
@@ -141,6 +142,7 @@ contract Inventory is StorageAccessor, Restrictable {
     }
   }
   function transferCard(address from, address to, uint card_id) public writer {
+    require(prices_[card_id] > 0);
     cards_.privilegedTransfer(from, to, card_id);
   }
   function merge(address user, 
@@ -193,7 +195,7 @@ contract Inventory is StorageAccessor, Restrictable {
     bytes memory bs = card.encode();
     saveBytes(id, bs);
 
-    emit AddCard(user, id, bs);
+    emit MintCard(user, id, bs);
     cards_.mint(user, id);
     return id;  
   }

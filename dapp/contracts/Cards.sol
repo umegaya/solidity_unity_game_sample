@@ -17,13 +17,14 @@ contract Cards is ERC721Token, Restrictable, Constants {
   }
 
   function privilegedTransfer(address from, address to, uint card_id) public writer {
-    //force set approval and transfer
     require(ownerOf(card_id) == from);
     require(to != address(0));
     require(getApproved(card_id) == address(0));
-    tokenApprovals[card_id] = to;
-    emit Approval(from, to, card_id);
-    transferFrom(from, to, card_id);
+    //force set approval and transfer (sender address)
+    tokenApprovals[card_id] = msg.sender; 
+    emit Approval(msg.sender, to, card_id);
+    //msg.sender retained. (thus, sender address of this contract call)
+    super.transferFrom(from, to, card_id);
   }
 
   function merged(address user, uint target_card_id) public writer {

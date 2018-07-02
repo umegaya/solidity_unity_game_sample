@@ -13,9 +13,9 @@ var TX_ID_2 = "dee73cec26ff5678d7e2adc5c41bd22352a27e3f";
 var TX_ID_3 = "41bdd8edd2e507b0b30d4a381691284f213a87cc";
 var cardCheck = (ret, proto, opts) => {
     var log;
-    //search AddCard log
+    //search MintCard log
     ret.logs.forEach((l) => {
-        if (l.event == 'AddCard') { 
+        if (l.event == 'MintCard') { 
             log = l; 
         }
     });
@@ -39,7 +39,7 @@ var cardCheck = (ret, proto, opts) => {
 }
 var checkSpent = (ret, target) => {
     var log;
-    //search AddCard log
+    //search Transfer log
     ret.logs.forEach((l) => {
         if (l.event == 'Transfer' && l.args.from == target) { log = l; }
     });

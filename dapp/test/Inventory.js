@@ -36,7 +36,7 @@ var cardCheck = (card, opts) => {
     }    
 }
 var consumeCheck = (ret) => {
-    //search AddCard log
+    //search ConsumeTx log
     for (var i = 0; i < ret.logs.length; i++) {
         var l = ret.logs[i];
         if (l.event == 'ConsumeTx') { 
@@ -47,7 +47,7 @@ var consumeCheck = (ret) => {
 }
 
 var pgrs = new helper.Progress();
-pgrs.verbose = true;
+//pgrs.verbose = true;
 
 contract('Inventory', () => {
     var accounts = Inventory.currentProvider.addresses_;
@@ -71,16 +71,19 @@ contract('Inventory', () => {
             });
         //store / load card data
         }).then((p) => {
+            pgrs.step();
             proto = p;
             //console.log("contract address:", Inventory.address, Moritapo.address, World.address);
             return c.getSlotSize.call(accounts[0]);
         }).then((ret) => {
+            pgrs.step();
             assert.equal(ret, 0, "account0 should not have any card");
             return c.mintFixedCard(accounts[0], HP, ATK, DEF, SKILL_IDS, {from: writer});
         }).then((ret) => {
+            pgrs.step();
             assert.equal(ret.logs.length, 1, "should happen 1 log");
             var log = ret.logs[0];
-            assert.equal(log.event, 'AddCard', "event should be AddCard");
+            assert.equal(log.event, 'MintCard', "event should be MintCard");
             assert.equal(log.args.user, accounts[0], "event should happens on specified account");
             base_card_id = Number(log.args.id.toString());
             var CardProto = proto.lookup("Card");
@@ -112,19 +115,19 @@ contract('Inventory', () => {
         //set / get price
         }).then((ret) => {
             pgrs.step();
-            return c.getPrice(accounts[0], base_card_id);
+            return c.getPrice(base_card_id);
         }).then((ret) => {
             pgrs.step();
             assert.equal(ret, 444, "price should be set");
             return c.setForSale(accounts[0], base_card_id, 222, {from: accounts[1]});
         }).then((ret) => {
-            assert(false, "should not success with invalid account");
+            assert(false, "should not success with invalid from account");
         }, (err) => {
             pgrs.raise(err);
             return c.setForSale(accounts[0], base_card_id + 1, 0, {from: writer});
         //transfer card
         }).then((ret) => {
-            assert(false, "should not success with invalid index");
+            assert(false, "should not success with invalid id");
         }, (err) => {
             pgrs.raise(err);
             return c.transferCard(accounts[0], accounts[1], base_card_id, {from: writer});
@@ -148,17 +151,17 @@ contract('Inventory', () => {
         //breed card
         }).then((ret) => {
             pgrs.step();
-            return c.mintFixedCard(accounts[0], HP, ATK2, DEF2, SKILL_IDS2, {from: writer});
+            return c.mintFixedCard(accounts[1], HP, ATK2, DEF2, SKILL_IDS2, {from: writer});
         }).then((ret) => {
             pgrs.step();
             var log = ret.logs[0];
-            assert.equal(log.event, 'AddCard', "event should be AddCard");
+            assert.equal(log.event, 'MintCard', "event should be MintCard");
             assert.equal(log.args.id, base_card_id + 1, "card id should be correct");
             return c.estimateResultValue.call(base_card_id + 1, base_card_id, 0);
         }).then((ret) => {
             pgrs.step();
             assert.equal(ret.toNumber(), 11500, "value should be correct");
-            return c.merge(accounts[0], base_card_id + 1, base_card_id, 0, {from: writer});
+            return c.merge(accounts[1], base_card_id + 1, base_card_id, 0, {from: writer});
         }).then((ret) => {
             pgrs.step();
             var log = ret.logs[0];
@@ -166,20 +169,19 @@ contract('Inventory', () => {
             var bs = helper.toBytes(log.args.created);
             var card = CardProto.decode(bs);
             //console.log("card2", card);
-            assert.equal(log.args.id, base_card_id + 1, "card id should be correct");
+            assert.equal(log.args.remain_card_id, base_card_id + 1, "remain card id should be correct");
+            assert.equal(log.args.marged_card_id, base_card_id, "merged card id should be correct");
             cardCheck(card, { atk: ATK, def: DEF2, skills: SKILL_IDS_CHILD });
-            return c.getSlotSize.call(accounts[0]);
-        }).then((ret) => {
-            assert.equal(ret, 0, "account0 should burn card");
-            return c.clearSlots(accounts[0]);
+            return c.getSlotSize.call(accounts[1]);
         }).then((ret) => {
             pgrs.step();
-            return c.clearSlots(accounts[1]);
+            assert.equal(ret, 1, "account0 should burn card");
+            return c.clearSlots(accounts[1], {from: writer});
         }).then((ret) => {
             pgrs.step();
-            return c.getSlotSize.call(accounts[0]);
+            return c.getSlotSize.call(accounts[1]);
         }).then((ret) => { 
-            assert.equal(ret.toNumber(), 0, "slot size should be correct");
+            assert.equal(ret.toNumber(), 0, "account1 slot size should be zero because of clear slot");
             return c.recordPayment(accounts[0], TX_ID_1);
         }).then((ret) => {
             pgrs.step();

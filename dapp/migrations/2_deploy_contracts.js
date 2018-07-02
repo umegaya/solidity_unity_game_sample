@@ -51,15 +51,15 @@ module.exports = function(deployer) {
       return instance.setPrivilege(Inventory.address, PRIV_WRITABLE);
     });
   }).then(function () {
+    return Cards.at(Cards.address).then(function (instance) {
+      return instance.setPrivilege(Inventory.address, PRIV_WRITABLE);
+    })
+  }).then(function () {
     return Inventory.at(Inventory.address).then(function (instance) {
       return instance.setPrivilege(World.address, PRIV_WRITABLE);
     });
   }).then(function () {
     return Moritapo.at(Moritapo.address).then(function (instance) {
-      return instance.setPrivilege(World.address, PRIV_WRITABLE);
-    });
-  }).then(function () {
-    return Cards.at(Cards.address).then(function (instance) {
       return instance.setPrivilege(World.address, PRIV_WRITABLE);
     });
   }).then(function () {
