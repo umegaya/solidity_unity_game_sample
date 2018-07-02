@@ -22,7 +22,7 @@ contract World is Restrictable, Constants {
 
   //event
   event Exchange(uint value, uint rate, uint tokenSold, uint result);
-  event AddCard(address indexed user, uint id, bytes created); //from Inventory.sol
+  event MintCard(address indexed user, uint id, bytes created);
   event Approval(address indexed owner, address indexed spender, uint256 value); //from ERC20.sol
   event Transfer(address indexed from, address indexed to, uint256 value); //from ERC20.sol
   event Merge(address indexed user_a, address indexed user_b, uint id_a, uint id_b, uint new_id);
@@ -99,7 +99,6 @@ contract World is Restrictable, Constants {
   //buy cat with set token price
   //sender have to approve from to spend 'price' token.
   function buyCard(address from, uint card_id) public returns (bool) {
-    require(inventory_.canReleaseCard(from));
     uint price = inventory_.getPrice(card_id);
     require(price > 0); //ensure address 'from' has cat and for sale
     require(price < token_.balanceOf(msg.sender)); //ensure buyer have enough token
@@ -111,8 +110,7 @@ contract World is Restrictable, Constants {
   function reclaimToken(uint card_id) public returns (bool) {
     require(inventory_.canReleaseCard(msg.sender));
     uint reclaim_amount = getStandardPrice(card_id);
-    require(reclaim_amount > 0); //ensure sender has the cat
-    inventory_.transferCard(msg.sender, administrator_, card_id);
+    inventory_.returnCard(msg.sender, card_id);
     require(token_.privilegedTransfer(msg.sender, reclaim_amount));
     return true;
   }

@@ -52,7 +52,7 @@ var pgrs = new helper.Progress();
 contract('Inventory', () => {
     var accounts = Inventory.currentProvider.addresses_;
     writer = accounts[0];
-    var base_card_id;
+    var base_card_id, base_card_id2, remain_card_id;
     it("can create and load card", () => {
         var c, sc, proto;
         return Storage.deployed().then((instance) => {
@@ -91,15 +91,19 @@ contract('Inventory', () => {
             var card = CardProto.decode(bs);
             //console.log("card", card);
             cardCheck(card);
+            return c.mintFixedCard(accounts[0], HP, ATK, DEF, SKILL_IDS, {from: writer});
+        }).then((ret) => {
+            pgrs.step();
+            base_card_id2 = Number(log.args.id.toString());
             return c.getSlotSize.call(accounts[0]);
         }).then((ret) => {
             pgrs.step();
-            assert.equal(ret, 1, "slot size should be correct");
+            assert.equal(ret, 2, "slot size should be correct");
             return c.getSlotId.call(accounts[0], 0);
         }).then((ret) => {
             pgrs.step();
             assert.equal(ret, base_card_id, "slot id should be correct");
-            return c.getSlotId.call(accounts[0], 1);
+            return c.getSlotId.call(accounts[0], 2);
         }).then((ret) => {
             assert(false, "should not success with invalid index");
         }, (err) => {
@@ -124,7 +128,7 @@ contract('Inventory', () => {
             assert(false, "should not success with invalid from account");
         }, (err) => {
             pgrs.raise(err);
-            return c.setForSale(accounts[0], base_card_id + 1, 0, {from: writer});
+            return c.setForSale(accounts[0], base_card_id + 10, 0, {from: writer});
         //transfer card
         }).then((ret) => {
             assert(false, "should not success with invalid id");
@@ -136,7 +140,7 @@ contract('Inventory', () => {
             return c.getSlotSize.call(accounts[0]);
         }).then((ret) => {
             pgrs.step();
-            assert.equal(ret, 0, "account0 should lose card");
+            assert.equal(ret, 1, "account0 should lose card");
             return c.getSlotId.call(accounts[1], 0);
         }).then((ret) => {
             pgrs.step();
@@ -148,7 +152,7 @@ contract('Inventory', () => {
             var bs = helper.toBytes(ret);
             var card = CardProto.decode(bs);
             cardCheck(card);
-        //breed card
+        //merge card
         }).then((ret) => {
             pgrs.step();
             return c.mintFixedCard(accounts[1], HP, ATK2, DEF2, SKILL_IDS2, {from: writer});
@@ -156,12 +160,13 @@ contract('Inventory', () => {
             pgrs.step();
             var log = ret.logs[0];
             assert.equal(log.event, 'MintCard', "event should be MintCard");
-            assert.equal(log.args.id, base_card_id + 1, "card id should be correct");
-            return c.estimateResultValue.call(base_card_id + 1, base_card_id, 0);
+            remain_card_id = base_card_id + 2;
+            assert.equal(log.args.id, remain_card_id, "card id should be correct");
+            return c.estimateResultValue.call(remain_card_id, base_card_id, 0);
         }).then((ret) => {
             pgrs.step();
             assert.equal(ret.toNumber(), 11500, "value should be correct");
-            return c.merge(accounts[1], base_card_id + 1, base_card_id, 0, {from: writer});
+            return c.merge(accounts[1], remain_card_id, base_card_id, 0, {from: writer});
         }).then((ret) => {
             pgrs.step();
             var log = ret.logs[0];
@@ -169,8 +174,8 @@ contract('Inventory', () => {
             var bs = helper.toBytes(log.args.created);
             var card = CardProto.decode(bs);
             //console.log("card2", card);
-            assert.equal(log.args.remain_card_id, base_card_id + 1, "remain card id should be correct");
-            assert.equal(log.args.marged_card_id, base_card_id, "merged card id should be correct");
+            assert.equal(log.args.remain_card_id, remain_card_id, "remain card id should be correct");
+            assert.equal(log.args.merged_card_id, base_card_id, "merged card id should be correct");
             cardCheck(card, { atk: ATK, def: DEF2, skills: SKILL_IDS_CHILD });
             return c.getSlotSize.call(accounts[1]);
         }).then((ret) => {

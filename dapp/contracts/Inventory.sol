@@ -27,7 +27,7 @@ contract Inventory is StorageAccessor, Restrictable {
   //events
   event MintCard(address indexed user, uint id, bytes created);
   event UpdateCard(address indexed user, uint id, bytes created);
-  event Merge(address indexed user, uint remain_card_id, uint marged_card_id, bytes created);
+  event Merge(address indexed user, uint remain_card_id, uint merged_card_id, bytes created);
   event ConsumeTx(address indexed user, string tx_id);
 
 
@@ -143,7 +143,12 @@ contract Inventory is StorageAccessor, Restrictable {
   }
   function transferCard(address from, address to, uint card_id) public writer {
     require(prices_[card_id] > 0);
+    require(canReleaseCard(from));
     cards_.privilegedTransfer(from, to, card_id);
+  }
+  function returnCard(address from, uint card_id) public writer {
+    require(canReleaseCard(from));
+    cards_.privilegedTransfer(from, administrator_, card_id);
   }
   function merge(address user, 
     uint source_card_id, //this card remains
