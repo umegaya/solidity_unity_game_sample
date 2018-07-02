@@ -8,7 +8,7 @@ library CalcUtil {
   using PRNG for PRNG.Data;
 
   function mixParam(PRNG.Data memory rnd, 
-    uint p1, uint p2, int blend_rate, uint bonus) public view returns (uint) {
+    uint p1, uint p2, int blend_rate, uint bonus) internal view returns (uint) {
     uint max_param = uint(Math.max256(p1, p2));
     uint min_param = uint(Math.min256(p1, p2));
     return ((max_param * uint(16 - blend_rate) + min_param * uint(blend_rate)) / 16) + rnd.gen2(0, bonus);

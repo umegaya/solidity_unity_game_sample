@@ -138,7 +138,7 @@ contract('World', (as) => {
             pgrs.step();
             sub_card_id = cardCheck(ret, proto);
             sub_balance += 5*(10**3); //already token price doubled above
-            return c.estimateMergeFee.call(main_card_id, sub_account, sub_card_id, {from: main_account});
+            return c.estimateMergeFee.call(main_card_id, sub_card_id, {from: main_account});
         }).then(async (ret) => {
             pgrs.step();
             est_merge_fee = ret.toNumber();
@@ -146,7 +146,7 @@ contract('World', (as) => {
                          true, "merge fee should be correct");
             //allow possible maximum spent
             await tc.approve(World.address, 16 + 95, {from: main_account});
-            return c.mergeCard(main_card_id, sub_account, sub_card_id, {from: main_account});
+            return c.mergeCard(main_card_id, sub_card_id, {from: main_account});
         }).then((ret) => {
             pgrs.step();
             merge_card_id = cardCheck(ret, proto);
@@ -157,12 +157,12 @@ contract('World', (as) => {
         }).then((ret) => {
             pgrs.step();
             assert.equal(ret.toNumber(), main_balance, "token balance shold be decreased correctly");
-            return c.setForSale(0, test_card_price, {from: main_account});
+            return c.setForSale(main_card_id, test_card_price, {from: main_account});
         }).then((ret) => {
             return Inventory.deployed();
         }).then((instance) => {
             pgrs.step();
-            return instance.getPrice.call(main_account, main_card_id); //slot 0 should be card_id = 1
+            return instance.getPrice.call(main_card_id); //slot 0 should be card_id = 1
         }).then(async (ret) => {
             pgrs.step();
             assert.equal(ret.toNumber(), test_card_price, "getPrice should returns correct price");
@@ -177,12 +177,12 @@ contract('World', (as) => {
             assert.equal(ret.toNumber(), sub_balance, "balance should be correctly decreased");
         //reclaim card
             pgrs.step();
-            return c.estimateReclaimToken.call(1, { from: sub_account });
+            return c.estimateReclaimToken.call(sub_card_id, { from: sub_account });
         }).then((ret) => {
             pgrs.step();
             reclaim_token = ret.toNumber();
             assert.equal(reclaim_token, 95, "reclaim fee should be correct");
-            return c.reclaimToken(1, { from: sub_account });
+            return c.reclaimToken(sub_card_id, { from: sub_account });
         }).then((ret) => {
             pgrs.step();
             sub_balance += reclaim_token;

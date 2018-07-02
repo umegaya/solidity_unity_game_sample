@@ -8,13 +8,11 @@ import "./libs/PRNG.sol";
 import "./libs/math/Math.sol";
 import "./CalcUtil.sol";
 import "./Constants.sol";
+import "./Cards.sol";
 
+//TODO: make it ERC721 compatible
 contract Inventory is StorageAccessor, Restrictable {
   //defs
-  struct Slot {
-    uint id;
-    uint price; //0 means not for sale
-  }
   using PRNG for PRNG.Data;
   using pb_ch_Card for pb_ch_Card.Data;
   using pb_ch_Payment for pb_ch_Payment.Data;
@@ -22,82 +20,75 @@ contract Inventory is StorageAccessor, Restrictable {
 
   //variables
   uint idSeed_;
-  mapping(address => Slot[]) inventories_; 
+  mapping(uint => uint) prices_;
+  Cards cards_;
 
 
   //events
   event AddCard(address indexed user, uint id, bytes created);
-  event Merge(address indexed user_a, address indexed user_b, uint id_a, uint id_b, uint new_id);
+  event updateCard(address indexed user, uint id, bytes created);
+  event Merge(address indexed user, uint remain_card_id, uint marged_card_id, bytes created);
   event ConsumeTx(address indexed user, string tx_id);
 
 
   //ctor
-  constructor(address storageAddress) StorageAccessor(storageAddress) Restrictable() public {
+  constructor(address storageAddress, address cardsAddress)  
+    StorageAccessor(storageAddress) 
+    Restrictable() public {
+    cards_ = Cards(cardsAddress);
     idSeed_ = 1;
   } 
 
 
   //reader
   function getSlotSize(address user) public view returns (uint) {
-    return inventories_[user].length;
+    return cards_.balanceOf(user);
   }
   //until solidity 0.4.21, return bytes directly and parse on client side
   function getSlotBytes(address user, uint slot_idx) public view returns (bytes) {
-    Slot[] storage iv = inventories_[user];
-    require(iv.length > slot_idx);
-    return loadBytes(iv[slot_idx].id);
+    uint id = cards_.tokenOfOwnerByIndex(user, slot_idx);
+    return loadBytes(id);
   }
   function getSlotBytesAndId(address user, uint slot_idx) public view returns (uint, bytes) {
-    Slot[] storage iv = inventories_[user];
-    require(iv.length > slot_idx);
-    bytes memory c = loadBytes(iv[slot_idx].id);    
-    return (iv[slot_idx].id, c);
+    uint id = cards_.tokenOfOwnerByIndex(user, slot_idx);
+    return (id, loadBytes(id));
   }
   function getSlotId(address user, uint slot_idx) public view returns (uint) {
-    Slot[] storage iv = inventories_[user];
-    require(iv.length > slot_idx);
-    return iv[slot_idx].id;
+    return cards_.tokenOfOwnerByIndex(user, slot_idx);
   }
-  function getPrice(address user, uint id) public view returns (uint) {
-    Slot[] storage iv = inventories_[user];
-    for (uint i = 0; i < iv.length; i++) {
-      if (id == iv[i].id) {
-        return iv[i].price;
-      }
-    }
-    return 0;
+  function getSlotBytesById(uint card_id) public view returns (bytes) {
+    return loadBytes(card_id);
   }
-  function getCard(address user, uint id) internal view returns (pb_ch_Card.Data cat, bool found) {
-    Slot[] memory iv = inventories_[user];
-    for (uint i = 0; i < iv.length; i++) {
-      if (iv[i].id == id) {
-        bytes memory c = loadBytes(id);
+  function getPrice(uint id) public view returns (uint) {
+    return prices_[id];
+  }
+  function getCard(uint id) internal view returns (pb_ch_Card.Data cat, bool found) {
+      bytes memory c = loadBytes(id);
+      if (c.length > 0) {
         cat = pb_ch_Card.decode(c);
         found = true;
-        return;
+      } else {
+        found = false;
       }
-    }
-    found = false;
   }
   function canReleaseCard(address user) public view returns (bool) {
-    //cannot be the 'no cat' status
-    return inventories_[user].length > 1;
+    //cannot be the 'no card' status
+    return cards_.balanceOf(user) > 1;
   }
-  function estimateResultValue(address source, uint source_card_id,
-    address target, uint target_card_id, int debug_rate) public view returns (uint) {
-    pb_ch_Card.Data memory new_card = createCard(source, source_card_id, target, target_card_id, debug_rate);
+  function estimateResultValue(uint source_card_id,
+    uint target_card_id, int debug_rate) public view returns (uint) {
+    pb_ch_Card.Data memory new_card = createMergedCard(source_card_id, target_card_id, debug_rate);
     return CalcUtil.evaluate(new_card);
   }
-  function createCard(
-    address a, uint a_card_id, 
-    address b, uint b_card_id, int rate) internal view returns (pb_ch_Card.Data card) {
+  function createMergedCard(
+    uint a_card_id, uint b_card_id, int rate) internal view returns (pb_ch_Card.Data card) {
     bool tmp;
     pb_ch_Card.Data memory ca;
-    (ca, tmp) = getCard(a, a_card_id);
+    (ca, tmp) = getCard(a_card_id);
     require(tmp);
 
     pb_ch_Card.Data memory cb;
-    (cb, tmp) = getCard(b, b_card_id);
+    (cb, tmp) = getCard(b_card_id);
     require(tmp); //*/
 
     if (rate < 0) {
@@ -125,14 +116,15 @@ contract Inventory is StorageAccessor, Restrictable {
 
   //writer
   function clearSlots(address user) public admin {
-    Slot[] storage iv = inventories_[user];
-    iv.length = 0;
+    //return all tokens to admin
+    for (uint i = 0; i < cards_.balanceOf(user); i++) {
+      uint id = cards_.tokenOfOwnerByIndex(user, i);
+      transferCard(user, administrator_, id);
+    }
   }
-  function setForSale(address user, uint index, uint price) public writer returns (bool) {
-    Slot[] storage iv = inventories_[user];
-    require(iv.length > index);
-    iv[index].price = price;
-    return true;
+  function setForSale(address user, uint id, uint price) public writer {
+    require(cards_.ownerOf(id) == user);
+    prices_[id] = price;
   }
   //record payment, if fails, related transation rolled back.
   function recordPayment(address user, string tx_id) public returns (bool) {
@@ -148,48 +140,40 @@ contract Inventory is StorageAccessor, Restrictable {
       return false;
     }
   }
-  function transferCard(address from, address to, uint card_id) public writer returns (bool) {
-    Slot[] storage iv = inventories_[from];
-    bool found = false;
-    for (uint i = 0; i < iv.length; i++) {
-      if (!found) {
-        if (card_id == iv[i].id) {
-          found = true;
-          Slot memory s;
-          s.id = card_id;
-          inventories_[to].push(s);              
-        }
-      } else {
-        iv[i - 1] = iv[i];
-      }
-    }
-    if (found) {
-      iv.length--;
-    }
-    return found;    
+  function transferCard(address from, address to, uint card_id) public writer {
+    cards_.privilegedTransfer(from, to, card_id);
   }
-  function merge(
-    address source, uint source_card_id,
-    address target, uint target_card_id,
-    int debug_rate) public writer returns (bool) {
-    pb_ch_Card.Data memory card = createCard(source, source_card_id, target, target_card_id, debug_rate);
-    uint new_id = addFixedCard(source, card);
-    emit Merge(source, target, source_card_id, target_card_id, new_id);
-    return true;
+  function merge(address user, 
+    uint source_card_id, //this card remains
+    uint target_card_id, //merged card, burned after merge success
+    int debug_rate) public writer returns (bytes) {
+    //verify
+    require(cards_.ownerOf(source_card_id) == user);
+    require(cards_.ownerOf(target_card_id) == user);
+    //create merged card data
+    pb_ch_Card.Data memory card = createMergedCard(source_card_id, target_card_id, debug_rate);
+    //update card dat
+    bytes memory bs = card.encode();
+    saveBytes(source_card_id, bs);
+    //issue events
+    emit Merge(user, source_card_id, target_card_id, bs);
+    //burn merged card
+    cards_.merged(user, target_card_id);
+    return bs;
   }
-  function addCard(address user) public writer returns (uint) {
+  function mintCard(address user) public writer returns (uint) {
     PRNG.Data memory rnd;
     uint n_skills = rnd.gen2(1, 3);
     uint16[] memory skills = new uint16[](n_skills);
     for (uint i = 0; i < n_skills; i++) {
       skills[i] = uint16(rnd.gen2(1, 16));
     }
-    return addFixedCard(user, 
+    return mintFixedCard(user, 
                 uint16(rnd.gen2(50, 100)), 
                 uint16(rnd.gen2(10, 30)), uint16(rnd.gen2(10, 30)),
                 skills);
   }
-  function addFixedCard(address user, 
+  function mintFixedCard(address user, 
                       uint16 hp, uint16 atk, uint16 def, 
                       uint16[] skills) public writer returns (uint) {
     pb_ch_Card.Data memory c;
@@ -202,18 +186,15 @@ contract Inventory is StorageAccessor, Restrictable {
       c.skills[i].id = skills[i];
       c.skills[i].exp = 0;
     }
-    return addFixedCard(user, c); //*/
+    return mintFixedCard(user, c); //*/
   }
-  function addFixedCard(address user, pb_ch_Card.Data card) internal writer returns (uint) {
+  function mintFixedCard(address user, pb_ch_Card.Data card) internal writer returns (uint) {
     uint id = idSeed_++;
     bytes memory bs = card.encode();
     saveBytes(id, bs);
 
-    Slot memory s;
-    s.id = id;
-    inventories_[user].push(s);  
-
     emit AddCard(user, id, bs);
+    cards_.mint(user, id);
     return id;  
   }
 }

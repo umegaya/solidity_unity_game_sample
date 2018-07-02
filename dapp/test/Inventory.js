@@ -47,7 +47,7 @@ var consumeCheck = (ret) => {
 }
 
 var pgrs = new helper.Progress();
-//pgrs.verbose = true;
+pgrs.verbose = true;
 
 contract('Inventory', () => {
     var accounts = Inventory.currentProvider.addresses_;
@@ -76,7 +76,7 @@ contract('Inventory', () => {
             return c.getSlotSize.call(accounts[0]);
         }).then((ret) => {
             assert.equal(ret, 0, "account0 should not have any card");
-            return c.addFixedCard(accounts[0], HP, ATK, DEF, SKILL_IDS, {from: writer});
+            return c.mintFixedCard(accounts[0], HP, ATK, DEF, SKILL_IDS, {from: writer});
         }).then((ret) => {
             assert.equal(ret.logs.length, 1, "should happen 1 log");
             var log = ret.logs[0];
@@ -108,7 +108,7 @@ contract('Inventory', () => {
             var bs = helper.toBytes(ret);
             var card = CardProto.decode(bs);
             cardCheck(card);
-            return c.setForSale(accounts[0], 0, 444, {from: writer});
+            return c.setForSale(accounts[0], base_card_id, 444, {from: writer});
         //set / get price
         }).then((ret) => {
             pgrs.step();
@@ -116,12 +116,12 @@ contract('Inventory', () => {
         }).then((ret) => {
             pgrs.step();
             assert.equal(ret, 444, "price should be set");
-            return c.setForSale(accounts[0], 0, 222, {from: accounts[1]});
+            return c.setForSale(accounts[0], base_card_id, 222, {from: accounts[1]});
         }).then((ret) => {
             assert(false, "should not success with invalid account");
         }, (err) => {
             pgrs.raise(err);
-            return c.setForSale(accounts[0], 1, 0, {from: writer});
+            return c.setForSale(accounts[0], base_card_id + 1, 0, {from: writer});
         //transfer card
         }).then((ret) => {
             assert(false, "should not success with invalid index");
@@ -148,17 +148,17 @@ contract('Inventory', () => {
         //breed card
         }).then((ret) => {
             pgrs.step();
-            return c.addFixedCard(accounts[0], HP, ATK2, DEF2, SKILL_IDS2, {from: writer});
+            return c.mintFixedCard(accounts[0], HP, ATK2, DEF2, SKILL_IDS2, {from: writer});
         }).then((ret) => {
             pgrs.step();
             var log = ret.logs[0];
             assert.equal(log.event, 'AddCard', "event should be AddCard");
             assert.equal(log.args.id, base_card_id + 1, "card id should be correct");
-            return c.estimateResultValue.call(accounts[0], base_card_id + 1, accounts[1], base_card_id, 0);
+            return c.estimateResultValue.call(base_card_id + 1, base_card_id, 0);
         }).then((ret) => {
             pgrs.step();
             assert.equal(ret.toNumber(), 11500, "value should be correct");
-            return c.merge(accounts[0], base_card_id + 1, accounts[1], base_card_id, 0, {from: writer});
+            return c.merge(accounts[0], base_card_id + 1, base_card_id, 0, {from: writer});
         }).then((ret) => {
             pgrs.step();
             var log = ret.logs[0];
@@ -166,29 +166,11 @@ contract('Inventory', () => {
             var bs = helper.toBytes(log.args.created);
             var card = CardProto.decode(bs);
             //console.log("card2", card);
-            assert.equal(log.args.id, base_card_id + 2, "card id should be correct");
+            assert.equal(log.args.id, base_card_id + 1, "card id should be correct");
             cardCheck(card, { atk: ATK, def: DEF2, skills: SKILL_IDS_CHILD });
-            return c.estimateResultValue.call(accounts[0], base_card_id + 1, accounts[1], base_card_id, 16);
+            return c.getSlotSize.call(accounts[0]);
         }).then((ret) => {
-            pgrs.step();
-            assert.equal(ret.toNumber(), 10500, "value should be correct");
-            return c.merge(accounts[0], base_card_id + 1, accounts[1], base_card_id, 16, {from: writer});
-        }).then((ret) => {
-            pgrs.step();
-            var log = ret.logs[0];
-            var CardProto = proto.lookup("Card");
-            var bs = helper.toBytes(log.args.created);
-            var card = CardProto.decode(bs);
-            assert.equal(log.args.id, base_card_id + 3, "card id should be correct");
-            cardCheck(card, { atk: ATK2, def: DEF, skills: SKILL_IDS_CHILD });
-        }).then((ret) => {
-            pgrs.step();
-            return c.addFixedCard(accounts[0], HP, ATK2, DEF2, SKILL_IDS2, {from: writer});
-        }).then((ret) => {
-            pgrs.step();
-            return c.merge(accounts[0], base_card_id + 4, accounts[1], base_card_id, -1, {from: writer});
-        }).then((ret) => { 
-            pgrs.step();
+            assert.equal(ret, 0, "account0 should burn card");
             return c.clearSlots(accounts[0]);
         }).then((ret) => {
             pgrs.step();

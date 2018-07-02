@@ -44,11 +44,11 @@ contract World is Restrictable, Constants {
     return token_.balanceOf(msg.sender);
   }
   //estimate breed fee
-  function estimateMergeFee(uint cat_id, address target, uint target_cat_id) public view returns (uint) {
-    return estimateMergeFee(msg.sender, cat_id, target, target_cat_id);
+  function estimateMergeFee(uint card_id, uint target_card_id) public view returns (uint) {
+    return mergeFeeFromCardValue(inventory_.estimateResultValue(card_id, target_card_id, -1));
   }
-  function estimateReclaimToken(uint index) public view returns (uint256) {
-    bytes memory c = inventory_.getSlotBytes(msg.sender, index);
+  function estimateReclaimToken(uint card_id) public view returns (uint256) {
+    bytes memory c = inventory_.getSlotBytesById(card_id);
     pb_ch_Card.Data memory card = pb_ch_Card.decode(c);
     return mergeFeeFromCardValue(CalcUtil.evaluate(card));
   }
@@ -69,13 +69,13 @@ contract World is Restrictable, Constants {
     skills[0] = uint16(rnd.gen2(1, 64));
     if (sel_idx == 0) {
       //hp type
-      inventory_.addFixedCard(target, 75, 10, 10, skills);
+      inventory_.mintFixedCard(target, 75, 10, 10, skills);
     } else if (sel_idx == 1) {
       //attack type
-      inventory_.addFixedCard(target, 50, 20, 10, skills);
+      inventory_.mintFixedCard(target, 50, 20, 10, skills);
     } else if (sel_idx == 2) {
       //defense type
-      inventory_.addFixedCard(target, 50, 10, 20, skills);
+      inventory_.mintFixedCard(target, 50, 10, 20, skills);
     }//*/
     //give initial token with current rate
     uint amount = payment_unit / currentRateForPU();
@@ -98,40 +98,40 @@ contract World is Restrictable, Constants {
   }
   //buy cat with set token price
   //sender have to approve from to spend 'price' token.
-  function buyCard(address from, uint cat_id) public returns (bool) {
+  function buyCard(address from, uint card_id) public returns (bool) {
     require(inventory_.canReleaseCard(from));
-    uint price = inventory_.getPrice(from, cat_id);
+    uint price = inventory_.getPrice(card_id);
     require(price > 0); //ensure address 'from' has cat and for sale
     require(price < token_.balanceOf(msg.sender)); //ensure buyer have enough token
+    inventory_.transferCard(from, msg.sender, card_id);
     require(token_.transferFrom(msg.sender, from, price));
-    require(inventory_.transferCard(from, msg.sender, cat_id));
     return true;
   }
   //change your cat to token according to configured sell price
-  function reclaimToken(uint index) public returns (bool) {
+  function reclaimToken(uint card_id) public returns (bool) {
     require(inventory_.canReleaseCard(msg.sender));
-    (uint reclaim_amount, uint cat_id) = getStandardPrice(msg.sender, index);
+    uint reclaim_amount = getStandardPrice(card_id);
     require(reclaim_amount > 0); //ensure sender has the cat
+    inventory_.transferCard(msg.sender, administrator_, card_id);
     require(token_.privilegedTransfer(msg.sender, reclaim_amount));
-    require(inventory_.transferCard(msg.sender, administrator_, cat_id));
     return true;
   }
   //breed msg.sender's cat_id and target's target_cat_id
   //cat's sex need to be different. and need some token to pay
   //if required_token != 0, token is not enough. 
   //sender have to approve administrator_ to spend 'estimateBreedFee' 
-  function mergeCard(uint cat_id, address target, uint target_cat_id) public returns (uint required_token) {
-    uint fee = estimateMergeFee(msg.sender, cat_id, target, target_cat_id);
+  function mergeCard(uint card_id, uint target_card_id) public returns (uint) {
+    uint fee = estimateMergeFee(card_id, target_card_id);
     if (fee > token_.balanceOf(msg.sender)) {
       return fee;
     }
-    require(inventory_.merge(msg.sender, cat_id, target, target_cat_id, -1));
+    inventory_.merge(msg.sender, card_id, target_card_id, -1);
     require(token_.transferFrom(msg.sender, administrator_, fee));
     return 0;
   }
   //set your cat for sale. if specify 0 to price, make corresponding cat not for sale.
-  function setForSale(uint index, uint price) public returns (bool){
-    return inventory_.setForSale(msg.sender, index, price);
+  function setForSale(uint id, uint price) public {
+    inventory_.setForSale(msg.sender, id, price);
   }
 
 
@@ -144,14 +144,10 @@ contract World is Restrictable, Constants {
   function mergeFeeFromCardValue(uint cv) internal pure returns (uint) {
     return cv / CAT_VALUE_DIVIDE_BY_TOKEN;
   }
-  function getStandardPrice(address reclaimer, uint index) public view returns (uint price, uint cat_id) {
-    bytes memory bs = inventory_.getSlotBytes(reclaimer, index);
-    cat_id = inventory_.getSlotId(reclaimer, index);
+  function getStandardPrice(uint card_id) public view returns (uint) {
+    bytes memory bs = inventory_.getSlotBytesById(card_id);
     pb_ch_Card.Data memory card = pb_ch_Card.decode(bs);
     uint base_price = CalcUtil.evaluate(card);
-    return (mergeFeeFromCardValue(base_price), cat_id);
-  }
-  function estimateMergeFee(address sender, uint cat_id, address target, uint target_cat_id) internal view returns (uint) {
-    return mergeFeeFromCardValue(inventory_.estimateResultValue(sender, cat_id, target, target_cat_id, -1));
+    return mergeFeeFromCardValue(base_price);
   }
 }
