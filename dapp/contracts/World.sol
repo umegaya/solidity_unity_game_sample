@@ -18,6 +18,7 @@ contract World is Restrictable, Constants {
   Moritapo token_;
   Inventory inventory_;
   uint tokenSold_;
+  uint clock_; //current world date time. updated with minutes frequency from authorized host
 
 
   //event
@@ -86,6 +87,9 @@ contract World is Restrictable, Constants {
   }
   function payForInitialCard(uint sel_idx) public payable {
     createInitialDeck(msg.sender, "hoge", 10000, sel_idx);
+  }
+  function updateClock(uint current_clock) public admin {
+    clock_ = current_clock;
   }
   //just buy token with sent ether (where to have conversion rate?)
   function buyToken(address target, string tx_id, uint payment_unit) public writer {

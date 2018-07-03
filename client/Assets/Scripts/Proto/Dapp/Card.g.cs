@@ -24,17 +24,12 @@ namespace Ch {
     static CardReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "CgpDYXJkLnByb3RvEgJjaBoOU29saWRpdHkucHJvdG8i+wEKBENhcmQSHAoC",
-            "aHAYASABKAsyEC5zb2xpZGl0eS51aW50MTYSIAoGYXR0YWNrGAIgASgLMhAu",
-            "c29saWRpdHkudWludDE2EiEKB2RlZmVuc2UYAyABKAsyEC5zb2xpZGl0eS51",
-            "aW50MTYSCwoDZXhwGAUgASgNEh4KBnNraWxscxgGIAMoCzIOLmNoLkNhcmQu",
-            "U2tpbGwSDAoEbmFtZRgHIAEoCRIPCgdpc19tYWxlGAggASgIGkQKBVNraWxs",
-            "EhwKAmlkGAEgASgLMhAuc29saWRpdHkudWludDE2Eh0KA2V4cBgCIAEoCzIQ",
-            "LnNvbGlkaXR5LnVpbnQxNmIGcHJvdG8z"));
+            "CgpDYXJkLnByb3RvEgJjaCI8CgRDYXJkEg8KB3NwZWNfaWQYASABKA0SFAoM",
+            "dmlzdWFsX2ZsYWdzGAIgASgNEg0KBWxldmVsGAMgASgNYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Solidity.SolidityReflection.Descriptor, },
+          new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Ch.Card), global::Ch.Card.Parser, new[]{ "Hp", "Attack", "Defense", "Exp", "Skills", "Name", "IsMale" }, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Ch.Card.Types.Skill), global::Ch.Card.Types.Skill.Parser, new[]{ "Id", "Exp" }, null, null, null)})
+            new pbr::GeneratedClrTypeInfo(typeof(global::Ch.Card), global::Ch.Card.Parser, new[]{ "SpecId", "VisualFlags", "Level" }, null, null, null)
           }));
     }
     #endregion
@@ -66,13 +61,9 @@ namespace Ch {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public Card(Card other) : this() {
-      Hp = other.hp_ != null ? other.Hp.Clone() : null;
-      Attack = other.attack_ != null ? other.Attack.Clone() : null;
-      Defense = other.defense_ != null ? other.Defense.Clone() : null;
-      exp_ = other.exp_;
-      skills_ = other.skills_.Clone();
-      name_ = other.name_;
-      isMale_ = other.isMale_;
+      specId_ = other.specId_;
+      visualFlags_ = other.visualFlags_;
+      level_ = other.level_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -81,79 +72,45 @@ namespace Ch {
       return new Card(this);
     }
 
-    /// <summary>Field number for the "hp" field.</summary>
-    public const int HpFieldNumber = 1;
-    private global::Solidity.uint16 hp_;
+    /// <summary>Field number for the "spec_id" field.</summary>
+    public const int SpecIdFieldNumber = 1;
+    private uint specId_;
+    /// <summary>
+    ///card's spec (cost/hp/atk/def/speed...)
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Solidity.uint16 Hp {
-      get { return hp_; }
+    public uint SpecId {
+      get { return specId_; }
       set {
-        hp_ = value;
+        specId_ = value;
       }
     }
 
-    /// <summary>Field number for the "attack" field.</summary>
-    public const int AttackFieldNumber = 2;
-    private global::Solidity.uint16 attack_;
+    /// <summary>Field number for the "visual_flags" field.</summary>
+    public const int VisualFlagsFieldNumber = 2;
+    private uint visualFlags_;
+    /// <summary>
+    ///special effect, different graphic, for same card. 
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Solidity.uint16 Attack {
-      get { return attack_; }
+    public uint VisualFlags {
+      get { return visualFlags_; }
       set {
-        attack_ = value;
+        visualFlags_ = value;
       }
     }
 
-    /// <summary>Field number for the "defense" field.</summary>
-    public const int DefenseFieldNumber = 3;
-    private global::Solidity.uint16 defense_;
+    /// <summary>Field number for the "level" field.</summary>
+    public const int LevelFieldNumber = 3;
+    private uint level_;
+    /// <summary>
+    ///stack level. like CoC. 
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Solidity.uint16 Defense {
-      get { return defense_; }
+    public uint Level {
+      get { return level_; }
       set {
-        defense_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "exp" field.</summary>
-    public const int ExpFieldNumber = 5;
-    private uint exp_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public uint Exp {
-      get { return exp_; }
-      set {
-        exp_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "skills" field.</summary>
-    public const int SkillsFieldNumber = 6;
-    private static readonly pb::FieldCodec<global::Ch.Card.Types.Skill> _repeated_skills_codec
-        = pb::FieldCodec.ForMessage(50, global::Ch.Card.Types.Skill.Parser);
-    private readonly pbc::RepeatedField<global::Ch.Card.Types.Skill> skills_ = new pbc::RepeatedField<global::Ch.Card.Types.Skill>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::Ch.Card.Types.Skill> Skills {
-      get { return skills_; }
-    }
-
-    /// <summary>Field number for the "name" field.</summary>
-    public const int NameFieldNumber = 7;
-    private string name_ = "";
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Name {
-      get { return name_; }
-      set {
-        name_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "is_male" field.</summary>
-    public const int IsMaleFieldNumber = 8;
-    private bool isMale_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool IsMale {
-      get { return isMale_; }
-      set {
-        isMale_ = value;
+        level_ = value;
       }
     }
 
@@ -170,26 +127,18 @@ namespace Ch {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (!object.Equals(Hp, other.Hp)) return false;
-      if (!object.Equals(Attack, other.Attack)) return false;
-      if (!object.Equals(Defense, other.Defense)) return false;
-      if (Exp != other.Exp) return false;
-      if(!skills_.Equals(other.skills_)) return false;
-      if (Name != other.Name) return false;
-      if (IsMale != other.IsMale) return false;
+      if (SpecId != other.SpecId) return false;
+      if (VisualFlags != other.VisualFlags) return false;
+      if (Level != other.Level) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (hp_ != null) hash ^= Hp.GetHashCode();
-      if (attack_ != null) hash ^= Attack.GetHashCode();
-      if (defense_ != null) hash ^= Defense.GetHashCode();
-      if (Exp != 0) hash ^= Exp.GetHashCode();
-      hash ^= skills_.GetHashCode();
-      if (Name.Length != 0) hash ^= Name.GetHashCode();
-      if (IsMale != false) hash ^= IsMale.GetHashCode();
+      if (SpecId != 0) hash ^= SpecId.GetHashCode();
+      if (VisualFlags != 0) hash ^= VisualFlags.GetHashCode();
+      if (Level != 0) hash ^= Level.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -203,30 +152,17 @@ namespace Ch {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (hp_ != null) {
-        output.WriteRawTag(10);
-        output.WriteMessage(Hp);
+      if (SpecId != 0) {
+        output.WriteRawTag(8);
+        output.WriteUInt32(SpecId);
       }
-      if (attack_ != null) {
-        output.WriteRawTag(18);
-        output.WriteMessage(Attack);
+      if (VisualFlags != 0) {
+        output.WriteRawTag(16);
+        output.WriteUInt32(VisualFlags);
       }
-      if (defense_ != null) {
-        output.WriteRawTag(26);
-        output.WriteMessage(Defense);
-      }
-      if (Exp != 0) {
-        output.WriteRawTag(40);
-        output.WriteUInt32(Exp);
-      }
-      skills_.WriteTo(output, _repeated_skills_codec);
-      if (Name.Length != 0) {
-        output.WriteRawTag(58);
-        output.WriteString(Name);
-      }
-      if (IsMale != false) {
-        output.WriteRawTag(64);
-        output.WriteBool(IsMale);
+      if (Level != 0) {
+        output.WriteRawTag(24);
+        output.WriteUInt32(Level);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -236,24 +172,14 @@ namespace Ch {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (hp_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Hp);
+      if (SpecId != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(SpecId);
       }
-      if (attack_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Attack);
+      if (VisualFlags != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(VisualFlags);
       }
-      if (defense_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Defense);
-      }
-      if (Exp != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(Exp);
-      }
-      size += skills_.CalculateSize(_repeated_skills_codec);
-      if (Name.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Name);
-      }
-      if (IsMale != false) {
-        size += 1 + 1;
+      if (Level != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt32Size(Level);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -266,33 +192,14 @@ namespace Ch {
       if (other == null) {
         return;
       }
-      if (other.hp_ != null) {
-        if (hp_ == null) {
-          hp_ = new global::Solidity.uint16();
-        }
-        Hp.MergeFrom(other.Hp);
+      if (other.SpecId != 0) {
+        SpecId = other.SpecId;
       }
-      if (other.attack_ != null) {
-        if (attack_ == null) {
-          attack_ = new global::Solidity.uint16();
-        }
-        Attack.MergeFrom(other.Attack);
+      if (other.VisualFlags != 0) {
+        VisualFlags = other.VisualFlags;
       }
-      if (other.defense_ != null) {
-        if (defense_ == null) {
-          defense_ = new global::Solidity.uint16();
-        }
-        Defense.MergeFrom(other.Defense);
-      }
-      if (other.Exp != 0) {
-        Exp = other.Exp;
-      }
-      skills_.Add(other.skills_);
-      if (other.Name.Length != 0) {
-        Name = other.Name;
-      }
-      if (other.IsMale != false) {
-        IsMale = other.IsMale;
+      if (other.Level != 0) {
+        Level = other.Level;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -305,222 +212,21 @@ namespace Ch {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 10: {
-            if (hp_ == null) {
-              hp_ = new global::Solidity.uint16();
-            }
-            input.ReadMessage(hp_);
+          case 8: {
+            SpecId = input.ReadUInt32();
             break;
           }
-          case 18: {
-            if (attack_ == null) {
-              attack_ = new global::Solidity.uint16();
-            }
-            input.ReadMessage(attack_);
+          case 16: {
+            VisualFlags = input.ReadUInt32();
             break;
           }
-          case 26: {
-            if (defense_ == null) {
-              defense_ = new global::Solidity.uint16();
-            }
-            input.ReadMessage(defense_);
-            break;
-          }
-          case 40: {
-            Exp = input.ReadUInt32();
-            break;
-          }
-          case 50: {
-            skills_.AddEntriesFrom(input, _repeated_skills_codec);
-            break;
-          }
-          case 58: {
-            Name = input.ReadString();
-            break;
-          }
-          case 64: {
-            IsMale = input.ReadBool();
+          case 24: {
+            Level = input.ReadUInt32();
             break;
           }
         }
       }
     }
-
-    #region Nested types
-    /// <summary>Container for nested types declared in the Card message type.</summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static partial class Types {
-      public sealed partial class Skill : pb::IMessage<Skill> {
-        private static readonly pb::MessageParser<Skill> _parser = new pb::MessageParser<Skill>(() => new Skill());
-        private pb::UnknownFieldSet _unknownFields;
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public static pb::MessageParser<Skill> Parser { get { return _parser; } }
-
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public static pbr::MessageDescriptor Descriptor {
-          get { return global::Ch.Card.Descriptor.NestedTypes[0]; }
-        }
-
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        pbr::MessageDescriptor pb::IMessage.Descriptor {
-          get { return Descriptor; }
-        }
-
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public Skill() {
-          OnConstruction();
-        }
-
-        partial void OnConstruction();
-
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public Skill(Skill other) : this() {
-          Id = other.id_ != null ? other.Id.Clone() : null;
-          Exp = other.exp_ != null ? other.Exp.Clone() : null;
-          _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-        }
-
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public Skill Clone() {
-          return new Skill(this);
-        }
-
-        /// <summary>Field number for the "id" field.</summary>
-        public const int IdFieldNumber = 1;
-        private global::Solidity.uint16 id_;
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public global::Solidity.uint16 Id {
-          get { return id_; }
-          set {
-            id_ = value;
-          }
-        }
-
-        /// <summary>Field number for the "exp" field.</summary>
-        public const int ExpFieldNumber = 2;
-        private global::Solidity.uint16 exp_;
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public global::Solidity.uint16 Exp {
-          get { return exp_; }
-          set {
-            exp_ = value;
-          }
-        }
-
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public override bool Equals(object other) {
-          return Equals(other as Skill);
-        }
-
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public bool Equals(Skill other) {
-          if (ReferenceEquals(other, null)) {
-            return false;
-          }
-          if (ReferenceEquals(other, this)) {
-            return true;
-          }
-          if (!object.Equals(Id, other.Id)) return false;
-          if (!object.Equals(Exp, other.Exp)) return false;
-          return Equals(_unknownFields, other._unknownFields);
-        }
-
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public override int GetHashCode() {
-          int hash = 1;
-          if (id_ != null) hash ^= Id.GetHashCode();
-          if (exp_ != null) hash ^= Exp.GetHashCode();
-          if (_unknownFields != null) {
-            hash ^= _unknownFields.GetHashCode();
-          }
-          return hash;
-        }
-
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public override string ToString() {
-          return pb::JsonFormatter.ToDiagnosticString(this);
-        }
-
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public void WriteTo(pb::CodedOutputStream output) {
-          if (id_ != null) {
-            output.WriteRawTag(10);
-            output.WriteMessage(Id);
-          }
-          if (exp_ != null) {
-            output.WriteRawTag(18);
-            output.WriteMessage(Exp);
-          }
-          if (_unknownFields != null) {
-            _unknownFields.WriteTo(output);
-          }
-        }
-
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public int CalculateSize() {
-          int size = 0;
-          if (id_ != null) {
-            size += 1 + pb::CodedOutputStream.ComputeMessageSize(Id);
-          }
-          if (exp_ != null) {
-            size += 1 + pb::CodedOutputStream.ComputeMessageSize(Exp);
-          }
-          if (_unknownFields != null) {
-            size += _unknownFields.CalculateSize();
-          }
-          return size;
-        }
-
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public void MergeFrom(Skill other) {
-          if (other == null) {
-            return;
-          }
-          if (other.id_ != null) {
-            if (id_ == null) {
-              id_ = new global::Solidity.uint16();
-            }
-            Id.MergeFrom(other.Id);
-          }
-          if (other.exp_ != null) {
-            if (exp_ == null) {
-              exp_ = new global::Solidity.uint16();
-            }
-            Exp.MergeFrom(other.Exp);
-          }
-          _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-        }
-
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public void MergeFrom(pb::CodedInputStream input) {
-          uint tag;
-          while ((tag = input.ReadTag()) != 0) {
-            switch(tag) {
-              default:
-                _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-                break;
-              case 10: {
-                if (id_ == null) {
-                  id_ = new global::Solidity.uint16();
-                }
-                input.ReadMessage(id_);
-                break;
-              }
-              case 18: {
-                if (exp_ == null) {
-                  exp_ = new global::Solidity.uint16();
-                }
-                input.ReadMessage(exp_);
-                break;
-              }
-            }
-          }
-        }
-
-      }
-
-    }
-    #endregion
 
   }
 

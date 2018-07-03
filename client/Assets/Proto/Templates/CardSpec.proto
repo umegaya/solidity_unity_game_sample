@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package ch;
+
+message CardSpec {
+    uint32 issuance = 1;
+    uint32 hp = 2;
+    uint32 attack = 3;
+    uint32 defense = 4;
+    uint32 flags = 5;
+    repeated uint32 skills = 6;
+}

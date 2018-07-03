@@ -2,18 +2,8 @@ syntax = "proto3";
 
 package ch;
 
-import "Solidity.proto";
-
 message Card {
-    solidity.uint16 hp = 1;
-    solidity.uint16 attack = 2;
-    solidity.uint16 defense = 3;
-    uint32 exp = 5;
-    message Skill {
-        solidity.uint16 id = 1;
-        solidity.uint16 exp = 2;
-    }
-    repeated Skill skills = 6;
-    string name = 7;
-    bool is_male = 8;
+    uint32 spec_id = 1;      //card's spec (cost/hp/atk/def/speed...)
+    uint32 visual_flags = 2; //special effect, different graphic, for same card. 
+    uint32 level = 3;        //stack level. like CoC. 
 }
