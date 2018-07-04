@@ -56,7 +56,7 @@ public class CSVIO {
     public abstract class Loader : MonoBehaviour {
         public delegate void OnLoadFinish(Loader loaded);
         public OnLoadFinish OnFinish;
-        public string BasePath = Application.streamingAssetsPath + "/CSV/";
+        public string BasePath = Application.streamingAssetsPath + "/CSV/Data/";
         public abstract IEnumerator Load(string basepath);
         public abstract string[] CSVNames();
 

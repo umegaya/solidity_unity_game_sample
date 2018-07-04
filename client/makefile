@@ -45,9 +45,9 @@ CSV_PLUGIN=./Generators/gen_loader.py
 
 CSV_CONTAINER_IN=./Assets/Proto
 CSV_CONTAINER_OUT=$(CSV_PROTO_OUT)
-CSV_CONTAINER_FILES=$(CSV_PROTO_IN)
+CSV_CONTAINER_FILES=$(shell ls $(CSV_PROTO_IN)/*.proto)
 CSV_CONTAINER_PLUGIN=./Generators/gen_container.py
-CSV_CONTAINER_SRCS=Container.CSVLoader.cs
+CSV_CONTAINER_SRCS=$(CSV_CONTAINER_OUT)/Container.CSVLoader.cs
 
 EXT_PROTO_IN=./Assets/Proto
 EXT_PROTO_OUT=./Assets/Proto
@@ -91,8 +91,8 @@ $(PROTO_OUT)/Solidity.g.cs:
 $(PROTO_OUT)/%.g.cs: $(PROTO_IN)/%.proto
 	$(call protoc,--csharp_out=/out --csharp_opt=file_extension=.g.cs $(notdir $<))
 
-$(CSV_CONTAINER_SRCS): $(CSV_CONTAINER_IN)
-	$(call ctgen,python $(CSV_CONTAINER_PLUGIN) /in/Templates /out/$@)
+$(CSV_CONTAINER_SRCS): $(CSV_CONTAINER_FILES)
+	$(call ctgen,python $(CSV_CONTAINER_PLUGIN) /in/Templates /out/$(notdir $@))
 
 proto: $(PROTO_OUT)/Solidity.g.cs $(PROTO_SRCS) $(CLIENT_PROTO_SRCS)
 
