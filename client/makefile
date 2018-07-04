@@ -43,6 +43,11 @@ CSV_PROTO_FILES=$(shell cd $(CSV_PROTO_IN) && ls *.proto)
 CSV_PROTO_SRCS=$(addprefix $(CSV_PROTO_OUT)/,$(CSV_PROTO_FILES:%.proto=%.CSVLoader.cs))
 CSV_PLUGIN=./Generators/gen_loader.py
 
+EXT_PROTO_IN=./Assets/Proto/Options
+EXT_PROTO_OUT=./Assets/Proto/Options
+EXT_PROTO_FILES=$(shell cd $(EXT_PROTO_IN) && ls *.proto)
+EXT_PROTO_SRCS=$(addprefix $(EXT_PROTO_OUT)/,$(EXT_PROTO_FILES:%.proto=%_pb2.py))
+
 define protoc
 docker run --rm -v `pwd`/$(PROTO_IN):/in -v `pwd`/$(PROTO_OUT):/out $(PROTO_CONTAINER) bash -c "cd /in && protoc -I. -I/protoc/include $1"
 endef
@@ -52,7 +57,11 @@ docker run --rm -v `pwd`/$(CLIENT_PROTO_IN):/in -v `pwd`/$(CLIENT_PROTO_OUT):/ou
 endef
 
 define protocsv
-docker run --rm -v `pwd`/$(CLIENT_PROTO_IN):/in -v `pwd`/$(CSV_PROTO_OUT):/out $(PROTO_CONTAINER) bash -c "cd /in && protoc -I. -I./Options $1"
+docker run --rm -v `pwd`/$(CLIENT_PROTO_IN):/in -v `pwd`/$(CSV_PROTO_OUT):/out -e PB_EXT_DIR=./Options $(PROTO_CONTAINER) bash -c "cd /in && protoc -I. -I./Options $1"
+endef
+
+define protopy
+docker run --rm -v `pwd`/$(EXT_PROTO_IN):/in -v `pwd`/$(EXT_PROTO_OUT):/out $(PROTO_CONTAINER) bash -c "cd /in && protoc -I. $1"
 endef
 
 $(CLIENT_PROTO_OUT)/%.g.cs: $(CLIENT_PROTO_IN)/%.proto
@@ -61,6 +70,9 @@ $(CLIENT_PROTO_OUT)/%.g.cs: $(CLIENT_PROTO_IN)/%.proto
 $(CSV_PROTO_OUT)/%.CSVLoader.cs: $(CSV_PROTO_IN)/%.proto
 	$(call protocsv,--custom_out=/out --plugin=protoc-gen-custom=${CSV_PLUGIN} Templates/$(notdir $<))
 	$(call protocsv,--csharp_out=/out --csharp_opt=file_extension=.g.cs Templates/$(notdir $<))
+
+$(EXT_PROTO_OUT)/%_pb2.py: $(EXT_PROTO_IN)/%.proto
+	$(call protopy,--python_out=/out $(notdir $<))
 
 $(PROTO_OUT)/Solidity.g.cs: 
 	$(call protoc,--csharp_out=/out --csharp_opt=file_extension=.g.cs /protoc/include/Solidity.proto)
@@ -72,4 +84,6 @@ proto: $(PROTO_OUT)/Solidity.g.cs $(PROTO_SRCS) $(CLIENT_PROTO_SRCS)
 
 csv: $(CSV_PROTO_SRCS)
 
-code: csv proto
+ext: $(EXT_PROTO_SRCS)
+
+code: ext csv proto

@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 
-import os, sys, itertools, json, re
+import os, sys, itertools, json, re, glob
 import pprint
 pp = pprint.PrettyPrinter(indent=4, stream=sys.stderr)
 
 from google.protobuf.compiler import plugin_pb2 as plugin
 from google.protobuf.descriptor_pb2 import FieldOptions, DescriptorProto, EnumDescriptorProto
-
-import CSVSchema_pb2
-
 
 def traverse(proto_file):
     def _traverse(package, items):
@@ -181,6 +178,17 @@ def generate_code(request, response):
         f.content = '\n'.join(ct_output)
 
 if __name__ == '__main__':
+    # if extension dirs given, import them first
+    extdir = os.getenv("PB_EXT_DIR")
+    modules = None
+    if extdir:
+        sys.path.append(extdir)
+        mods = []
+        for py in glob.glob(extdir + "/*.py"):
+            mods.append(os.path.basename(py)[0:-3])
+        pp.pprint("import extensions {0}".format(mods))
+        modules = map(__import__, mods)
+
     # Read request message from stdin
     data = sys.stdin.read()
 
