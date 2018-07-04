@@ -25,10 +25,10 @@ namespace Ch {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChhUZW1wbGF0ZXMvQ2FyZFNwZWMucHJvdG8SAmNoGg9DU1ZTY2hlbWEucHJv",
-            "dG8ifgoIQ2FyZFNwZWMSFAoCaWQYASABKA1CCBgBgrUYAggBEhAKCGlzc3Vh",
-            "bmNlGAIgASgNEgoKAmhwGAMgASgNEg4KBmF0dGFjaxgEIAEoDRIPCgdkZWZl",
-            "bnNlGAUgASgNEg0KBWZsYWdzGAYgASgNEg4KBnNraWxscxgHIAMoDWIGcHJv",
-            "dG8z"));
+            "dG8ifAoIQ2FyZFNwZWMSEgoCaWQYASABKA1CBoK1GAIIARIQCghpc3N1YW5j",
+            "ZRgCIAEoDRIKCgJocBgDIAEoDRIOCgZhdHRhY2sYBCABKA0SDwoHZGVmZW5z",
+            "ZRgFIAEoDRINCgVmbGFncxgGIAEoDRIOCgZza2lsbHMYByADKA1iBnByb3Rv",
+            "Mw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Suntomi.Pb.CSVSchemaReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
@@ -82,7 +82,6 @@ namespace Ch {
     /// <summary>Field number for the "id" field.</summary>
     public const int IdFieldNumber = 1;
     private uint id_;
-    [global::System.ObsoleteAttribute]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public uint Id {
       get { return id_; }

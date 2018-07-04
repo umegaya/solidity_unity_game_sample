@@ -5,7 +5,7 @@ package ch;
 import "CSVSchema.proto";
 
 message CardSpec {
-    uint32 id = 1 [(suntomi.pb.csv_schema).id = true, deprecated = true];
+    uint32 id = 1 [(suntomi.pb.csv_schema).id = true];
     uint32 issuance = 2;
     uint32 hp = 3;
     uint32 attack = 4;

@@ -43,10 +43,16 @@ CSV_PROTO_FILES=$(shell cd $(CSV_PROTO_IN) && ls *.proto)
 CSV_PROTO_SRCS=$(addprefix $(CSV_PROTO_OUT)/,$(CSV_PROTO_FILES:%.proto=%.CSVLoader.cs))
 CSV_PLUGIN=./Generators/gen_loader.py
 
-EXT_PROTO_IN=./Assets/Proto/Options
-EXT_PROTO_OUT=./Assets/Proto/Options
-EXT_PROTO_FILES=$(shell cd $(EXT_PROTO_IN) && ls *.proto)
-EXT_PROTO_SRCS=$(addprefix $(EXT_PROTO_OUT)/,$(EXT_PROTO_FILES:%.proto=%_pb2.py))
+CSV_CONTAINER_IN=./Assets/Proto
+CSV_CONTAINER_OUT=$(CSV_PROTO_OUT)
+CSV_CONTAINER_FILES=$(CSV_PROTO_IN)
+CSV_CONTAINER_PLUGIN=./Generators/gen_container.py
+CSV_CONTAINER_SRCS=Container.CSVLoader.cs
+
+EXT_PROTO_IN=./Assets/Proto
+EXT_PROTO_OUT=./Assets/Proto
+EXT_PROTO_FILES=$(shell cd $(EXT_PROTO_IN)/Options && ls *.proto)
+EXT_PROTO_SRCS=$(addprefix $(EXT_PROTO_OUT)/Options/,$(EXT_PROTO_FILES:%.proto=%_pb2.py))
 
 define protoc
 docker run --rm -v `pwd`/$(PROTO_IN):/in -v `pwd`/$(PROTO_OUT):/out $(PROTO_CONTAINER) bash -c "cd /in && protoc -I. -I/protoc/include $1"
@@ -64,6 +70,10 @@ define protopy
 docker run --rm -v `pwd`/$(EXT_PROTO_IN):/in -v `pwd`/$(EXT_PROTO_OUT):/out $(PROTO_CONTAINER) bash -c "cd /in && protoc -I. $1"
 endef
 
+define ctgen
+docker run --rm -v `pwd`/$(CSV_CONTAINER_IN):/in -v `pwd`/$(CSV_CONTAINER_OUT):/out $(PROTO_CONTAINER) bash -c "cd /in && $1"
+endef
+
 $(CLIENT_PROTO_OUT)/%.g.cs: $(CLIENT_PROTO_IN)/%.proto
 	$(call cprotoc,--csharp_out=/out --csharp_opt=file_extension=.g.cs $(notdir $<))
 
@@ -71,8 +81,9 @@ $(CSV_PROTO_OUT)/%.CSVLoader.cs: $(CSV_PROTO_IN)/%.proto
 	$(call protocsv,--custom_out=/out --plugin=protoc-gen-custom=${CSV_PLUGIN} Templates/$(notdir $<))
 	$(call protocsv,--csharp_out=/out --csharp_opt=file_extension=.g.cs Templates/$(notdir $<))
 
-$(EXT_PROTO_OUT)/%_pb2.py: $(EXT_PROTO_IN)/%.proto
-	$(call protopy,--python_out=/out $(notdir $<))
+$(EXT_PROTO_OUT)/Options/%_pb2.py: $(EXT_PROTO_IN)/Options/%.proto
+	$(call protopy,--python_out=/out ./Options/$(notdir $<))
+	$(call cprotoc,--csharp_out=/out/Options --csharp_opt=file_extension=.g.cs ./Options/$(notdir $<))
 
 $(PROTO_OUT)/Solidity.g.cs: 
 	$(call protoc,--csharp_out=/out --csharp_opt=file_extension=.g.cs /protoc/include/Solidity.proto)
@@ -80,9 +91,12 @@ $(PROTO_OUT)/Solidity.g.cs:
 $(PROTO_OUT)/%.g.cs: $(PROTO_IN)/%.proto
 	$(call protoc,--csharp_out=/out --csharp_opt=file_extension=.g.cs $(notdir $<))
 
+$(CSV_CONTAINER_SRCS): $(CSV_CONTAINER_IN)
+	$(call ctgen,python $(CSV_CONTAINER_PLUGIN) /in/Templates /out/$@)
+
 proto: $(PROTO_OUT)/Solidity.g.cs $(PROTO_SRCS) $(CLIENT_PROTO_SRCS)
 
-csv: $(CSV_PROTO_SRCS)
+csv: $(CSV_PROTO_SRCS) $(CSV_CONTAINER_SRCS)
 
 ext: $(EXT_PROTO_SRCS)
 
