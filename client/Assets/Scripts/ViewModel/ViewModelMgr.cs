@@ -67,7 +67,7 @@ public class ViewModelMgr : MonoBehaviour {
                         } else {
                             var id = (System.Numerics.BigInteger)r.Result[0].Result;
                             var card = r.As<Ch.Card>(Ch.Card.Parser);
-                            Debug.Log("Inventory.getSlotBytes card[" + id.ToString() + "]:" + card.Hp.ToNumber());
+                            Debug.Log("Inventory.getSlotBytes card[" + id.ToString() + "]:" + card.SpecId);
                             Inventory.AddCard(id, card);
                         }
                     }

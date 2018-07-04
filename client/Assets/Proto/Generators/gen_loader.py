@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 
 import os, sys, itertools, json, re
+import pprint
+pp = pprint.PrettyPrinter(indent=4, stream=sys.stderr)
 
 from google.protobuf.compiler import plugin_pb2 as plugin
-from google.protobuf.descriptor_pb2 import DescriptorProto, EnumDescriptorProto
+from google.protobuf.descriptor_pb2 import FieldOptions, DescriptorProto, EnumDescriptorProto
+
+import CSVSchema_pb2
+
 
 def traverse(proto_file):
     def _traverse(package, items):
@@ -28,20 +33,20 @@ def traverse(proto_file):
 Num2Type = {
     1: "double",
     2: "float",
-    3: "int64_t",
-    4: "uint64_t",
-    5: "int32_t",
-    6: "uint32_t",
-    7: "uint64_t",
+    3: "long",
+    4: "ulong",
+    5: "int",
+    6: "uint",
+    7: "ulong",
     8: "bool",
-    9: "std::string",
-    12: "std::string", # bytes
-    13: "uint32_t",
-    14: "std::string",
-    15: "int32_t",
-    16: "int64_t",
-    17: "int32_t",
-    18: "int64_t",
+    9: "string",
+    12: "byte[]", # bytes
+    13: "uint",
+    14: "string",
+    15: "int",
+    16: "long",
+    17: "int",
+    18: "long",
 }
 def fieldtype(field):
     val = Num2Type.get(field.type, None)
@@ -49,8 +54,8 @@ def fieldtype(field):
         return val
     return field.type
 
-def cpp_typename(proto_file, msg):
-    return "::" + proto_file.package.replace(".", "::") + "::" + msg.name
+def gen_typename(proto_file, msg):
+    return proto_file.package[0:1].upper() + proto_file.package[1:] + "." + msg.name
 
 def castexpr(field):
     if field.type == 14:
@@ -69,68 +74,77 @@ def camel2snake(name):
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
+class ExtensionFinder:
+    def __init__(self, proto_files):
+        self.protos = proto_files
+    
+    def find(self, field_opts, specifier):
+        parts = specifier.split(".")
+        h = None
+        for tpl in field_opts.ListFields():
+            f = tpl[0] 
+            if f.name == parts[-2]:
+                h = f
+        if h and field_opts.HasExtension(h):
+            e = field_opts.Extensions[h]
+            for tpl in e.ListFields():
+                f = tpl[0]
+                if f.name == parts[-1]:
+                    #pp.pprint('find value of {0}/{1}'.format(parts[-1], specifier))
+                    return tpl[1]
+        return None
+
 def generate_code(request, response):
     loadernames = []
     incfile_list = []
+    sysmsgs = []
     container_msg = None
     container_proto_file = None
+    ef = ExtensionFinder(request.proto_file)
     for proto_file in request.proto_file:
         output = []
-        incfile = os.path.basename(proto_file.name).replace('.proto', '.loader.h')
 
         # generate header
-        output.append('#include "{0}"'.format(incfile))
-        output.append('#include "LoaderConfig.h"')
-        output.append('namespace mgo {')
+        output.append('using System.Collections;')
+        output.append('using System.Collections.Generic;')
+        output.append('namespace Game.CSV {');
 
         # generate loader
         I="\t"
         processed = 0
         for msg in proto_file.message_type:
-            if msg.name == "Container":
-                container_msg = msg
-                container_proto_file = proto_file
+            typename = gen_typename(proto_file, msg)
+            if proto_file.package == "google.protobuf" or proto_file.package == "suntomi.pb":
+                sysmsgs.append(msg)
             elif isinstance(msg, DescriptorProto):
                 processed = processed + 1
-                typename = cpp_typename(proto_file, msg)
                 field_count = 0
+                id_field = None
                 for f in msg.field:
                     field_count = field_count + 1
+                    opts = f.options
+                    if ef.find(opts, "suntomi.pb.csv_schema.id") == True:
+                        id_field = f
                 if field_count > 0:
-                    fsignature = "void Load{1}(const std::string &filename, google::protobuf::Map<uint32_t, {0}> &store, bool ischunk)".format(
-                        typename, msg.name)
-                    output.append(fsignature + " {")
-                    output.append(I+"std::istringstream strm(filename);")
-                    output.append(I+("MyReader<{0}> *csv = ischunk ? new MyReader<{0}>(\"{1}\", strm) : new MyReader<{0}>(filename);".format(field_count, msg.name)))
-                    line = ("\"{0}\"".format(msg.field[0].name))
-                    for f in msg.field[1:]:
-                        line = line + (", \"{0}\"".format(f.name))
-                    output.append(I+"csv->read_header(io::ignore_extra_column, {0});".format(line))
-                    line = I+("{0} {1}".format(fieldtype(msg.field[0]), msg.field[0].name.lower()))
-                    for f in msg.field[1:]: 
-                        field_name = f.name.lower()
-                        line = line + (";\n"+I+"{0} {1}".format(fieldtype(f), field_name))
-                    line = line + ";"
-                    output.append(line)
-                    args = msg.field[0].name.lower()
-                    sets = setexpr(msg.field[0])#("row.set_{0}({1});\n".format(msg.field[0].name.lower(), castexpr(msg.field[0])))
-                    for f in msg.field[1:]:
-                        field_name = f.name.lower()
-                        args = args + (", {0}".format(field_name))
-                        sets = sets + I+I + setexpr(f) #("row.set_{0}({1});\n".format(field_name, castexpr(f)))
-                    output.append(I+("while(csv->read_row({0}))".format(args) + " {"))
-                    output.append(I+I+("{0} row;".format(typename)))
-                    output.append(I+I+sets)
-                    output.append(I+I+"store[row.id()] = row;")
-                    output.append(I+"}")
-                    output.append(I+"delete csv;")
-                    output.append("}")
-                    loadernames.append(msg)
+#public class CardSpecLoader {
+#	static public IEnumerator Load(string path, Dictionary<uint, Ch.CardSpec> map) {
+#		return CSVIO.Load<uint, Ch.CardSpec>(path, map, r => r.Id);
+#	}
+#}
 
-        output.append('} //namespace mgo')
+                    csignature = "public class {0}Loader {{".format(msg.name)
+                    fsignature = "static public IEnumerator Load(string path, Dictionary<{1}, {0}> map) {{".format(
+                        typename, fieldtype(id_field) if id_field else "uint")
+                    fbody = "return CSVIO.Load<uint, {0}>(path, map, r => r.{1});".format(
+                        typename, (id_field.name[0:1].upper() + id_field.name[1:]) if id_field else "Id")
+                    output.append(csignature)
+                    output.append(I+fsignature)
+                    output.append(I+I+fbody)
+                    output.append(I+"}")
+                    output.append("}")
+        output.append('} //namespace Game.CSV')
         
         if processed > 0:
-            incfile_list.append(incfile)
             # Fill response
             basepath = os.path.basename(proto_file.name)
             f = response.file.add()
@@ -144,17 +158,17 @@ def generate_code(request, response):
             ct_output.append('#include "{0}"'.format(incfile))
         ct_output.append('namespace mgo {')
                 
-        ct_typename = cpp_typename(container_proto_file, container_msg)
+        ct_typename = gen_typename(container_proto_file, container_msg)
         fsignature = "void LoadAll({0}& container, const std::string &dirname)".format(ct_typename)
         ct_output.append(fsignature + " {")
         ct_output.append("#if !defined(IN_CLIENT_SERVER)")
         for msg in loadernames:
-            typename = cpp_typename(proto_file, msg)
+            typename = gen_typename(proto_file, msg)
             ct_output.append(I+("Load{1}(dirname + \"/{1}.csv\", *container.mutable_{2}_data(), false);").format(
                     typename, msg.name, camel2snake(msg.name)))
         ct_output.append("#else")
         for msg in loadernames:
-            typename = cpp_typename(proto_file, msg)
+            typename = gen_typename(proto_file, msg)
             ct_output.append(I+("extern const std::string {0}_csv;").format(msg.name))
             ct_output.append(I+("Load{1}({1}_csv, *container.mutable_{2}_data(), true);").format(
                     typename, msg.name, camel2snake(msg.name)))

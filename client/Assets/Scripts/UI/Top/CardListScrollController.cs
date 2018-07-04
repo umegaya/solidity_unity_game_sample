@@ -72,7 +72,6 @@ public class CardListScrollController : UIBehaviour, IInfiniteScrollSetup {
 				var img = obj.transform.Find("Image" + i).GetComponent<Image>();
 				obj.transform.Find("Name" + i).gameObject.SetActive(true);
 				obj.transform.Find("Image" + i).gameObject.SetActive(true);
-				name.text = kv.Value.Name;
 				img.sprite = UIMgr.instance.catImages_[(int)kv.Key];
 			}
 		}

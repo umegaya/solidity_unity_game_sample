@@ -29,6 +29,6 @@ sysinfo.txt
 *.apk
 *.unitypackage
 *.cs-e*
-foodfighters/
+*.pyc
 
 .vscode/

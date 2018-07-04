@@ -9,6 +9,7 @@ class MyCustomBuildProcessor
         EditorApplication.playModeStateChanged += Callback;
     }
 
+    [MenuItem("Assets/Create Proto and Contract ABI")]
     static void Callback(PlayModeStateChange state) {
         if (state == PlayModeStateChange.EnteredEditMode) {
             string err;

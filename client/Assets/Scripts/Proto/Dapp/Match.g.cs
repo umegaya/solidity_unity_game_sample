@@ -24,13 +24,12 @@ namespace Ch {
     static MatchReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "CgtNYXRjaC5wcm90bxICY2gaDlNvbGlkaXR5LnByb3RvGgpVc2VyLnByb3Rv",
-            "IosBCgVNYXRjaBIhCgdtZW1iZXJzGAEgAygLMhAuY2guTWF0Y2guTWVtYmVy",
-            "EhQKDHdpbm5lcl9pbmRleBgCIAEoDRpJCgZNZW1iZXISIgoHdXNlcl9pZBgB",
-            "IAEoCzIRLnNvbGlkaXR5LmFkZHJlc3MSGwoEZGVjaxgCIAEoCzINLmNoLlVz",
-            "ZXIuRGVja2IGcHJvdG8z"));
+            "CgtNYXRjaC5wcm90bxICY2gaDlNvbGlkaXR5LnByb3RvInwKBU1hdGNoEiEK",
+            "B21lbWJlcnMYASADKAsyEC5jaC5NYXRjaC5NZW1iZXISFAoMd2lubmVyX2lu",
+            "ZGV4GAIgASgNGjoKBk1lbWJlchIiCgd1c2VyX2lkGAEgASgLMhEuc29saWRp",
+            "dHkuYWRkcmVzcxIMCgRkZWNrGAIgAygNYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Solidity.SolidityReflection.Descriptor, global::Ch.UserReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Solidity.SolidityReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Ch.Match), global::Ch.Match.Parser, new[]{ "Members", "WinnerIndex" }, null, null, new pbr::GeneratedClrTypeInfo[] { new pbr::GeneratedClrTypeInfo(typeof(global::Ch.Match.Types.Member), global::Ch.Match.Types.Member.Parser, new[]{ "UserId", "Deck" }, null, null, null)})
           }));
@@ -216,7 +215,7 @@ namespace Ch {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         public Member(Member other) : this() {
           UserId = other.userId_ != null ? other.UserId.Clone() : null;
-          Deck = other.deck_ != null ? other.Deck.Clone() : null;
+          deck_ = other.deck_.Clone();
           _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
         }
 
@@ -238,13 +237,12 @@ namespace Ch {
 
         /// <summary>Field number for the "deck" field.</summary>
         public const int DeckFieldNumber = 2;
-        private global::Ch.User.Types.Deck deck_;
+        private static readonly pb::FieldCodec<uint> _repeated_deck_codec
+            = pb::FieldCodec.ForUInt32(18);
+        private readonly pbc::RepeatedField<uint> deck_ = new pbc::RepeatedField<uint>();
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-        public global::Ch.User.Types.Deck Deck {
+        public pbc::RepeatedField<uint> Deck {
           get { return deck_; }
-          set {
-            deck_ = value;
-          }
         }
 
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -261,7 +259,7 @@ namespace Ch {
             return true;
           }
           if (!object.Equals(UserId, other.UserId)) return false;
-          if (!object.Equals(Deck, other.Deck)) return false;
+          if(!deck_.Equals(other.deck_)) return false;
           return Equals(_unknownFields, other._unknownFields);
         }
 
@@ -269,7 +267,7 @@ namespace Ch {
         public override int GetHashCode() {
           int hash = 1;
           if (userId_ != null) hash ^= UserId.GetHashCode();
-          if (deck_ != null) hash ^= Deck.GetHashCode();
+          hash ^= deck_.GetHashCode();
           if (_unknownFields != null) {
             hash ^= _unknownFields.GetHashCode();
           }
@@ -287,10 +285,7 @@ namespace Ch {
             output.WriteRawTag(10);
             output.WriteMessage(UserId);
           }
-          if (deck_ != null) {
-            output.WriteRawTag(18);
-            output.WriteMessage(Deck);
-          }
+          deck_.WriteTo(output, _repeated_deck_codec);
           if (_unknownFields != null) {
             _unknownFields.WriteTo(output);
           }
@@ -302,9 +297,7 @@ namespace Ch {
           if (userId_ != null) {
             size += 1 + pb::CodedOutputStream.ComputeMessageSize(UserId);
           }
-          if (deck_ != null) {
-            size += 1 + pb::CodedOutputStream.ComputeMessageSize(Deck);
-          }
+          size += deck_.CalculateSize(_repeated_deck_codec);
           if (_unknownFields != null) {
             size += _unknownFields.CalculateSize();
           }
@@ -322,12 +315,7 @@ namespace Ch {
             }
             UserId.MergeFrom(other.UserId);
           }
-          if (other.deck_ != null) {
-            if (deck_ == null) {
-              deck_ = new global::Ch.User.Types.Deck();
-            }
-            Deck.MergeFrom(other.Deck);
-          }
+          deck_.Add(other.deck_);
           _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
         }
 
@@ -346,11 +334,9 @@ namespace Ch {
                 input.ReadMessage(userId_);
                 break;
               }
-              case 18: {
-                if (deck_ == null) {
-                  deck_ = new global::Ch.User.Types.Deck();
-                }
-                input.ReadMessage(deck_);
+              case 18:
+              case 16: {
+                deck_.AddEntriesFrom(input, _repeated_deck_codec);
                 break;
               }
             }
