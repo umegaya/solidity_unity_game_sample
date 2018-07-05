@@ -11,9 +11,9 @@ var helper = require(__dirname + "/../tools/utils/helper");
 var TX_ID_1 = "3cb3bd52650132d76c1445926c864e4d808c7db3";
 var TX_ID_2 = "dee73cec26ff5678d7e2adc5c41bd22352a27e3f";
 var TX_ID_3 = "41bdd8edd2e507b0b30d4a381691284f213a87cc";
-var HP = 75;
-var ATK = 18;
-var DEF = 17;
+var SPEC_ID = 5678;
+var VISUAL_FLAG = 5;
+var RARITY = 4;
 var cardCheck = (ret, proto, opts) => {
     var log;
     //search MintCard log
@@ -26,19 +26,11 @@ var cardCheck = (ret, proto, opts) => {
     var bs = helper.toBytes(log.args.created);
     var card = CardProto.decode(bs);
     opts = opts || {}
-    if (opts.hp) {
-        assert.equal(card.hp.toNumber(), opts.hp, "hp should be correct");
-    }
-    if (opts.atk) {
-        assert.equal(card.attack.toNumber(), opts.atk, "atk should be correct");
-    }
-    if (opts.defense) {
-        assert.equal(card.defense.toNumber(), opts.def, "def should be correct");
-    }
-    if (opts.skill_len) {
-        assert.equal(card.skills.length, opts.skill_len, "skill should be correct");
-    }
-    return log.args.id.toNumber();
+    assert.equal(card.specId, opts.spec_id || SPEC_ID, "spec_id should be correct");
+    assert.equal(card.visualFlags, typeof(opts.visual_flags) == 'number' ? opts.visual_flags : VISUAL_FLAG, "visual_flags should be correct:" + JSON.stringify(opts));
+    assert.equal(card.level, opts.level || 2, "level should be correct");
+    assert.equal(Number(card.bs[0]), opts.rarity || RARITY, "rarity should be correct");
+    return [log.args.id.toNumber(), card];
 }
 var checkSpent = (ret, from, to) => {
     var log;
@@ -68,6 +60,7 @@ contract('World', (as) => {
     var sub_account = accounts[2];
     var main_card_id, sub_card_id, sub_card_id2;
     var inventory_instance;
+    var main_card, sub_card, sub_card2;
     it("can create and load card", () => {
         var c, sc, tc, proto;
         var est_merge_fee, reclaim_token;
@@ -106,12 +99,14 @@ contract('World', (as) => {
             return c.createInitialDeck(main_account, TX_ID_1, 10**6, 0);
         }).then((ret) => {
             pgrs.step();
-            main_card_id = cardCheck(ret, proto, {
-                hp: 75,
-                atk: 10,
-                def: 10,
-                skill_len: 1,
+            var tpl = cardCheck(ret, proto, {
+                spec_id: 1001,
+                visual_flags: 0,
+                level: 1,
+                rarity: 4,
             });
+            main_card_id = tpl[0];
+            main_card = tpl[1];
             //create initial deck (by using admin_account)
             return c.createInitialDeck(main_account, TX_ID_2, 10**6, 0);
         }).then((ret) => {
@@ -149,7 +144,14 @@ contract('World', (as) => {
             return c.payForInitialCard(0, {from: sub_account, value: 10**18});
         }).then((ret) => {
             pgrs.step();
-            sub_card_id = cardCheck(ret, proto);
+            var tpl = cardCheck(ret, proto, {
+                spec_id: 1001,
+                visual_flags: 0,
+                level: 1,
+                rarity: 4,
+            });
+            sub_card_id = tpl[0];
+            sub_card = tpl[1];
             sub_balance += 5*(10**3); //already token price doubled above
             return c.setForSale(main_card_id, test_card_price, {from: main_account});
         }).then((ret) => {
@@ -161,7 +163,7 @@ contract('World', (as) => {
         }).then(async (ret) => {
             pgrs.step();
             assert.equal(ret.toNumber(), test_card_price, "getPrice should returns correct price");
-            await inventory_instance.mintFixedCard(main_account, HP, ATK, DEF, [], {from: admin_account});
+            await inventory_instance.mintFixedCard(main_account, SPEC_ID, VISUAL_FLAG, 2, RARITY, {from: admin_account});
             await tc.approve(World.address, test_card_price, {from: sub_account});
             return c.buyCard(main_account, main_card_id, { from: sub_account }); //slot 0 should be card_id = 1
         }).then((ret) => {
@@ -172,14 +174,13 @@ contract('World', (as) => {
         }).then((ret) => {
             pgrs.step();
             assert.equal(ret.toNumber(), sub_balance, "balance should be correctly decreased");
-            return c.estimateMergeFee.call(main_card_id, main_card_id, {from: sub_account});
+            return c.estimateMergeFee.call(main_card_id, sub_card_id, {from: sub_account});
         }).then(async (ret) => {
             pgrs.step();
             est_merge_fee = ret.toNumber();
-            assert.equal(est_merge_fee >= 95 && est_merge_fee <= (16 + 95), 
-                         true, "merge fee should be correct");
+            assert.equal(est_merge_fee, helper.estMergeFee(main_card), "merge fee should be correct");
             //allow possible maximum spent
-            await tc.approve(World.address, 16 + 95, {from: sub_account});
+            await tc.approve(World.address, est_merge_fee, {from: sub_account});
             return c.mergeCard(main_card_id, sub_card_id, {from: sub_account});
         }).then((ret) => {
             pgrs.step();
@@ -194,13 +195,15 @@ contract('World', (as) => {
             assert.equal(ret.toNumber(), main_balance, "token balance shold be decreased correctly");
             //reclaim card
             pgrs.step();
-            var ret2 = await inventory_instance.mintFixedCard(sub_account, HP, ATK, DEF, [], {from: admin_account});
-            sub_card_id2 = cardCheck(ret2, proto);
+            var ret2 = await inventory_instance.mintFixedCard(sub_account, SPEC_ID, VISUAL_FLAG, 2, RARITY, {from: admin_account});
+            var tpl = cardCheck(ret2, proto);
+            sub_card_id2 = tpl[0];
+            sub_card2 = tpl[1];
             return c.estimateReclaimToken.call(sub_card_id2, { from: sub_account });
         }).then((ret) => {
             pgrs.step();
             reclaim_token = ret.toNumber();
-            assert.equal(reclaim_token, 110, "reclaim fee should be correct");
+            assert.equal(reclaim_token, helper.estReclaimValue(sub_card2), "reclaim fee should be correct");
             return c.reclaimToken(sub_card_id2, { from: sub_account });
         }).then((ret) => {
             pgrs.step();

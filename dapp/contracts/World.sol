@@ -46,7 +46,7 @@ contract World is Restrictable, Constants {
   }
   //estimate breed fee
   function estimateMergeFee(uint card_id, uint target_card_id) public view returns (uint) {
-    return mergeFeeFromCardValue(inventory_.estimateResultValue(card_id, target_card_id, -1));
+    return mergeFeeFromCardValue(inventory_.estimateResultValue(card_id, target_card_id));
   }
   function estimateReclaimToken(uint card_id) public view returns (uint256) {
     bytes memory c = inventory_.getSlotBytesById(card_id);

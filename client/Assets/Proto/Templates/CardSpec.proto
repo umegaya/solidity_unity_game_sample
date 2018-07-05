@@ -13,5 +13,6 @@ message CardSpec {
     uint32 defense = 6;
     uint32 speed = 7;
     uint32 flags = 8;
-    repeated uint32 skill = 9;
+    uint32 rarity = 9;
+    repeated uint32 skill = 10;
 }

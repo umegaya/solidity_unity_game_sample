@@ -76,12 +76,13 @@ contract Inventory is StorageAccessor, Restrictable {
     return cards_.balanceOf(user) > 1;
   }
   function estimateResultValue(uint source_card_id,
-    uint target_card_id, int debug_rate) public view returns (uint) {
-    pb_ch_Card.Data memory new_card = createMergedCard(source_card_id, target_card_id, debug_rate);
+    uint target_card_id) public view returns (uint) {
+    pb_ch_Card.Data memory new_card = createMergedCard(source_card_id, target_card_id);
     return CalcUtil.evaluate(new_card);
   }
   function createMergedCard(
-    uint target_card_id, uint merged_card_id, int rate) internal view returns (pb_ch_Card.Data card) {
+    uint target_card_id, uint merged_card_id) internal view returns (pb_ch_Card.Data card) {
+    require(target_card_id != merged_card_id);
     bool tmp;
     pb_ch_Card.Data memory ca;
     (ca, tmp) = getCard(target_card_id);
@@ -91,10 +92,13 @@ contract Inventory is StorageAccessor, Restrictable {
     (cb, tmp) = getCard(merged_card_id);
     require(tmp); //*/
 
-    require(ca.spec_id != cb.spec_id);
+    require(ca.spec_id == cb.spec_id);
 
-    ca.level = ca.level + 1;
-    ca.visual_flags = ca.visual_flags + CalcUtil.RandomVisualFlag();
+    card.spec_id = ca.spec_id;
+    card.bs = new bytes(4);
+    card.bs[0] = ca.bs[0];
+    card.level = ca.level + 1;
+    card.visual_flags = ca.visual_flags;
   }
 
 
@@ -137,12 +141,12 @@ contract Inventory is StorageAccessor, Restrictable {
   function merge(address user, 
     uint source_card_id, //this card remains
     uint target_card_id, //merged card, burned after merge success
-    int debug_rate) public writer returns (bytes) {
+    int) public writer returns (bytes) {
     //verify
     require(cards_.ownerOf(source_card_id) == user);
     require(cards_.ownerOf(target_card_id) == user);
     //create merged card data
-    pb_ch_Card.Data memory card = createMergedCard(source_card_id, target_card_id, debug_rate);
+    pb_ch_Card.Data memory card = createMergedCard(source_card_id, target_card_id);
     //update card dat
     bytes memory bs = card.encode();
     saveBytes(source_card_id, bs);
@@ -156,16 +160,17 @@ contract Inventory is StorageAccessor, Restrictable {
     PRNG.Data memory rnd;
     return mintFixedCard(user, 
       uint32(rnd.gen2(1, 10000)), CalcUtil.RandomVisualFlag(), 1,
-      bytes1(rnd.gen2(1, 8)));
+      uint32(rnd.gen2(1, 8)));
   }
   function mintFixedCard(address user, 
-                      uint32 spec_id, uint32 visual_flags, uint32 level, bytes1 rarity) 
+                      uint32 spec_id, uint32 visual_flags, uint32 level, uint32 rarity) 
                       public writer returns (uint) {
     pb_ch_Card.Data memory c;
     c.spec_id = spec_id;
     c.visual_flags = visual_flags;
     c.level = level;
-    c.bs[0] = rarity;
+    c.bs = new bytes(4);
+    c.bs[0] = bytes1(rarity);
     return mintFixedCard(user, c); //*/
   }
   function mintFixedCard(address user, pb_ch_Card.Data card) internal writer returns (uint) {

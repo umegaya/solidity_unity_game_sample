@@ -62,10 +62,39 @@ var getMinikubeHost = () => {
     return chop(cp.execSync("minikube ip"));
 }
 
+var numberOfSetBits = (i) => {
+    i = i - ((i >> 1) & 0x55555555);
+    i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+    return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+}
+
+var estPrice = (card, after_merge) => {
+    if (after_merge) {
+        card.level++;
+    }
+    var est = 100 * (1 << Number(card.bs[0])) * (1 << card.level) * (1 + numberOfSetBits(card.visualFlags));
+    if (after_merge) {
+        card.level--;
+    }
+    return est;
+}
+
+var estMergeFee = (card) => {
+    return estPrice(card, true) / 100;
+}
+
+var estReclaimValue = (card) => {
+    return estPrice(card, false) / 100;
+}
+
 module.exports = {
     chop: chop,
     toBytes: toBytes,
     Progress: Progress,
     getDockerHost: getDockerHost,
     getMinikubeHost: getMinikubeHost,
+    numberOfSetBits: numberOfSetBits,
+    estPrice: estPrice,
+    estMergeFee: estMergeFee,
+    estReclaimValue: estReclaimValue,
 }
