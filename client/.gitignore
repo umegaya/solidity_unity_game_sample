@@ -29,6 +29,14 @@ sysinfo.txt
 *.apk
 *.unitypackage
 *.cs-e*
-foodfighters/
+*.pyc
+*.pyc.meta
+*.py
+*.py.meta
+*.g.cs
+*.g.cs.meta
+*.CSVLoader.cs
+*.CSVLoader.cs.meta
+Container.cs*
 
 .vscode/

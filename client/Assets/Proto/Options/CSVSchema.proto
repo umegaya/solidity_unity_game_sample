@@ -1,0 +1,12 @@
+syntax = "proto3";
+import "google/protobuf/descriptor.proto";
+
+package suntomi.pb;
+
+message CSVSchema {
+    bool id = 1;
+}
+
+extend google.protobuf.FieldOptions {
+    CSVSchema csv_schema = 50000;
+}

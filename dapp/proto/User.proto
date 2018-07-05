@@ -3,10 +3,17 @@ syntax = "proto3";
 package ch;
 
 message User {
-    message Deck {
-        repeated uint32 cards = 1;
+    uint32 cost_limit = 1;              //the user's allowable total cost of deck cards.
+    repeated MarketEntry markets = 2;   //current market entry. 
+    repeated TreasureBox treasures = 3;
+    message MarketEntry {
+        uint32 card_id = 1;     //sold card id  
+        uint32 token_price = 2; //card price in token
+        uint32 sale_end = 3;    //sale end date
     }
-    uint32 cost_limit = 1;
-    repeated Deck decks = 2;
+    message TreasureBox {
+        uint32 card_id = 1;      //card id in this box
+        uint32 token_amount = 2; //token amount in this box
+        uint32 lockup_end = 3;   //when it can be opened?
+    }
 }
-

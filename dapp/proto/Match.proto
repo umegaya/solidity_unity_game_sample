@@ -3,12 +3,11 @@ syntax = "proto3";
 package ch;
 
 import "Solidity.proto";
-import "User.proto";
 
 message Match {
     message Member {
         solidity.address user_id = 1;
-        .ch.User.Deck deck = 2;
+        repeated uint32 deck = 2;
     }
     repeated Member members = 1;
     uint32 winner_index = 2;

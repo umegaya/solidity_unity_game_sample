@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
+using UniRx;
 
 namespace Game {
 public class Main : MonoBehaviour {
@@ -16,35 +17,14 @@ public class Main : MonoBehaviour {
     }
 
     void Awake() {
-        RPCMgr.Eth.callback_ += OnEthEvent;
-        ViewModelMgr.callback_ += OnViewModelEvent;
+        ViewModelMgr.subject_.
+            Where(ev => ev.Type == ViewModel.ViewModelMgr.EventType.Ready).
+            Subscribe(ev => OnViewModelReady(ev));
     }
 
-    void OnEthEvent(RPC.Eth.Event ev, object arg) {
-        if (ev == RPC.Eth.Event.Inititalized) {
-            StartCoroutine(ViewModelMgr.InititalizeTask());
-        } else if (ev == RPC.Eth.Event.TxEvent) {
-            var log = (Eth.Receipt.Log)arg;
-            if (log.Name == "Transfer") {
-                Debug.Log("TxEvent Happen:" + log.As<Eth.Event.Transfer>().ToString());
-            } else if (log.Name == "Approval") {
-                Debug.Log("TxEvent Happen:" + log.As<Eth.Event.Approval>().ToString());
-            } else if (log.Name == "AddCard") {
-                Debug.Log("TxEvent Happen:" + log.As<Eth.Event.AddCard>().ToString());
-            } else if (log.Name == "Exchange") {
-                Debug.Log("TxEvent Happen:" + log.As<Eth.Event.Exchange>().ToString());
-            } else {
-                Debug.LogError("invalid event log:" + log.Name);
-            }
-        }
+    void OnViewModelReady(ViewModel.ViewModelMgr.Event ev) {
+        Debug.Assert(ev.Type == ViewModel.ViewModelMgr.EventType.Ready);
+        UIMgr.Open("Top");
     }
-    void OnViewModelEvent(ViewModel.ViewModelMgr.Event ev, params object[] args) {
-        Debug.Log("OnViewModelEvent:" + ev);
-        if (ev == ViewModel.ViewModelMgr.Event.Initialized) {
-            UIMgr.Open("Top");
-        }
-    }
-
-
 }
 }

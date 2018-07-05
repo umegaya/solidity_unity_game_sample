@@ -4,6 +4,7 @@ var Moritapo = artifacts.require("Moritapo");
 var Inventory = artifacts.require("Inventory");
 var World = artifacts.require("World");
 var History = artifacts.require("History");
+var Cards = artifacts.require("Cards");
 
 function deploy_pb(deployer) {
 	var PbRuntime = artifacts.require("_pb");
@@ -38,8 +39,10 @@ module.exports = function(deployer) {
   }).then(function () {
     return deployer.deploy(CalcUtil);
   }).then(function () {
+    return deployer.deploy(Cards);
+  }).then(function () {
     Inventory.link(CalcUtil);
-    return deployer.deploy(Inventory, Storage.address);
+    return deployer.deploy(Inventory, Storage.address, Cards.address);
   }).then(function () {
     World.link(CalcUtil);
     return deployer.deploy(World, Moritapo.address, Inventory.address);
@@ -47,6 +50,10 @@ module.exports = function(deployer) {
     return Storage.at(Storage.address).then(function (instance) {
       return instance.setPrivilege(Inventory.address, PRIV_WRITABLE);
     });
+  }).then(function () {
+    return Cards.at(Cards.address).then(function (instance) {
+      return instance.setPrivilege(Inventory.address, PRIV_WRITABLE);
+    })
   }).then(function () {
     return Inventory.at(Inventory.address).then(function (instance) {
       return instance.setPrivilege(World.address, PRIV_WRITABLE);

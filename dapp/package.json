@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "csv-parse": "^2.5.0",
     "glob": "^7.1.2",
     "keythereum": "^1.0.3",
     "protobufjs": "^6.8.6",

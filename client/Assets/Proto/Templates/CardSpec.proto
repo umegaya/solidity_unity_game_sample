@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package ch;
+
+import "CSVSchema.proto";
+
+message CardSpec {
+    uint32 id = 1 [(suntomi.pb.csv_schema).id = true];
+    uint32 issuance = 2;
+    string name = 3;
+    uint32 hp = 4;
+    uint32 attack = 5;
+    uint32 defense = 6;
+    uint32 speed = 7;
+    uint32 flags = 8;
+    uint32 rarity = 9;
+    repeated uint32 skill = 10;
+}

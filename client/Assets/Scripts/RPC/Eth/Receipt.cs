@@ -48,7 +48,7 @@ public class Receipt : Dictionary<string, object> {
 
         public string Name { 
             get { 
-                var ev = contract_.ContractABI.Events.FirstOrDefault(
+                var ev = contract_.ContractBuilder.ContractABI.Events.FirstOrDefault(
                     x => x.Sha33Signature.IsTheSameHex(Topics[0].ToString()));
                 return ev.Name;
             }

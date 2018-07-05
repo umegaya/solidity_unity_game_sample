@@ -9,6 +9,7 @@ using Nethereum.JsonRpc.UnityClient;
 using Nethereum.Contracts;
 
 using UnityEngine;
+using UniRx;
 
 using Newtonsoft.Json;
 
@@ -17,11 +18,14 @@ using Game.Eth.Util;
 
 namespace Game.RPC {
 public class Eth : MonoBehaviour {
-    public enum Event {
+    public enum EventType {
         Inititalized,
-        TxEvent,
+        TxLog,
     };
-    public delegate void OnEventDelegate(Event ev, object arg);
+    public struct Event {
+        public EventType Type;
+        public Receipt.Log Log;
+    }
     public class ContractWrapper {
         public class CallResponse {
             public List<ParameterOutput> Result { get; set; }
@@ -108,7 +112,9 @@ public class Eth : MonoBehaviour {
                     r.Error = null;
                     r.Result = txr;
                     for (int i = 0; i < txr.Logs.Count; i++) {
-                        owner_.callback_(Event.TxEvent, new Receipt.Log(txr.Logs[i], c_));
+                        owner_.subject_.OnNext(
+                            new Event{ Type = EventType.TxLog, Log = new Receipt.Log(txr.Logs[i], c_) }
+                        );
                     }
                     return 1;
                 }
@@ -125,7 +131,7 @@ public class Eth : MonoBehaviour {
     public TextAsset addresses_;
 
     public List<ContractEntry> contract_entries_;
-    public OnEventDelegate callback_;
+    public Subject<Event> subject_;
     public double default_gas_ = 4000000;
 
     public Newtonsoft.Json.JsonSerializerSettings settings_ = null;
@@ -146,7 +152,9 @@ public class Eth : MonoBehaviour {
     }
 
     public void Start() {
-        RPCMgr.instance.Account.callback_ += OnAccountInitEvent;
+        RPCMgr.instance.Account.subject_.
+            Where(ev => ev.Type == Account.EventType.InitSuccess).
+            Subscribe(ev => OnAccountInitSuccess(ev));
     }
 
     void Initialize() {
@@ -167,25 +175,16 @@ public class Eth : MonoBehaviour {
         get_receipt_ = new GetTransactionReceiptRequest(url);
     }
 
-    void OnAccountInitEvent(Account.InitEvent ev) {
-        Debug.Log("OnAccountInitEvent:" + ev);
-        switch (ev) {
-        case Account.InitEvent.Start:
-            break;
-        case Account.InitEvent.EndFailure:
-            break;
-        case Account.InitEvent.EndSuccess:
-            Initialize();
-            callback_(Event.Inititalized, null);
-            break;
-        }
+    void OnAccountInitSuccess(Account.Event ev) {
+        Initialize();
+        subject_.OnNext(new Event{ Type = EventType.Inititalized });
     }
 
 	public IEnumerator GetBalance(string address, System.Action<decimal> callback) {
 		yield return get_balance_.SendRequest(address, Nethereum.RPC.Eth.DTOs.BlockParameter.CreateLatest ());
 		if (get_balance_.Exception == null) {
 			var balance = get_balance_.Result.Value;
-			callback(Nethereum.Util.UnitConversion.Convert.FromWei(balance, 18));
+			callback(1);
 		} else {
 			throw new System.InvalidOperationException ("Get balance request failed");
 		}

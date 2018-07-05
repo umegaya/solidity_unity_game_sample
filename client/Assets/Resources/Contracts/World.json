@@ -338,7 +338,30 @@
     "constant": true,
     "inputs": [
       {
-        "name": "index",
+        "name": "card_id",
+        "type": "uint256"
+      },
+      {
+        "name": "target_card_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "estimateMergeFee",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "card_id",
         "type": "uint256"
       }
     ],
@@ -428,7 +451,7 @@
         "type": "address"
       },
       {
-        "name": "cat_id",
+        "name": "card_id",
         "type": "uint256"
       }
     ],
@@ -447,7 +470,7 @@
     "constant": false,
     "inputs": [
       {
-        "name": "index",
+        "name": "card_id",
         "type": "uint256"
       }
     ],
@@ -466,22 +489,18 @@
     "constant": false,
     "inputs": [
       {
-        "name": "cat_id",
+        "name": "card_id",
         "type": "uint256"
       },
       {
-        "name": "target",
-        "type": "address"
-      },
-      {
-        "name": "target_cat_id",
+        "name": "target_card_id",
         "type": "uint256"
       }
     ],
     "name": "mergeCard",
     "outputs": [
       {
-        "name": "required_token",
+        "name": "",
         "type": "uint256"
       }
     ],
@@ -493,7 +512,7 @@
     "constant": false,
     "inputs": [
       {
-        "name": "index",
+        "name": "id",
         "type": "uint256"
       },
       {
@@ -502,12 +521,7 @@
       }
     ],
     "name": "setForSale",
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ],
+    "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
@@ -516,46 +530,11 @@
     "constant": true,
     "inputs": [
       {
-        "name": "reclaimer",
-        "type": "address"
-      },
-      {
-        "name": "index",
+        "name": "card_id",
         "type": "uint256"
       }
     ],
     "name": "getStandardPrice",
-    "outputs": [
-      {
-        "name": "price",
-        "type": "uint256"
-      },
-      {
-        "name": "cat_id",
-        "type": "uint256"
-      }
-    ],
-    "payable": false,
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "constant": true,
-    "inputs": [
-      {
-        "name": "cat_id",
-        "type": "uint256"
-      },
-      {
-        "name": "target",
-        "type": "address"
-      },
-      {
-        "name": "target_cat_id",
-        "type": "uint256"
-      }
-    ],
-    "name": "estimateMergeFee",
     "outputs": [
       {
         "name": "",

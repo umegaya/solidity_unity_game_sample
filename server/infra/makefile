@@ -67,13 +67,13 @@ destroy:
 # ----------------------------------------------------------------------------------
 # administration related
 # ----------------------------------------------------------------------------------
-POD=`kcd get po -o json | jq -r .items[0].metadata.name`
+POD=`(source ./tools/common.sh && kcd get po -o json) | jq -r .items[0].metadata.name`
 KUBEHOST=`bash ./tools/kubehost.sh`
 CREDENTIAL_OUT=`pwd`/volume/secret
 
 genesis: chain_spec taint plan exec
 
-restart:
+restart: plan exec
 	@kubectl exec $(POD) kill 1
 
 tail:

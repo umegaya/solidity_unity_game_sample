@@ -3,18 +3,25 @@ using System.Collections.Generic;
 using System.Numerics;
 
 using UnityEngine;
+using UniRx;
 
 using Game.Eth.Util;
 
 namespace Game.ViewModel {
 public class ViewModelMgr : MonoBehaviour {
-    public enum Event {
+    public enum EventType {
         Initialized,
+        RPCError,
+        Ready,
     }
-    public delegate void OnViewModelChange(Event ev, params object[] args);
+    public struct Event {
+        public EventType Type;
+        public System.Exception Error;
+    }
     static public ViewModelMgr instance {
         get; private set;
     }
+    public CSV.Container GameData = null;
     public Inventory Inventory {
         get; private set;
     }
@@ -24,7 +31,7 @@ public class ViewModelMgr : MonoBehaviour {
     public BigInteger TokenBalance {
         get; set;
     }
-    public OnViewModelChange callback_;
+    public Subject<Event> subject_;
     public RPC.RPCMgr RPCMgr {
         get { return Main.RPCMgr; }
     }
@@ -41,15 +48,46 @@ public class ViewModelMgr : MonoBehaviour {
         Inventory = new Inventory();
         Balance = 0;
     }
+    public void Start() {
+        RPCMgr.Eth.subject_.
+            Where(ev => ev.Type == RPC.Eth.EventType.TxLog).
+            Subscribe(ev => OnEthTxLog(ev));
+        RPCMgr.Eth.subject_.
+            Where(ev => ev.Type == RPC.Eth.EventType.Inititalized).
+            Subscribe(ev => StartCoroutine(InititalizeTask()));
+        //waiting both contract and csv initialization
+        Observable.Zip(
+                subject_.Where(ev => ev.Type == EventType.Initialized), 
+                GameData.subject_, (left, right) => { return left; }
+            ).
+            Subscribe(ev => subject_.OnNext(new Event { Type = EventType.Ready } ));
+    }
 
-    public IEnumerator InititalizeTask() {
+    void OnEthTxLog(RPC.Eth.Event ev) {
+        Debug.Assert(ev.Type == RPC.Eth.EventType.TxLog);
+        var log = ev.Log;
+        if (log.Name == "Transfer") {
+            Debug.Log("TxEvent Happen:" + log.As<Eth.Event.Transfer>().ToString());
+        } else if (log.Name == "Approval") {
+            Debug.Log("TxEvent Happen:" + log.As<Eth.Event.Approval>().ToString());
+        } else if (log.Name == "MintCard") {
+            Debug.Log("TxEvent Happen:" + log.As<Eth.Event.AddCard>().ToString());
+        } else if (log.Name == "Exchange") {
+            Debug.Log("TxEvent Happen:" + log.As<Eth.Event.Exchange>().ToString());
+        } else {
+            Debug.LogError("invalid event log:" + log.Name);
+        }
+    }
+ 
+
+    IEnumerator InititalizeTask() {
         yield return StartCoroutine(UpdateBalance());
         var myaddr = RPCMgr.Account.address_;
         while (true) {
             yield return RPCMgr.Eth["Inventory"].Call("getSlotSize", myaddr);
             var r = RPCMgr.Eth.CallResponse;
             if (r.Error != null) {
-                Debug.LogError("Inventory.getSlotSize fails:" + r.Error.Message);    
+                Raise("InititalizeTask(getSlotSize)", r.Error);
                 break;            
             } else {
                 var rr = r.Result[0].Result;
@@ -63,11 +101,11 @@ public class ViewModelMgr : MonoBehaviour {
                         yield return RPCMgr.Eth["Inventory"].Call("getSlotBytesAndId", myaddr, i);
                         r = RPCMgr.Eth.CallResponse;
                         if (r.Error != null) {
-                            Debug.LogError("Inventory.getSlotBytes fails:" + r.Error.Message);
+                            Raise("InititalizeTask(getSlotBytesAndId)", r.Error);
                         } else {
                             var id = (System.Numerics.BigInteger)r.Result[0].Result;
                             var card = r.As<Ch.Card>(Ch.Card.Parser);
-                            Debug.Log("Inventory.getSlotBytes card[" + id.ToString() + "]:" + card.Hp.ToNumber());
+                            Debug.Log("Inventory.getSlotBytes card[" + id.ToString() + "]:" + card.SpecId);
                             Inventory.AddCard(id, card);
                         }
                     }
@@ -75,7 +113,7 @@ public class ViewModelMgr : MonoBehaviour {
                 }
             }
         }
-        callback_(Event.Initialized);
+        subject_.OnNext(new Event { Type = EventType.Initialized } );
     }
     IEnumerator UpdateBalance() {
         var req = RPCMgr.Web.NewReq();
@@ -89,7 +127,8 @@ public class ViewModelMgr : MonoBehaviour {
         var json = req.As<Dictionary<string, object>>();
         BigInteger bi;
         if (!BigInteger.TryParse((string)json["balance"], out bi)) {
-            Debug.Log("fail to parse as biginteger:" + (string)json["balance"]);
+            Raise("UpdateBalance", 
+                new System.Exception("fail to parse as biginteger:" + (string)json["balance"]));
             yield break;
         }
         Balance = bi;
@@ -111,9 +150,14 @@ public class ViewModelMgr : MonoBehaviour {
             Debug.Log("create account: created");
             yield return StartCoroutine(UpdateBalance());
         } else {
-            Debug.LogError("World.createInitialCard fails:" + req.Error.Message);
+            Raise("CreateInitialDeck", req.Error);
             yield return new WaitForSeconds(1.0f);
         }                    
+    }
+
+    void Raise(string msg, System.Exception e) {
+        Debug.Log(msg + ": raises " + e.Message);
+        subject_.OnNext(new Event{ Type = EventType.RPCError, Error = e});
     }
 }
 }

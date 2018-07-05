@@ -140,6 +140,10 @@
       {
         "name": "storageAddress",
         "type": "address"
+      },
+      {
+        "name": "cardsAddress",
+        "type": "address"
       }
     ],
     "payable": false,
@@ -173,28 +177,45 @@
     "inputs": [
       {
         "indexed": true,
-        "name": "user_a",
+        "name": "user",
         "type": "address"
       },
+      {
+        "indexed": false,
+        "name": "id",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "created",
+        "type": "bytes"
+      }
+    ],
+    "name": "updateCard",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
       {
         "indexed": true,
-        "name": "user_b",
+        "name": "user",
         "type": "address"
       },
       {
         "indexed": false,
-        "name": "id_a",
+        "name": "remain_card_id",
         "type": "uint256"
       },
       {
         "indexed": false,
-        "name": "id_b",
+        "name": "marged_card_id",
         "type": "uint256"
       },
       {
         "indexed": false,
-        "name": "new_id",
-        "type": "uint256"
+        "name": "created",
+        "type": "bytes"
       }
     ],
     "name": "Merge",
@@ -313,9 +334,24 @@
     "constant": true,
     "inputs": [
       {
-        "name": "user",
-        "type": "address"
-      },
+        "name": "card_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "getSlotBytesById",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
       {
         "name": "id",
         "type": "uint256"
@@ -355,16 +391,8 @@
     "constant": true,
     "inputs": [
       {
-        "name": "source",
-        "type": "address"
-      },
-      {
         "name": "source_card_id",
         "type": "uint256"
-      },
-      {
-        "name": "target",
-        "type": "address"
       },
       {
         "name": "target_card_id",
@@ -408,7 +436,7 @@
         "type": "address"
       },
       {
-        "name": "index",
+        "name": "id",
         "type": "uint256"
       },
       {
@@ -417,12 +445,7 @@
       }
     ],
     "name": "setForSale",
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ],
+    "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
@@ -467,12 +490,7 @@
       }
     ],
     "name": "transferCard",
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool"
-      }
-    ],
+    "outputs": [],
     "payable": false,
     "stateMutability": "nonpayable",
     "type": "function"
@@ -481,16 +499,12 @@
     "constant": false,
     "inputs": [
       {
-        "name": "source",
+        "name": "user",
         "type": "address"
       },
       {
         "name": "source_card_id",
         "type": "uint256"
-      },
-      {
-        "name": "target",
-        "type": "address"
       },
       {
         "name": "target_card_id",
@@ -505,7 +519,7 @@
     "outputs": [
       {
         "name": "",
-        "type": "bool"
+        "type": "bytes"
       }
     ],
     "payable": false,
@@ -520,7 +534,7 @@
         "type": "address"
       }
     ],
-    "name": "addCard",
+    "name": "mintCard",
     "outputs": [
       {
         "name": "",
@@ -555,7 +569,7 @@
         "type": "uint16[]"
       }
     ],
-    "name": "addFixedCard",
+    "name": "mintFixedCard",
     "outputs": [
       {
         "name": "",

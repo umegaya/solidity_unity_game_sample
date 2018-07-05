@@ -7,18 +7,29 @@ import "./libs/pb/Card_pb.sol";
 library CalcUtil {
   using PRNG for PRNG.Data;
 
-  function mixParam(PRNG.Data memory rnd, 
-    uint p1, uint p2, int blend_rate, uint bonus) public view returns (uint) {
-    uint max_param = uint(Math.max256(p1, p2));
-    uint min_param = uint(Math.min256(p1, p2));
-    return ((max_param * uint(16 - blend_rate) + min_param * uint(blend_rate)) / 16) + rnd.gen2(0, bonus);
+  function evaluate(pb_ch_Card.Data c) internal pure returns (uint price) {
+    uint rarity = Rarity(c);
+    uint one = 1;
+    price = (one << c.level) * (1 + NumberOfSetBits(c.visual_flags)) * (1 << rarity) * 100;
   }
 
-  function evaluate(pb_ch_Card.Data c) internal pure returns (uint price) {
-    //estimate max price is 30000. we want this worth 0.3 eth (3 * (10 ^ 17) wei for initial rate)
-    price = ((c.hp + c.attack + c.defense) * 100 + c.exp);
-    for (uint i = 0; i < c.skills.length; i++) {
-      price += c.exp;
-    }
+  function Rarity(pb_ch_Card.Data c) internal pure returns (uint) {
+    return uint(c.bs[0]);
+  }
+
+  function NumberOfSetBits(uint i) internal pure returns (uint) {
+    /*i = i - ((i >> 1) & 0x55555555);
+    i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
+    return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;*/
+    if (i == 0) { return 0; }
+    else if (i == 1 || i == 2 || i == 4) { return 1; }
+    else if (i == 5 || i == 6) { return 2; }
+    else if (i == 7) { return 3; }
+    else { return 0; }
+  }
+
+  function RandomVisualFlag() public view returns (uint32) {
+    PRNG.Data memory rnd;
+    return uint32(rnd.gen2(0, 7));
   }
 }

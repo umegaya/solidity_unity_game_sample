@@ -24,9 +24,15 @@ public static class EthResultParseHelper
         return i == ret.Length ? HexZero : new HexBigInteger(ret);
     }
 
+    internal class FunctionABIGetter : Function {
+        public FunctionABIGetter(Contract c, FunctionBuilder b) : base(c, b) {}
+        public new FunctionBuilder FunctionBuilder { get { return base.FunctionBuilder; } }
+    }
+
     public static ParameterDecoder decoder_ = new ParameterDecoder();
     public static List<ParameterOutput> DecodeResponse(this Function fn, string data) {
-        return decoder_.DecodeDefaultData(data, fn.FunctionABI.OutputParameters);
+        var fg = (FunctionABIGetter)fn;
+        return decoder_.DecodeDefaultData(data, fg.FunctionBuilder.FunctionABI.OutputParameters);
     }
 }
 }
