@@ -219,7 +219,7 @@
         "type": "bytes"
       }
     ],
-    "name": "AddCard",
+    "name": "MintCard",
     "type": "event"
   },
   {
@@ -419,6 +419,20 @@
     "outputs": [],
     "payable": true,
     "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "current_clock",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateClock",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

@@ -77,7 +77,7 @@ public class Account : MonoBehaviour {
 	public string chain_url_ = "http://localhost:9545";
 	public bool encyption_ = false;
 	public bool remove_wallet_ = false;
-	public Subject<Event> subject_;
+	public Subject<Event> subject_ = new Subject<Event>();
 
 
 	AccountInitializer worker_;

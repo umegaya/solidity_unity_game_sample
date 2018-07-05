@@ -7,22 +7,21 @@ using UnityEngine;
 using UniRx;
 
 public class CSVIO {
-    static public IEnumerator Read(string path, Action<TextReader> cb) {
-        #if UNITY_ANDROID && !UNITY_EDITOR
-        WWW www = new WWW(path);
-        yield return www;
-        if (!string.IsNullOrEmpty(www.error)) {
-            cb(null);
-            yield break;
-        }
-        cb(new StringReader(www.text));
-        #else
+    static public IEnumerator Read(Loader loader, string path, Action<TextReader> cb) {
         try {
+        #if UNITY_ANDROID && !UNITY_EDITOR
+            WWW www = new WWW(path);
+            yield return www;
+            if (!string.IsNullOrEmpty(www.error)) {
+                throw new System.Exception(www.error);
+            }
+            cb(new StringReader(www.text));
+        #else
             cb(new StreamReader(TrimBOM(path)));
-        } catch (FileNotFoundException) {
-            cb(null);
-        }
         #endif        
+        } catch (System.Exception e) {
+            loader.Error = e;
+        }
         yield break;
     }
     static public string TrimBOM(string text) {
@@ -41,23 +40,35 @@ public class CSVIO {
         }
         return text;
     }
-    static public IEnumerator Load<ID,R>(string path, Dictionary<ID, R> map, System.Func<R,ID> idgetter) {
-		return CSVIO.Read(path, (System.IO.TextReader r) => {
-			var csv = new CsvHelper.CsvReader(r);
-			while (true) {
-				var rec = csv.GetRecord<R>();
-				if (rec == null) {
-					break;
-				}
-				map[idgetter(rec)] = rec;
-			}
+    public const int SAFETY_COUNT = 100;
+    static public IEnumerator Load<ID,R>(Loader loader, 
+        string path, Dictionary<ID, R> map, System.Func<R,ID> idgetter) {
+        return CSVIO.Read(loader, path, (System.IO.TextReader r) => {
+            R rec = default(R);
+            var csv = new CsvHelper.CsvReader(r);
+            csv.Read();
+            csv.ReadHeader();
+            while (csv.Read()) {
+                rec = csv.GetRecord<R>();
+                map[idgetter(rec)] = rec;
+            }
 		});
 	}
 
     public abstract class Loader : MonoBehaviour {
-        public Subject<Loader> subject_;
+        public enum EventType {
+            Inititalized,
+            Error,
+        };
+        public struct Event {
+            public EventType Type;
+            public System.Exception Error;
+        }
+
+        public Subject<Event> subject_ = new Subject<Event>();
         public string BasePath;
-        public abstract IEnumerator Load(string basepath);
+        public System.Exception Error;
+        public abstract IEnumerator Load(Loader loader, string basepath);
         public abstract string[] CSVNames();
 
         void Awake() {
@@ -68,8 +79,12 @@ public class CSVIO {
         }
         IEnumerator StartLoad() {
             //TODO: update streaming asset
-            yield return StartCoroutine(Load(BasePath));
-            subject_.OnNext(this);
+            yield return StartCoroutine(Load(this, BasePath));
+            if (Error != null) {
+                subject_.OnNext(new Event{ Type = EventType.Error, Error = Error });
+            } else {
+                subject_.OnNext(new Event{ Type = EventType.Inititalized });
+            }
         }
     }    
 }

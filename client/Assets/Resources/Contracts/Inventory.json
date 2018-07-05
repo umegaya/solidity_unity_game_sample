@@ -169,7 +169,7 @@
         "type": "bytes"
       }
     ],
-    "name": "AddCard",
+    "name": "MintCard",
     "type": "event"
   },
   {
@@ -191,7 +191,7 @@
         "type": "bytes"
       }
     ],
-    "name": "updateCard",
+    "name": "UpdateCard",
     "type": "event"
   },
   {
@@ -209,7 +209,7 @@
       },
       {
         "indexed": false,
-        "name": "marged_card_id",
+        "name": "merged_card_id",
         "type": "uint256"
       },
       {
@@ -397,10 +397,6 @@
       {
         "name": "target_card_id",
         "type": "uint256"
-      },
-      {
-        "name": "debug_rate",
-        "type": "int256"
       }
     ],
     "name": "estimateResultValue",
@@ -499,6 +495,24 @@
     "constant": false,
     "inputs": [
       {
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "name": "card_id",
+        "type": "uint256"
+      }
+    ],
+    "name": "returnCard",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
         "name": "user",
         "type": "address"
       },
@@ -511,7 +525,7 @@
         "type": "uint256"
       },
       {
-        "name": "debug_rate",
+        "name": "",
         "type": "int256"
       }
     ],
@@ -553,20 +567,20 @@
         "type": "address"
       },
       {
-        "name": "hp",
-        "type": "uint16"
+        "name": "spec_id",
+        "type": "uint32"
       },
       {
-        "name": "atk",
-        "type": "uint16"
+        "name": "visual_flags",
+        "type": "uint32"
       },
       {
-        "name": "def",
-        "type": "uint16"
+        "name": "level",
+        "type": "uint32"
       },
       {
-        "name": "skills",
-        "type": "uint16[]"
+        "name": "rarity",
+        "type": "uint32"
       }
     ],
     "name": "mintFixedCard",

@@ -31,7 +31,7 @@ public class ViewModelMgr : MonoBehaviour {
     public BigInteger TokenBalance {
         get; set;
     }
-    public Subject<Event> subject_;
+    public Subject<Event> subject_ = new Subject<Event>();
     public RPC.RPCMgr RPCMgr {
         get { return Main.RPCMgr; }
     }

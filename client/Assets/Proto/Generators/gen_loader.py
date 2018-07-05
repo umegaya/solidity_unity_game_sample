@@ -95,8 +95,8 @@ def generate_code(request, response):
                 if field_count > 0:
                     csignature = "public class {0}Loader {{".format(msg.name)
                     member = "public {0} Records = new {0}();".format(dict_type)
-                    fsignature = "public IEnumerator Load(string path) {"
-                    fbody = "return CSVIO.Load<{0}, {1}>(path, Records, r => r.{2});".format(
+                    fsignature = "public IEnumerator Load(CSVIO.Loader loader, string path) {"
+                    fbody = "return CSVIO.Load<{0}, {1}>(loader, path, Records, r => r.{2});".format(
                         key_type, typename, 
                         (id_field.name[0:1].upper() + id_field.name[1:]) if id_field else "Id")
                     output.append(csignature)

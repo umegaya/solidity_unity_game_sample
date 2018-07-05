@@ -131,7 +131,7 @@ public class Eth : MonoBehaviour {
     public TextAsset addresses_;
 
     public List<ContractEntry> contract_entries_;
-    public Subject<Event> subject_;
+    public Subject<Event> subject_ = new Subject<Event>();
     public double default_gas_ = 4000000;
 
     public Newtonsoft.Json.JsonSerializerSettings settings_ = null;
