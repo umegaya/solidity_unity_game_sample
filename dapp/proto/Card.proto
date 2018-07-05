@@ -3,7 +3,8 @@ syntax = "proto3";
 package ch;
 
 message Card {
-    uint32 spec_id = 1;      //card's spec (cost/hp/atk/def/speed...)
-    uint32 visual_flags = 2; //special effect, different graphic, for same card. 
-    uint32 level = 3;        //stack level. like CoC. 
+    uint32 spec_id = 1;       //card's spec (cost/hp/atk/def/speed...)
+    uint32 visual_flags = 2;  //special effect, different graphic, for same card. 
+    uint32 level = 3;         //stack level. like CoC. 
+    bytes  bs = 4;            //byte values. b1: card rarity. 
 }

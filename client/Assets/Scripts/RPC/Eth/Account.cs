@@ -5,6 +5,7 @@ using System.Threading;
 using Nethereum.KeyStore;
 
 using UnityEngine;
+using UniRx;
 
 namespace Game.Eth {
 public class Account : MonoBehaviour {
@@ -55,17 +56,19 @@ public class Account : MonoBehaviour {
 		}
 
 	}
-	public enum InitEvent {
-		Start,
-		EndSuccess,
-		EndFailure,
+	public enum EventType {
+		InitStart,
+		InitSuccess,
+		InitFailure,
+	}
+	public struct Event {
+		public EventType Type;
 	}
 	public enum Encyption {
 		Unknown,
 		On,
 		Off,
 	}
-	public delegate void InitCallback(InitEvent ev);
 
 	//variable
 	public const string KEY_PREFIX = "neko";
@@ -74,7 +77,7 @@ public class Account : MonoBehaviour {
 	public string chain_url_ = "http://localhost:9545";
 	public bool encyption_ = false;
 	public bool remove_wallet_ = false;
-	public InitCallback callback_;
+	public Subject<Event> subject_;
 
 
 	AccountInitializer worker_;
@@ -102,7 +105,7 @@ public class Account : MonoBehaviour {
 			encyption_ = (e == Encyption.On);
 		}
 		var ks = PlayerPrefs.GetString(KEY_PREFIX + "_key_store", "");
-		callback_(InitEvent.Start);
+		subject_.OnNext(new Event {Type = EventType.InitStart});
 		worker_ = new AccountInitializer(this, ks, encyption_);
 		worker_.Start();
 	}
@@ -112,7 +115,7 @@ public class Account : MonoBehaviour {
 			Thread.MemoryBarrier();
 			if (worker_.result_ != 0) {
 				if (worker_.result_ < 0) {
-					callback_(InitEvent.EndFailure);
+					subject_.OnNext(new Event {Type = EventType.InitFailure});
 					#if UNITY_EDITOR
 					UnityEditor.EditorApplication.isPlaying = false;
 					#else
@@ -128,7 +131,7 @@ public class Account : MonoBehaviour {
 					}
 					//Get the public address (derivied from the public key)
 					address_ = key_.GetPublicAddress();
-					callback_(InitEvent.EndSuccess);
+					subject_.OnNext(new Event {Type = EventType.InitSuccess});
 					Debug.Log("wallet address:" + address_ + " pkey:" + key_.GetPrivateKey());
 				}
 				worker_ = null;

@@ -47,7 +47,7 @@ CSV_CONTAINER_IN=./Assets/Proto
 CSV_CONTAINER_OUT=$(CSV_PROTO_OUT)
 CSV_CONTAINER_FILES=$(shell ls $(CSV_PROTO_IN)/*.proto)
 CSV_CONTAINER_PLUGIN=./Generators/gen_container.py
-CSV_CONTAINER_SRCS=$(CSV_CONTAINER_OUT)/Container.CSVLoader.cs
+CSV_CONTAINER_SRCS=$(CSV_CONTAINER_OUT)/Container.cs
 
 EXT_PROTO_IN=./Assets/Proto
 EXT_PROTO_OUT=./Assets/Proto

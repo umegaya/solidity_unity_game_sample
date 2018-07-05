@@ -65,18 +65,15 @@ contract World is Restrictable, Constants {
     require(inventory_.getSlotSize(target) <= 0); //only once
     require(inventory_.recordPayment(target, tx_id));
     //give cat according to sel_idx
-    PRNG.Data memory rnd;
-    uint16[] memory skills = new uint16[](1);
-    skills[0] = uint16(rnd.gen2(1, 64));
     if (sel_idx == 0) {
       //hp type
-      inventory_.mintFixedCard(target, 75, 10, 10, skills);
+      inventory_.mintFixedCard(target, 1001, 0, 1, 4);
     } else if (sel_idx == 1) {
       //attack type
-      inventory_.mintFixedCard(target, 50, 20, 10, skills);
+      inventory_.mintFixedCard(target, 1002, 0, 1, 4);
     } else if (sel_idx == 2) {
       //defense type
-      inventory_.mintFixedCard(target, 50, 10, 20, skills);
+      inventory_.mintFixedCard(target, 1003, 0, 1, 4);
     }//*/
     //give initial token with current rate
     uint amount = payment_unit / currentRateForPU();

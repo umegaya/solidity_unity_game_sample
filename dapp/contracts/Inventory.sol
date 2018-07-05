@@ -81,36 +81,20 @@ contract Inventory is StorageAccessor, Restrictable {
     return CalcUtil.evaluate(new_card);
   }
   function createMergedCard(
-    uint a_card_id, uint b_card_id, int rate) internal view returns (pb_ch_Card.Data card) {
+    uint target_card_id, uint merged_card_id, int rate) internal view returns (pb_ch_Card.Data card) {
     bool tmp;
     pb_ch_Card.Data memory ca;
-    (ca, tmp) = getCard(a_card_id);
+    (ca, tmp) = getCard(target_card_id);
     require(tmp);
 
     pb_ch_Card.Data memory cb;
-    (cb, tmp) = getCard(b_card_id);
+    (cb, tmp) = getCard(merged_card_id);
     require(tmp); //*/
 
-    if (rate < 0) {
-      tmp = false;
-      rate = int(Math.max256(a_card_id % 16, b_card_id % 16) - Math.min256(a_card_id % 16, b_card_id % 16));
-    } else {
-      tmp = true;
-    }//*/
+    require(ca.spec_id != cb.spec_id);
 
-    PRNG.Data memory rnd;
-    card.hp = uint16(CalcUtil.mixParam(rnd, ca.hp, cb.hp, rate, tmp ? 0 : 10));
-    card.attack = uint16(CalcUtil.mixParam(rnd, ca.attack, cb.attack, rate, tmp ? 0 : 3));
-    card.defense = uint16(CalcUtil.mixParam(rnd, ca.defense, cb.defense, rate, tmp ? 0 : 3));
-    uint a_skill_inherit = tmp ? 1 : rnd.gen2(0, ca.skills.length);
-    uint total_skill = a_skill_inherit + (tmp ? 1 : rnd.gen2(0, cb.skills.length));
-    card.skills = new pb_ch_Card_Skill.Data[](total_skill);
-    for (uint i = 0; i < a_skill_inherit; i++) {
-      card.skills[i] = ca.skills[i];
-    }
-    for (; i < total_skill; i++) {
-      card.skills[i] = ca.skills[i - a_skill_inherit];
-    }
+    ca.level = ca.level + 1;
+    ca.visual_flags = ca.visual_flags + CalcUtil.RandomVisualFlag();
   }
 
 
@@ -170,29 +154,18 @@ contract Inventory is StorageAccessor, Restrictable {
   }
   function mintCard(address user) public writer returns (uint) {
     PRNG.Data memory rnd;
-    uint n_skills = rnd.gen2(1, 3);
-    uint16[] memory skills = new uint16[](n_skills);
-    for (uint i = 0; i < n_skills; i++) {
-      skills[i] = uint16(rnd.gen2(1, 16));
-    }
     return mintFixedCard(user, 
-                uint16(rnd.gen2(50, 100)), 
-                uint16(rnd.gen2(10, 30)), uint16(rnd.gen2(10, 30)),
-                skills);
+      uint32(rnd.gen2(1, 10000)), CalcUtil.RandomVisualFlag(), 1,
+      bytes1(rnd.gen2(1, 8)));
   }
   function mintFixedCard(address user, 
-                      uint16 hp, uint16 atk, uint16 def, 
-                      uint16[] skills) public writer returns (uint) {
+                      uint32 spec_id, uint32 visual_flags, uint32 level, bytes1 rarity) 
+                      public writer returns (uint) {
     pb_ch_Card.Data memory c;
-    c.hp = hp;
-    c.attack = atk;
-    c.defense = def;
-    c.exp = 0;
-    c.skills = new pb_ch_Card_Skill.Data[](skills.length);
-    for (uint i = 0; i < skills.length; i++) {
-      c.skills[i].id = skills[i];
-      c.skills[i].exp = 0;
-    }
+    c.spec_id = spec_id;
+    c.visual_flags = visual_flags;
+    c.level = level;
+    c.bs[0] = rarity;
     return mintFixedCard(user, c); //*/
   }
   function mintFixedCard(address user, pb_ch_Card.Data card) internal writer returns (uint) {

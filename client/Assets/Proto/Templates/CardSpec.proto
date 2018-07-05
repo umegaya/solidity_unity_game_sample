@@ -7,9 +7,11 @@ import "CSVSchema.proto";
 message CardSpec {
     uint32 id = 1 [(suntomi.pb.csv_schema).id = true];
     uint32 issuance = 2;
-    uint32 hp = 3;
-    uint32 attack = 4;
-    uint32 defense = 5;
-    uint32 flags = 6;
-    repeated uint32 skills = 7;
+    string name = 3;
+    uint32 hp = 4;
+    uint32 attack = 5;
+    uint32 defense = 6;
+    uint32 speed = 7;
+    uint32 flags = 8;
+    repeated uint32 skill = 9;
 }

@@ -37,5 +37,6 @@ sysinfo.txt
 *.g.cs.meta
 *.CSVLoader.cs
 *.CSVLoader.cs.meta
+Container.cs*
 
 .vscode/

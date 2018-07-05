@@ -6,7 +6,7 @@ import "CSVSchema.proto";
 
 message Arena {
     string name = 1 [(suntomi.pb.csv_schema).id = true];
-    uint32 num_bridge = 2;
+    uint32 num_castle = 2;
     uint32 match_duration = 3;
     uint32 reward_id = 4;
 }

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
+using UniRx;
 
 public class CSVIO {
     static public IEnumerator Read(string path, Action<TextReader> cb) {
@@ -54,19 +55,21 @@ public class CSVIO {
 	}
 
     public abstract class Loader : MonoBehaviour {
-        public delegate void OnLoadFinish(Loader loaded);
-        public OnLoadFinish OnFinish;
-        public string BasePath = Application.streamingAssetsPath + "/CSV/Data/";
+        public Subject<Loader> subject_;
+        public string BasePath;
         public abstract IEnumerator Load(string basepath);
         public abstract string[] CSVNames();
 
         void Awake() {
+            if (string.IsNullOrEmpty(BasePath)) {
+                BasePath = Application.streamingAssetsPath + "/CSV/Data/";
+            }
             StartCoroutine(StartLoad());
         }
         IEnumerator StartLoad() {
             //TODO: update streaming asset
             yield return StartCoroutine(Load(BasePath));
-            OnFinish(this);
+            subject_.OnNext(this);
         }
     }    
 }
