@@ -11,7 +11,7 @@ class FiberErrorDialog : ErrorDialog {
         GoTop,
         Abort,
     }
-    public Engine.IFiber raise_;
+    public System.Func<IEnumerator> raise_;
     public System.Exception error_;
     public CancelBehavior behavior_;
     override protected void UpdateView() {

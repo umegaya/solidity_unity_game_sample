@@ -5,43 +5,40 @@ using System.Collections.Generic;
 
 //retryable coroutine execution
 namespace Engine {
+using FiberMap = Dictionary<System.Func<IEnumerator>, FiberManager.Context>;
+using Fiber = System.Func<IEnumerator>;
 public partial class FiberManager {
-    class Context {
+    //execution contexts
+    internal class Context {
         public List<IEnumerator> stack_; 
         public IYieldable yield_op_;
         public System.Exception error_;
     }
-    Dictionary<IFiber, Context> fibers_ = new Dictionary<IFiber, Context>();
-    List<IFiber> finishes_ = new List<IFiber>();
-    Dictionary<IFiber, Context> pendings_ = new Dictionary<IFiber, Context>();
+    FiberMap fibers_ = new FiberMap();
+    FiberMap pendings_ = new FiberMap();
+    List<Fiber> finishes_ = new List<Fiber>();
 
+    //logger
     public delegate void LoggerDelegate(string txt);
     public LoggerDelegate Logger;
 
     public FiberManager() {}
 
-    public void Start(IFiber f) {
+    public void Start(Fiber f) {
         Context ctx;
         if (fibers_.TryGetValue(f, out ctx)) {
             return;
         }
-        if (pendings_.TryGetValue(f, out ctx)) {
-            fibers_[f] = ctx;
-            return;
-        }
-        var it = f.RunAsFiber();
+        var it = f();
         fibers_[f] = new Context {
             stack_ = new List<IEnumerator> { it },
         };
     }
 
-    public void Stop(IFiber f) {
+    public void Stop(Fiber f) {
         Context ctx;
         if (fibers_.TryGetValue(f, out ctx)) {
             fibers_.Remove(f);
-        }
-        if (pendings_.TryGetValue(f, out ctx)) {
-            pendings_.Remove(f);
         }
     }
 
@@ -85,7 +82,6 @@ public partial class FiberManager {
                     fibers_.Remove(f);
                     if (c.error_ != null) {
                         //current coroutine restarts
-                        c.stack_.Last().Reset();
                         pendings_[f] = c;
                         Raise(c.error_, f);
                     }

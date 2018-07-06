@@ -8,11 +8,12 @@ using UniRx;
 
 //retryable coroutine execution
 namespace Engine {
+using Fiber = System.Func<IEnumerator>;
 public partial class FiberManager {
-    public Subject<System.Tuple<System.Exception, IFiber>> error_stream_ = 
-        new Subject<System.Tuple<System.Exception, IFiber>>();
+    public Subject<System.Tuple<System.Exception, Fiber>> error_stream_ = 
+        new Subject<System.Tuple<System.Exception, Fiber>>();
 
-    public void Raise(System.Exception e, IFiber f) {
+    public void Raise(System.Exception e, Fiber f) {
         error_stream_.OnNext(System.Tuple.Create(e, f));
     }
 

@@ -55,7 +55,7 @@ public class CSVIO {
 		});
 	}
 
-    public abstract class Loader : MonoBehaviour, Engine.IFiber {
+    public abstract class Loader : MonoBehaviour {
         public enum EventType {
             Inititalized,
             Error,
@@ -77,9 +77,9 @@ public class CSVIO {
             if (string.IsNullOrEmpty(BasePath)) {
                 BasePath = Application.streamingAssetsPath + "/CSV/Data/";
             }
-            Game.Main.FiberMgr.Start(this);
+            Game.Main.FiberMgr.Start(StartLoad);
         }
-        public IEnumerator RunAsFiber() {
+        public IEnumerator StartLoad() {
             //TODO: update streaming asset
             yield return Load(this, BasePath);
             if (Error != null) {

@@ -8,7 +8,7 @@ using UniRx;
 using Game.Eth.Util;
 
 namespace Game.ViewModel {
-public class ViewModelMgr : MonoBehaviour, Engine.IFiber {
+public class ViewModelMgr : MonoBehaviour {
     public enum EventType {
         Initialized,
         RPCError,
@@ -80,10 +80,10 @@ public class ViewModelMgr : MonoBehaviour, Engine.IFiber {
 
     //idempotentially refresh game status
     public void Refresh() {
-        Main.FiberMgr.Start(this);
+        Main.FiberMgr.Start(InititalizeTask);
     }
  
-    public IEnumerator RunAsFiber() {
+    public IEnumerator InititalizeTask() {
         yield return UpdateBalance();
         var myaddr = RPCMgr.Account.address_;
         yield return RPCMgr.Eth["Inventory"].Call("getSlotSize", myaddr);

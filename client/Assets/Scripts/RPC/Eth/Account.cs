@@ -8,7 +8,7 @@ using UnityEngine;
 using UniRx;
 
 namespace Game.Eth {
-public class Account : MonoBehaviour, Engine.IFiber, Engine.IYieldable {
+public class Account : MonoBehaviour, Engine.IYieldable {
 	//definitions
 	internal class AccountInitializer {
 		internal Thread thread_;
@@ -106,7 +106,7 @@ public class Account : MonoBehaviour, Engine.IFiber, Engine.IYieldable {
 		if (e != Encyption.Unknown) {
 			encyption_ = (e == Encyption.On);
 		}
-		Main.FiberMgr.Start(this);
+		Main.FiberMgr.Start(StartWorker);
 	}
 
 	void Update() {
@@ -180,7 +180,7 @@ public class Account : MonoBehaviour, Engine.IFiber, Engine.IYieldable {
     }*/
 
 	//implements IFiber
-	public IEnumerator RunAsFiber() {
+	public IEnumerator StartWorker() {
 		Error = null;
 		var ks = PlayerPrefs.GetString(KEY_PREFIX + "_key_store", "");
 		subject_.OnNext(new Event {Type = EventType.InitStart});

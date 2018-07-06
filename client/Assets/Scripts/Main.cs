@@ -43,10 +43,11 @@ public class Main : MonoBehaviour {
         UIMgr.Open("Top");
     }
 
-    void OnFiberError(System.Exception e, Engine.IFiber f) {
+    void OnFiberError(System.Exception e, System.Func<IEnumerator> f) {
         var go = UIMgr.PushDialog("FiberErrorDialog");
         go.GetComponent<UI.FiberErrorDialog>().raise_ = f;
         go.GetComponent<UI.FiberErrorDialog>().error_ = e;
+        go.GetComponent<UI.FiberErrorDialog>().behavior_ = UI.FiberErrorDialog.CancelBehavior.Abort;
     }
 }
 }
