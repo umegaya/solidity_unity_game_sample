@@ -15,6 +15,9 @@ public partial class FiberManager {
         public System.Exception error_;
     }
     FiberMap fibers_ = new FiberMap();
+    //TODO: if we can rollback IEnumerator's execution state somehow. store Context to pendings_
+    //and just moving Context from pendings_ => fibers_ when Start called, 
+    //with checking whether start Fiber f is exists in pendings_ keys. 
     FiberMap pendings_ = new FiberMap();
     List<Fiber> finishes_ = new List<Fiber>();
 
@@ -81,8 +84,6 @@ public partial class FiberManager {
                 if (fibers_.TryGetValue(f, out c)) {
                     fibers_.Remove(f);
                     if (c.error_ != null) {
-                        //current coroutine restarts
-                        pendings_[f] = c;
                         Raise(c.error_, f);
                     }
                 }

@@ -63,11 +63,15 @@ public class UIMgr : MonoBehaviour {
         }
         dialog_stack_.RemoveAt(find_idx);
         Destroy(pop);
-        var cg = dialog_stack_[dialog_stack_.Count - 1].GetComponent<CanvasGroup>();
-        if (cg != null) {
-            if (!cg.interactable) {
-                cg.interactable = true;
+        if (dialog_stack_.Count > 0) {
+            var cg = dialog_stack_[dialog_stack_.Count - 1].GetComponent<CanvasGroup>();
+            if (cg != null) {
+                if (!cg.interactable) {
+                    cg.interactable = true;
+                }
             }
+        } else if (active_ != null) {
+            active_.GetComponent<CanvasGroup>().interactable = true;
         }
     }
 
@@ -81,6 +85,9 @@ public class UIMgr : MonoBehaviour {
                 var go = Instantiate(screens_[i].prefab_);
                 go.transform.SetParent(gameObject.transform, false);
                 active_ = go;
+                if (dialog_stack_.Count > 0) {
+                    go.GetComponent<CanvasGroup>().interactable = false;
+                }
                 return go;
             }
         }

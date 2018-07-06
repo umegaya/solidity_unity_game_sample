@@ -19,9 +19,11 @@ class FiberErrorDialog : ErrorDialog {
     }
     override protected void OnOk() {
         Main.FiberMgr.Start(raise_);
+        Main.UIMgr.PopDialog(gameObject);
     }
     override protected void OnCancel() {
         Main.FiberMgr.Stop(raise_);
+        Main.UIMgr.PopDialog(gameObject);
         switch (behavior_) {
         case CancelBehavior.GoTop:
             UIMgr.instance.Open("Top");
