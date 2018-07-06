@@ -8,7 +8,7 @@ using UnityEngine;
 using UniRx;
 
 namespace Game.Eth {
-public class Account : MonoBehaviour {
+public class Account : MonoBehaviour, Engine.IFiber, Engine.IYieldable {
 	//definitions
 	internal class AccountInitializer {
 		internal Thread thread_;
@@ -59,7 +59,6 @@ public class Account : MonoBehaviour {
 	public enum EventType {
 		InitStart,
 		InitSuccess,
-		InitFailure,
 	}
 	public struct Event {
 		public EventType Type;
@@ -87,6 +86,9 @@ public class Account : MonoBehaviour {
 	public string PrivateKey {
 		get { return key_.GetPrivateKey(); }
 	}
+	public System.Exception Error {
+		get; private set;
+	}
 
 	// Use this for initialization
 	void Start () {
@@ -104,10 +106,7 @@ public class Account : MonoBehaviour {
 		if (e != Encyption.Unknown) {
 			encyption_ = (e == Encyption.On);
 		}
-		var ks = PlayerPrefs.GetString(KEY_PREFIX + "_key_store", "");
-		subject_.OnNext(new Event {Type = EventType.InitStart});
-		worker_ = new AccountInitializer(this, ks, encyption_);
-		worker_.Start();
+		Main.FiberMgr.Start(this);
 	}
 
 	void Update() {
@@ -115,7 +114,8 @@ public class Account : MonoBehaviour {
 			Thread.MemoryBarrier();
 			if (worker_.result_ != 0) {
 				if (worker_.result_ < 0) {
-					subject_.OnNext(new Event {Type = EventType.InitFailure});
+					Error = new System.Exception(
+						"AccountInitializer fails with code:" + worker_.result_);
 					#if UNITY_EDITOR
 					UnityEditor.EditorApplication.isPlaying = false;
 					#else
@@ -178,5 +178,23 @@ public class Account : MonoBehaviour {
 
         return fileName;
     }*/
+
+	//implements IFiber
+	public IEnumerator RunAsFiber() {
+		Error = null;
+		var ks = PlayerPrefs.GetString(KEY_PREFIX + "_key_store", "");
+		subject_.OnNext(new Event {Type = EventType.InitStart});
+		worker_ = new AccountInitializer(this, ks, encyption_);
+		worker_.Start();
+		yield return this;
+		if (Error != null) {
+			yield return Error;
+		}
+	}
+
+	//implements IYieldable
+	public bool YieldDone() {
+		return !string.IsNullOrEmpty(address_) || Error != null;
+	}
 }
 }

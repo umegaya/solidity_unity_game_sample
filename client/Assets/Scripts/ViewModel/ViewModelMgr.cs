@@ -8,7 +8,7 @@ using UniRx;
 using Game.Eth.Util;
 
 namespace Game.ViewModel {
-public class ViewModelMgr : MonoBehaviour {
+public class ViewModelMgr : MonoBehaviour, Engine.IFiber {
     public enum EventType {
         Initialized,
         RPCError,
@@ -54,12 +54,11 @@ public class ViewModelMgr : MonoBehaviour {
             Subscribe(ev => OnEthTxLog(ev));
         RPCMgr.Eth.subject_.
             Where(ev => ev.Type == RPC.Eth.EventType.Inititalized).
-            Subscribe(ev => StartCoroutine(InititalizeTask()));
+            Subscribe(ev => Refresh());
         //waiting both contract and csv initialization
-        Observable.Zip(
-                subject_.Where(ev => ev.Type == EventType.Initialized), 
-                GameData.subject_, (left, right) => { return left; }
-            ).
+        Observable.
+            Zip(subject_.Where(ev => ev.Type == EventType.Initialized), 
+                GameData.subject_, (left, right) => { return left; }).
             Subscribe(ev => subject_.OnNext(new Event { Type = EventType.Ready } ));
     }
 
@@ -78,38 +77,38 @@ public class ViewModelMgr : MonoBehaviour {
             Debug.LogError("invalid event log:" + log.Name);
         }
     }
- 
 
-    IEnumerator InititalizeTask() {
-        yield return StartCoroutine(UpdateBalance());
+    //idempotentially refresh game status
+    public void Refresh() {
+        Main.FiberMgr.Start(this);
+    }
+ 
+    public IEnumerator RunAsFiber() {
+        yield return UpdateBalance();
         var myaddr = RPCMgr.Account.address_;
-        while (true) {
-            yield return RPCMgr.Eth["Inventory"].Call("getSlotSize", myaddr);
-            var r = RPCMgr.Eth.CallResponse;
-            if (r.Error != null) {
-                Raise("InititalizeTask(getSlotSize)", r.Error);
-                break;            
+        yield return RPCMgr.Eth["Inventory"].Call("getSlotSize", myaddr);
+        var r = RPCMgr.Eth.CallResponse;
+        if (r.Error != null) {
+            yield return Raise("InititalizeTask(getSlotSize)", r.Error);
+        } else {
+            var rr = r.Result[0].Result;
+            var slot_size = (BigInteger)rr;
+            if (slot_size <= 0) {
+                Debug.Log("create initial deck");
+                yield return CreateInitialDeck();
             } else {
-                var rr = r.Result[0].Result;
-                var slot_size = (BigInteger)rr;
-                if (slot_size <= 0) {
-                    Debug.Log("create initial deck");
-                    yield return StartCoroutine(CreateInitialDeck());
-                } else {
-                    Debug.Log("Inventory getSlotSize:" + slot_size);
-                    for (int i = 0; i < slot_size; i++) {
-                        yield return RPCMgr.Eth["Inventory"].Call("getSlotBytesAndId", myaddr, i);
-                        r = RPCMgr.Eth.CallResponse;
-                        if (r.Error != null) {
-                            Raise("InititalizeTask(getSlotBytesAndId)", r.Error);
-                        } else {
-                            var id = (System.Numerics.BigInteger)r.Result[0].Result;
-                            var card = r.As<Ch.Card>(Ch.Card.Parser);
-                            Debug.Log("Inventory.getSlotBytes card[" + id.ToString() + "]:" + card.SpecId);
-                            Inventory.AddCard(id, card);
-                        }
+                Debug.Log("Inventory getSlotSize:" + slot_size);
+                for (int i = 0; i < slot_size; i++) {
+                    yield return RPCMgr.Eth["Inventory"].Call("getSlotBytesAndId", myaddr, i);
+                    r = RPCMgr.Eth.CallResponse;
+                    if (r.Error != null) {
+                        yield return Raise("InititalizeTask(getSlotBytesAndId)", r.Error);
+                    } else {
+                        var id = (System.Numerics.BigInteger)r.Result[0].Result;
+                        var card = r.As<Ch.Card>(Ch.Card.Parser);
+                        Debug.Log("Inventory.getSlotBytes card[" + id.ToString() + "]:" + card.SpecId);
+                        Inventory.AddCard(id, card);
                     }
-                    break;
                 }
             }
         }
@@ -121,7 +120,7 @@ public class ViewModelMgr : MonoBehaviour {
             {"address", RPCMgr.Account.address_}
         });
         if (req.Error != null) {
-            yield return new WaitForSeconds(1.0f);
+            yield return new Engine.FiberManager.Sleep(1.0f);
             yield break;
         }
         var json = req.As<Dictionary<string, object>>();
@@ -148,16 +147,17 @@ public class ViewModelMgr : MonoBehaviour {
         });
         if (req.Error == null) {
             Debug.Log("create account: created");
-            yield return StartCoroutine(UpdateBalance());
+            yield return UpdateBalance();
         } else {
             Raise("CreateInitialDeck", req.Error);
-            yield return new WaitForSeconds(1.0f);
+            yield return new Engine.FiberManager.Sleep(1.0f);
         }                    
     }
 
-    void Raise(string msg, System.Exception e) {
+    System.Exception Raise(string msg, System.Exception e) {
         Debug.Log(msg + ": raises " + e.Message);
         subject_.OnNext(new Event{ Type = EventType.RPCError, Error = e});
+        return e;
     }
 }
 }

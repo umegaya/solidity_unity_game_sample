@@ -297,7 +297,11 @@ MonoBehaviour:
   screens_:
   - name_: Top
     prefab_: {fileID: 1404293297785188, guid: 747b85dfd571a4fe88930d76c066ad4c, type: 2}
+  dialogs_:
+  - name_: FiberErrorDialog
+    prefab_: {fileID: 1894840474800260, guid: 9602ba61b6a624e5ca6fa1e397d3a69a, type: 2}
   active_: {fileID: 0}
+  dialog_stack_: []
 --- !u!1 &1038119386
 GameObject:
   m_ObjectHideFlags: 0

@@ -76,7 +76,7 @@ public class Eth : MonoBehaviour {
                         break;
                     }
                     Debug.Log("retry get receipt:" + retry);
-                    yield return new WaitForSeconds(0.5f);
+                    yield return new Engine.FiberManager.Sleep(0.5f);
                 }
                 yield return owner_.get_receipt_.SendRequest(
                     owner_.send_.Result

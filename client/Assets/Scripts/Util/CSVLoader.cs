@@ -55,7 +55,7 @@ public class CSVIO {
 		});
 	}
 
-    public abstract class Loader : MonoBehaviour {
+    public abstract class Loader : MonoBehaviour, Engine.IFiber {
         public enum EventType {
             Inititalized,
             Error,
@@ -67,7 +67,9 @@ public class CSVIO {
 
         public Subject<Event> subject_ = new Subject<Event>();
         public string BasePath;
-        public System.Exception Error;
+        public System.Exception Error {
+            get; set;
+        }
         public abstract IEnumerator Load(Loader loader, string basepath);
         public abstract string[] CSVNames();
 
@@ -75,16 +77,15 @@ public class CSVIO {
             if (string.IsNullOrEmpty(BasePath)) {
                 BasePath = Application.streamingAssetsPath + "/CSV/Data/";
             }
-            StartCoroutine(StartLoad());
+            Game.Main.FiberMgr.Start(this);
         }
-        IEnumerator StartLoad() {
+        public IEnumerator RunAsFiber() {
             //TODO: update streaming asset
-            yield return StartCoroutine(Load(this, BasePath));
+            yield return Load(this, BasePath);
             if (Error != null) {
-                subject_.OnNext(new Event{ Type = EventType.Error, Error = Error });
-            } else {
-                subject_.OnNext(new Event{ Type = EventType.Inititalized });
+                yield return Error;
             }
+            subject_.OnNext(new Event{ Type = EventType.Inititalized });
         }
     }    
 }
