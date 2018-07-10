@@ -34,6 +34,9 @@ public class Eth : MonoBehaviour {
             public M As<M>(Google.Protobuf.MessageParser<M> p, int startIndex = 1) where M : Google.Protobuf.IMessage<M> {
                 return p.ParseFrom((byte[])Result[startIndex].Result);
             }
+            public T As<T>(int startIndex = 1) {
+                return (T)Result[startIndex].Result;
+            }
         }
 
         public class SendResponse {

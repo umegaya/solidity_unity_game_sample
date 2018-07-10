@@ -37,8 +37,8 @@ sysinfo.txt
 *.g.cs.meta
 *.g.opt.cs
 *.g.opt.cs.meta
-*.CSVLoader.cs
-*.CSVLoader.cs.meta
+*.Loader.cs
+*.Loader.cs.meta
 Container.cs*
 
 .vscode/

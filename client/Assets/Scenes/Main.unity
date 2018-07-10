@@ -167,6 +167,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   BasePath: 
+  locations_:
+  - name_: CardSpec
+    url_: CSV/Data/CardSpec.csv
+  - name_: Arena
+    url_: CSV/Data/Arena.csv
 --- !u!1 &298397031
 GameObject:
   m_ObjectHideFlags: 0

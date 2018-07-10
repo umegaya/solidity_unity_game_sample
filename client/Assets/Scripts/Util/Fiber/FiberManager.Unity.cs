@@ -54,7 +54,6 @@ public partial class FiberManager {
     public static IYieldable Yieldable(AsyncOperation op) {
         return new YieldAsyncOperation(op);
     }
-
     //object
     public static IYieldable TryYieldable(object o) {
         if (o is WWW) {

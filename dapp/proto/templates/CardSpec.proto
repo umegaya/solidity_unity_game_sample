@@ -2,10 +2,10 @@ syntax = "proto3";
 
 package ch;
 
-import "CSVSchema.proto";
+import "LoaderSchema.proto";
 
 message CardSpec {
-    uint32 id = 1 [(suntomi.pb.csv_schema).id = true];
+    uint32 id = 1 [(suntomi.pb.field_options).id = true];
     uint32 issuance = 2;
     string name = 3;
     uint32 hp = 4;
@@ -15,4 +15,8 @@ message CardSpec {
     uint32 flags = 8;
     uint32 rarity = 9;
     repeated uint32 skill = 10;
+
+    option (suntomi.pb.message_options) = {
+        source: Contract
+    };
 }

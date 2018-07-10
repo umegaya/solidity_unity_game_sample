@@ -1,0 +1,24 @@
+syntax = "proto3";
+import "google/protobuf/descriptor.proto";
+
+package suntomi.pb;
+
+message FieldOptions {
+    bool id = 1;
+}
+
+message MessageOptions {
+    enum DataSource {
+        Invalid = 0;
+        CSV = 1;
+        Contract = 2;
+    }
+    DataSource source = 1;
+}
+
+extend google.protobuf.FieldOptions {
+    FieldOptions field_options = 50000;
+}
+extend google.protobuf.MessageOptions {
+    MessageOptions message_options = 50000;
+}

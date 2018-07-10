@@ -2,20 +2,13 @@ import os, sys, itertools, json, re, glob
 
 """
 //generated code overview
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-namespace Game.CSV {
-public class Container : CSVIO.Loader {
-    public CardSpecLoader CardSpec = new CardSpecLoader();
-    public override string[] CSVNames() {
-        return new string[] { "CardSpec" };
-    }
-	public override IEnumerator Load(string basepath) {
-        yield return StartCoroutine(CardSpec.Load(basepath + "CardSpecs.csv"));
-        //...
-    }
-}
+public class Container : UnityLoader {
+	public CardSpecLoader CardSpec = new CardSpecLoader();
+	public ArenaLoader Arena = new ArenaLoader();
+	public override IEnumerator Load(Dictionary<string, string> locs) {
+		yield return CardSpec.Load(this, locs["CardSpec"]);if (Error != null) { yield break; }
+		yield return Arena.Load(this, locs["Arena"]);if (Error != null) { yield break; }
+	}
 }
 """
 # returns code
@@ -31,23 +24,18 @@ def generate_code(dir):
     output.append("using System.Collections.Generic;")
     output.append("using UnityEngine;")
     output.append("namespace Game.CSV {");
-    output.append("public class Container : CSVIO.Loader {");
+    output.append("public class Container : UnityLoader {");
 
     # generate loader instances
     for p in ps:
         output.append(I+("public {0}Loader {0} = new {0}Loader();").format(p))
 
-    # generate CSVNames
-    output.append(I+"public override string[] CSVNames() {")
-    output.append(I+I+("return new string[] {{ \"{0}\" }};").format("\",\"".join(ps)))
-    output.append(I+"}")
-
     # generate loader
-    output.append(I+"public override IEnumerator Load(CSVIO.Loader loader, string basepath) {")
+    output.append(I+"public override IEnumerator Load(Dictionary<string, string> locs) {")
     for p in ps:
         output.append(I+I+(
-            "yield return StartCoroutine({0}.Load(loader, basepath + \"{0}.csv\"));" + 
-            "if (loader.Error != null) {{ yield break; }}"
+            "yield return {0}.Load(loader, basepath + \"{0}.csv\");" + 
+            "if (Error != null) {{ yield break; }}"
         ).format(p))
     output.append(I+"}")
     output.append("}")

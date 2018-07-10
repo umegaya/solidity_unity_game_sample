@@ -57,9 +57,9 @@ class ExtensionFinder:
 '''
 //generated code sample
 public class CardSpecLoader {
-    public Dictionary<uint, Ch.CardSpec> Records = new Dictionary<uint, Ch.CardSpec>();
-	public IEnumerator Load(string path) {
-		return CSVIO.Load<uint, Ch.CardSpec>(path, Records, r => r.Id);
+	public Dictionary<uint, Ch.CardSpec> Records = new Dictionary<uint, Ch.CardSpec>();
+	public IEnumerator Load(DataLoader.IResultReceiver loader, string path) {
+		return DataLoader.Load<uint, Ch.CardSpec, CSVSourceFactory>(loader, path, Records, r => r.Id);
 	}
 }
 '''
@@ -88,17 +88,18 @@ def generate_code(request, response):
                 for f in msg.field:
                     field_count = field_count + 1
                     opts = f.options
-                    if ef.find(opts, "suntomi.pb.csv_schema.id") == True:
+                    if ef.find(opts, "suntomi.pb.field_options.id") == True:
                         id_field = f
                 key_type = fieldtype(id_field) if id_field else "uint"
                 dict_type = "Dictionary<{0}, {1}>".format(key_type, typename)
                 if field_count > 0:
                     csignature = "public class {0}Loader {{".format(msg.name)
                     member = "public {0} Records = new {0}();".format(dict_type)
-                    fsignature = "public IEnumerator Load(CSVIO.Loader loader, string path) {"
-                    fbody = "return CSVIO.Load<{0}, {1}>(loader, path, Records, r => r.{2});".format(
+                    fsignature = "public IEnumerator Load(DataLoader.IResultReceiver loader, string path) {"
+                    fbody = "return DataLoader.Load<{0}, {1}, {3}>(loader, path, Records, r => r.{2});".format(
                         key_type, typename, 
-                        (id_field.name[0:1].upper() + id_field.name[1:]) if id_field else "Id")
+                        (id_field.name[0:1].upper() + id_field.name[1:]) if id_field else "Id",
+                        "CSVSourceFactory")
                     output.append(csignature)
                     output.append(I+member)
                     output.append(I+fsignature)
@@ -111,7 +112,7 @@ def generate_code(request, response):
             # Fill response
             basepath = os.path.basename(proto_file.name)
             f = response.file.add()
-            f.name = basepath.replace('.proto', '.CSVLoader.cs')
+            f.name = basepath.replace('.proto', '.Loader.cs')
             f.content = '\n'.join(output)
 
 if __name__ == '__main__':

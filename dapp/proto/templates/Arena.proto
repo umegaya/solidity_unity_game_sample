@@ -2,11 +2,15 @@ syntax = "proto3";
 
 package ch;
 
-import "CSVSchema.proto";
+import "LoaderSchema.proto";
 
 message Arena {
-    string name = 1 [(suntomi.pb.csv_schema).id = true];
+    string name = 1 [(suntomi.pb.field_options).id = true];
     uint32 num_castle = 2;
     uint32 match_duration = 3;
     uint32 reward_id = 4;
+
+    option (suntomi.pb.message_options) = {
+        source: Contract
+    };
 }
