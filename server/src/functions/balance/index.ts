@@ -14,7 +14,7 @@ export async function balance(req: Request, res: Response) {
     try {
         var n_slots: number = await Inventory.methods.getSlotSize(address).call();
         if (n_slots > 0) {
-            current_balance = await Eth.getBalance(address, null);
+            current_balance = Number(await Eth.getBalance(address, null));
             if (current_balance < BALANCE_ADDED_THRESHOLD) {
                 //if balance is less than 0.5 eth, add balance so that balance is more than 1eth
                 await Eth.sendTransaction({
