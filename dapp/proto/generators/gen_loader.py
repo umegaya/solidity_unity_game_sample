@@ -38,10 +38,11 @@ class ExtensionFinder:
     def __init__(self, proto_files):
         self.protos = proto_files
     
-    def find(self, field_opts, specifier):
+    def find(self, field_opts, specifier, is_enum=False):
         parts = specifier.split(".")
         h = None
         for tpl in field_opts.ListFields():
+            #pp.pprint(tpl)
             f = tpl[0] 
             if f.name == parts[-2]:
                 h = f
@@ -51,6 +52,8 @@ class ExtensionFinder:
                 f = tpl[0]
                 if f.name == parts[-1]:
                     #pp.pprint('find value of {0}/{1}'.format(parts[-1], specifier))
+                    if is_enum and f.enum_type:
+                        return f.enum_type.values[tpl[1]].name
                     return tpl[1]
         return None
 
@@ -78,18 +81,25 @@ def generate_code(request, response):
         I="\t"
         processed = 0
         for msg in proto_file.message_type:
+            #pp.pprint(msg)
             typename = gen_typename(proto_file, msg)
             if proto_file.package == "google.protobuf" or proto_file.package == "suntomi.pb":
                 sysmsgs.append(msg)
             elif isinstance(msg, DescriptorProto):
                 processed = processed + 1
                 field_count = 0
+                # determine id field (default Id)
                 id_field = None
                 for f in msg.field:
                     field_count = field_count + 1
                     opts = f.options
                     if ef.find(opts, "suntomi.pb.field_options.id") == True:
                         id_field = f
+                # determine source type (default CSV)
+                srctype = None
+                if msg.options:
+                    srctype = ef.find(msg.options, "suntomi.pb.message_options.source", True)
+                    #pp.pprint("srctype:" + str(srctype))
                 key_type = fieldtype(id_field) if id_field else "uint"
                 dict_type = "Dictionary<{0}, {1}>".format(key_type, typename)
                 if field_count > 0:
@@ -99,7 +109,7 @@ def generate_code(request, response):
                     fbody = "return DataLoader.Load<{0}, {1}, {3}>(loader, path, Records, r => r.{2});".format(
                         key_type, typename, 
                         (id_field.name[0:1].upper() + id_field.name[1:]) if id_field else "Id",
-                        "CSVSourceFactory")
+                        (srctype if srctype else "CSV") + "SourceFactory")
                     output.append(csignature)
                     output.append(I+member)
                     output.append(I+fsignature)

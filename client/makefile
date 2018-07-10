@@ -40,7 +40,7 @@ CLIENT_PROTO_SRCS=$(addprefix $(CLIENT_PROTO_OUT)/,$(CLIENT_PROTO_FILES:%.proto=
 CSV_PROTO_IN=../dapp/proto
 CSV_PROTO_OUT=./Assets/Scripts/Proto/Client/Templates
 CSV_PROTO_FILES=$(shell cd $(CSV_PROTO_IN)/templates/ && ls *.proto)
-CSV_PROTO_SRCS=$(addprefix $(CSV_PROTO_OUT)/,$(CSV_PROTO_FILES:%.proto=%.CSVLoader.cs))
+CSV_PROTO_SRCS=$(addprefix $(CSV_PROTO_OUT)/,$(CSV_PROTO_FILES:%.proto=%.Loader.cs))
 CSV_PLUGIN=./generators/gen_loader.py
 
 CSV_CONTAINER_IN=../dapp/proto

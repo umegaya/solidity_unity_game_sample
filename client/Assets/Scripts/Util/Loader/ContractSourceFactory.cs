@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 using UnityEngine;
 
-public class ConstractSourceFactory : DataLoader.IDataSourceFactory {
+public class ContractSourceFactory : DataLoader.IDataSourceFactory {
     public class ConstractSource<RECORD> : DataLoader.IDataSource {
         int size_, pos_;
         RECORD[] records_;
