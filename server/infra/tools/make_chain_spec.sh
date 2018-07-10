@@ -12,6 +12,11 @@ SECRET_ROOT=${ROOT}/volume/secret/${K8S_PLATFORM}
 # ----------------------------------
 GENESIS_ACCOUNTS_ADDRESSES=()
 for u in $(ls ${SECRET_ROOT}/user-*.addr) ; do
+	addr=`cat $u`
+	if [ -z $addr ]; then
+		echo "$u contains empty string. abort."
+		exit 1
+	fi
 	# this big number means 2 ^ 192 (ether) = 2 ^ 192 * 10 ^ 18 (wei) < 2 ^256
 	GENESIS_ACCOUNTS_ADDRESSES+=("\"$(cat $u)\": { \"balance\": \"0x1000000000000000000000000000000000000000000000000\" }")
 done

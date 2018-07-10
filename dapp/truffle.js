@@ -6,7 +6,7 @@ module.exports = {
       //assume user uses ganache ethereum client with default setting
       provider: p,
       network_id: "*", // Match any network id
-      gasLimit: 6000000,
+      gasLimit: 8000000,
     }
   }
 };

@@ -71,6 +71,13 @@ for idx in ${!NODES[@]} ; do
 	fi
 done
 
+if [ -z $USER_CREATION_NODE ]; then
+	echo "not user creation node. abort."
+	exit 1
+fi
+
+echo "USER_CREATION_NODE:$USER_CREATION_NODE"
+
 
 # ----------------------------------
 # genesis users

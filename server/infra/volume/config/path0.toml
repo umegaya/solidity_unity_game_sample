@@ -5,6 +5,11 @@ base_path = "/data/parity"
 [network]
 min_peers = 0
 
+[mining]
+gas_floor_target = "60000000"
+tx_gas_limit = "60000000"
+gas_cap = "60000000"
+
 [rpc]
 interface = "all"
 hosts = ["all"]

@@ -126,9 +126,8 @@ public class ViewModelMgr : MonoBehaviour {
         var json = req.As<Dictionary<string, object>>();
         BigInteger bi;
         if (!BigInteger.TryParse((string)json["balance"], out bi)) {
-            Raise("UpdateBalance", 
+            yield return Raise("UpdateBalance", 
                 new System.Exception("fail to parse as biginteger:" + (string)json["balance"]));
-            yield break;
         }
         Balance = bi;
         yield return RPCMgr.Eth["Moritapo"].Call("balanceOf", RPCMgr.Account.address_);
@@ -149,8 +148,7 @@ public class ViewModelMgr : MonoBehaviour {
             Debug.Log("create account: created");
             yield return UpdateBalance();
         } else {
-            Raise("CreateInitialDeck", req.Error);
-            yield return new Engine.FiberManager.Sleep(1.0f);
+            yield return Raise("CreateInitialDeck", req.Error);
         }                    
     }
 

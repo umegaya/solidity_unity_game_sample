@@ -21,14 +21,17 @@ gcpd() {
 }
 
 node_list() {
-	local iftype="ExternalIP"
 	if [ "${K8S_PLATFORM}" = "dev" ]; then
-		iftype="InternalIP"
+		local minikube_ip=`minikube ip`
+		local machine_id=`kcd get node -o json | jq -r .items[] | jq -r .status.nodeInfo.machineID`
+		echo '{"machineID":"'$machine_id'","address":"'$minikube_ip'"}'
+	else
+		local iftype="ExternalIP"
+		kcd get node -o json | jq -r .items[] \
+			| jq -r "{interface:.status.addresses[],machineID:.status.nodeInfo.machineID}" \
+			| jq -r "select(.interface.type == \"${iftype}\")" \
+			| jq -r "{address:.interface.address,machineID:.machineID}"
 	fi
-	kcd get node -o json | jq -r .items[] \
-		| jq -r "{interface:.status.addresses[],machineID:.status.nodeInfo.machineID}" \
-		| jq -r "select(.interface.type == \"${iftype}\")" \
-		| jq -r "{address:.interface.address,machineID:.machineID}"
 }
 
 jsonrpc() {
