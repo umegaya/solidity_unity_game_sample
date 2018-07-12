@@ -5,6 +5,7 @@ var Inventory = artifacts.require("Inventory");
 var World = artifacts.require("World");
 var History = artifacts.require("History");
 var Cards = artifacts.require("Cards");
+var DataContainer = artifacts.require("DataContainer");
 
 function deploy_pb(deployer) {
 	var PbRuntime = artifacts.require("_pb");
@@ -40,6 +41,8 @@ module.exports = function(deployer) {
     return deployer.deploy(CalcUtil);
   }).then(function () {
     return deployer.deploy(Cards);
+  }).then(function () {
+    return deployer.deploy(DataContainer, Storage.address);
   }).then(function () {
     Inventory.link(CalcUtil);
     return deployer.deploy(Inventory, Storage.address, Cards.address);

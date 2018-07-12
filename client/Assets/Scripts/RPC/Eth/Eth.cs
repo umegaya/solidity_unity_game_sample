@@ -34,6 +34,14 @@ public class Eth : MonoBehaviour {
             public M As<M>(Google.Protobuf.MessageParser<M> p, int startIndex = 1) where M : Google.Protobuf.IMessage<M> {
                 return p.ParseFrom((byte[])Result[startIndex].Result);
             }
+            public M[] AsArray<M>(Google.Protobuf.MessageParser<M> p, int startIndex = 1) where M : Google.Protobuf.IMessage<M> {
+                var bs = (byte[][])Result[startIndex].Result;
+                M[] rets = new M[bs.Length];
+                for (int i = 0; i < bs.Length; i++) {
+                    rets[i] = p.ParseFrom(bs[i]);
+                }
+                return rets;
+            }
             public T As<T>(int startIndex = 1) {
                 return (T)Result[startIndex].Result;
             }

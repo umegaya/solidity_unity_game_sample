@@ -3,6 +3,7 @@ pragma solidity ^0.4.24;
 import "./libs/StorageAccessor.sol";
 import "./libs/Restrictable.sol";
 import "./libs/pb/Card_pb.sol";
+import "./libs/pb/CardSpec_pb.sol";
 import "./libs/pb/Payment_pb.sol";
 import "./libs/PRNG.sol";
 import "./libs/math/Math.sol";
@@ -16,6 +17,7 @@ contract Inventory is StorageAccessor, Restrictable {
   using PRNG for PRNG.Data;
   using pb_ch_Card for pb_ch_Card.Data;
   using pb_ch_Payment for pb_ch_Payment.Data;
+  using pb_ch_CardSpec for pb_ch_CardSpec.Data;
 
 
   //variables
@@ -78,7 +80,7 @@ contract Inventory is StorageAccessor, Restrictable {
   function estimateResultValue(uint source_card_id,
     uint target_card_id) public view returns (uint) {
     pb_ch_Card.Data memory new_card = createMergedCard(source_card_id, target_card_id);
-    return CalcUtil.evaluate(new_card);
+    return CalcUtil.evaluate(new_card, this);
   }
   function createMergedCard(
     uint target_card_id, uint merged_card_id) internal view returns (pb_ch_Card.Data card) {
@@ -159,18 +161,16 @@ contract Inventory is StorageAccessor, Restrictable {
   function mintCard(address user) public writer returns (uint) {
     PRNG.Data memory rnd;
     return mintFixedCard(user, 
-      uint32(rnd.gen2(1, 10000)), CalcUtil.RandomVisualFlag(), 1,
-      uint32(rnd.gen2(1, 8)));
+      uint32(rnd.gen2(1, 10000)), CalcUtil.RandomVisualFlag(), 1);
   }
   function mintFixedCard(address user, 
-                      uint32 spec_id, uint32 visual_flags, uint32 level, uint32 rarity) 
+                      uint32 spec_id, uint32 visual_flags, uint32 level) 
                       public writer returns (uint) {
     pb_ch_Card.Data memory c;
     c.spec_id = spec_id;
     c.visual_flags = visual_flags;
     c.level = level;
     c.bs = new bytes(4);
-    c.bs[0] = bytes1(rarity);
     return mintFixedCard(user, c); //*/
   }
   function mintFixedCard(address user, pb_ch_Card.Data card) internal writer returns (uint) {

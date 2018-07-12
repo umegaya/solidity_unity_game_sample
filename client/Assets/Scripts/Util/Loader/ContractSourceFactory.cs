@@ -59,7 +59,7 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
         string name = typeof(R).Name;
 
         //first, get size of updated records
-        yield return eth[contract].Call("recordIdDiff_" + name);
+        yield return eth[contract].Call("recordIdDiff", name);
         if (eth.CallResponse.Error != null) {
             loader.Error = eth.CallResponse.Error;
             yield break;
@@ -72,13 +72,13 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
         //then load local objects into s first
 
         //then query updated records
-        foreach (var id in ids) {
-            yield return eth[contract].Call("getRecord_" + name, id);
-            if (eth.CallResponse.Error != null) {
-                loader.Error = eth.CallResponse.Error;
-                yield break;
-            }
-            var r = eth.CallResponse.As<R>(parser);
+        yield return eth[contract].Call("getRecords", name, ids);
+        if (eth.CallResponse.Error != null) {
+            loader.Error = eth.CallResponse.Error;
+            yield break;
+        }
+        var rs = eth.CallResponse.AsArray<R>(parser);
+        foreach (var r in rs) {
             s.Add(r);
         }
         //save updated records into local storage

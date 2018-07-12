@@ -146,7 +146,7 @@ contract World is Restrictable, Constants {
   function getStandardPrice(uint card_id) public view returns (uint) {
     bytes memory bs = inventory_.getSlotBytesById(card_id);
     pb_ch_Card.Data memory card = pb_ch_Card.decode(bs);
-    uint base_price = CalcUtil.evaluate(card);
+    uint base_price = CalcUtil.evaluate(card, inventory_);
     return mergeFeeFromCardValue(base_price);
   }
 }

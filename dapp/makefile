@@ -7,20 +7,23 @@ SOLIDITY_PLUGIN=/protoc/plugin/gen_sol.py
 LOCAL_PROTO_SRC_DIR=./proto
 LOCAL_PROTO_DST_DIR=./contracts/libs/pb
 PROTO_SRC=$(notdir $(shell ls $(LOCAL_PROTO_SRC_DIR)/*.proto))
+PROTO_TEMPLATE_SRC=$(notdir $(shell ls $(LOCAL_PROTO_SRC_DIR)/templates/*.proto))
 PROTO_SOL=$(addprefix $(LOCAL_PROTO_DST_DIR)/,$(PROTO_SRC:%.proto=%_pb.sol))
+PROTO_TEMPLATE_SOL=$(addprefix $(LOCAL_PROTO_DST_DIR)/templates/,$(PROTO_TEMPLATE_SRC:%.proto=%_pb.sol))
 
 K8S_PLATFORM?=
 
 
 define soliditize
-${CONTAINER_RUNARG} protoc -I/ -I/in -I/protoc/include --plugin=protoc-gen-sol=${SOLIDITY_PLUGIN} --sol_out=$2 $1
+${CONTAINER_RUNARG} protoc -I/ -I/in -I/in/templates -I/in/options -I/protoc/include --plugin=protoc-gen-sol=${SOLIDITY_PLUGIN} --sol_out=$2 $1
 endef
 
 $(LOCAL_PROTO_DST_DIR)/%_pb.sol: $(LOCAL_PROTO_SRC_DIR)/%.proto
-	$(call soliditize,${INPUT_DIR}/$(notdir $<),gen_runtime=True:${OUTPUT_DIR})
+	echo "$(INPUT_DIR)/$(subst $(LOCAL_PROTO_SRC_DIR),,./$<)  $<  $@"
+	$(call soliditize,$(INPUT_DIR)/$(subst $(LOCAL_PROTO_SRC_DIR),,./$<),gen_runtime=True:$(OUTPUT_DIR))
 
 .PHONY: proto
-proto: $(PROTO_SOL)
+proto: $(PROTO_SOL) $(PROTO_TEMPLATE_SOL)
 
 test: proto
 	truffle develop --log
