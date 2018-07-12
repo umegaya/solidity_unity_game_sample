@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
 pragma experimental ABIEncoderV2;
 
-import "./libs/StorageAccessor.sol";
-import "./libs/Restrictable.sol";
+import "./StorageAccessor.sol";
+import "./Restrictable.sol";
 
 contract DataContainer is StorageAccessor, Restrictable {
     //ctor
@@ -20,7 +20,7 @@ contract DataContainer is StorageAccessor, Restrictable {
     mapping(string => History) updateHistory_;
 
     //functions 
-    function getRecords(string typ, uint[] ids) public returns (bytes[]) {
+    function getRecords(string typ, uint[] ids) public view returns (bytes[]) {
         bytes[] memory ret = new bytes[](ids.length);
         for (uint i = 0; i < ids.length; i++) {
             uint hash = uint(keccak256(abi.encodePacked(typ, ids[i])));
@@ -30,28 +30,29 @@ contract DataContainer is StorageAccessor, Restrictable {
     }
     function putRecords(string typ, uint[] ids, bytes[] data) public writer {
         require(ids.length == data.length);
-        History h = updateHistory_[typ];
+        History storage h = updateHistory_[typ];
         h.updated_by_gen[h.current_gen] = new uint32[](ids.length);
         for (uint i = 0; i < ids.length; i++) {
             uint hash = uint(keccak256(abi.encodePacked(typ, ids[i])));
-            saveBytes(hash, data);
-            h.updated_by_gen[h.current_gen][i] = ids[i];
-            if (!h.idmaps[ids[i]]) {
+            uint32 id = uint32(ids[i]);
+            saveBytes(hash, data[i]);
+            h.updated_by_gen[h.current_gen][i] = id;
+            if (!h.idmaps[id]) {
                 require(h.all_ids.length >= h.current_total);
                 if (h.all_ids.length == h.current_total) {
-                    uint32[] all_id_tmp = h.all_ids;
+                    uint32[] memory all_id_tmp = h.all_ids;
                     h.all_ids = new uint32[](h.current_total * 2);
                     for (uint j = 0; j < h.current_total; j++) {
                         h.all_ids[j] = all_id_tmp[j];
                     }
                 }
-                h.all_ids[h.current_total++] = ids[i];
-                h.idmaps[ids[i]] = true;
+                h.all_ids[h.current_total++] = id;
+                h.idmaps[id] = true;
             }
         }
     }
-    function recordIdDiff(string typ, uint client_generation) public returns (uint, uint32[][]) {
-        History h = updateHistory_[typ];
+    function recordIdDiff(string typ, uint client_generation) public view returns (uint, uint32[][]) {
+        History storage h = updateHistory_[typ];
         uint32[][] memory idlists;
         if (client_generation == 0) { //first time.
             //returns all ids

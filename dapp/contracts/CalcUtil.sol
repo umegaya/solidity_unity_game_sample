@@ -1,6 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "./libs/PRNG.sol";
+import "./libs/StorageAccessor.sol";
 import "./libs/math/Math.sol";
 import "./libs/pb/Card_pb.sol";
 import "./libs/pb/CardSpec_pb.sol";
@@ -9,14 +10,14 @@ library CalcUtil {
   using PRNG for PRNG.Data;
   using pb_ch_CardSpec for pb_ch_CardSpec.Data;
 
-  function evaluate(pb_ch_Card.Data c, StorageAccessor sa) internal pure returns (uint price) {
+  function evaluate(pb_ch_Card.Data c, StorageAccessor sa) internal view returns (uint price) {
     uint rarity = Rarity(c, sa);
     uint one = 1;
     price = (one << c.level) * (1 + NumberOfSetBits(c.visual_flags)) * (1 << rarity) * 100;
   }
 
-  function Rarity(pb_ch_Card.Data c, StorageAccessor sa) internal pure returns (uint) {
-    pb_ch_CardSpec memory cs = getCardSpec(sa, c.spec_id);
+  function Rarity(pb_ch_Card.Data c, StorageAccessor sa) internal view returns (uint) {
+    pb_ch_CardSpec.Data memory cs = getCardSpec(sa, c.spec_id);
     return cs.rarity;
   }
 
@@ -37,11 +38,9 @@ library CalcUtil {
   }
 
   //internal helper
-  function getCardSpec(StorageAccessor sa, uint id) internal returns (pb_ch_CardSpec.Data) {
+  function getCardSpec(StorageAccessor sa, uint id) internal view returns (pb_ch_CardSpec.Data cs) {
     uint hash = uint(keccak256(abi.encodePacked("CardSpec", id)));
-    bytes bs = sa.loadBytes(hash);
-    pb_ch_CardSpec.Data memory cs;
-    cs.decode(bs);
-    return cs;
+    bytes memory bs = sa.loadBytes(hash);
+    cs = pb_ch_CardSpec.decode(bs);
   }
 }
