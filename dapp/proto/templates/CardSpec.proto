@@ -5,16 +5,17 @@ package ch;
 import "LoaderSchema.proto";
 
 message CardSpec {
-    uint32 id = 1 [(suntomi.pb.field_options).id = true];
-    uint32 issuance = 2;
-    string name = 3;
-    uint32 hp = 4;
-    uint32 attack = 5;
-    uint32 defense = 6;
-    uint32 speed = 7;
-    uint32 flags = 8;
-    uint32 rarity = 9;
-    repeated uint32 skill = 10;
+    uint32 version = 1;
+    uint32 id = 2 [(suntomi.pb.field_options).id = true];
+    uint32 issuance = 3;
+    string name = 4;
+    uint32 hp = 5;
+    uint32 attack = 6;
+    uint32 defense = 7;
+    uint32 speed = 8;
+    uint32 flags = 9;
+    uint32 rarity = 10;
+    repeated uint32 skill = 11;
 
     option (suntomi.pb.message_options) = {
         source: Contract

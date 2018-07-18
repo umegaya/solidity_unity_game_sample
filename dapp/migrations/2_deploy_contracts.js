@@ -66,7 +66,7 @@ module.exports = function(deployer) {
       return instance.setPrivilege(World.address, PRIV_WRITABLE);
     });
   }).then(function () {
-    return World.at(World.address).then(function (instance) {
+    return DataContainer.at(DataContainer.address).then(function (instance) {
       return instance.setPrivilege(World.address, PRIV_WRITABLE);
     });
   });

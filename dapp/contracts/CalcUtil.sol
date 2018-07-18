@@ -4,7 +4,7 @@ import "./libs/PRNG.sol";
 import "./libs/StorageAccessor.sol";
 import "./libs/math/Math.sol";
 import "./libs/pb/Card_pb.sol";
-import "./libs/pb/CardSpec_pb.sol";
+import "./libs/pb/templates/CardSpec_pb.sol";
 
 library CalcUtil {
   using PRNG for PRNG.Data;

@@ -5,10 +5,11 @@ package ch;
 import "LoaderSchema.proto";
 
 message Arena {
-    string name = 1 [(suntomi.pb.field_options).id = true];
-    uint32 num_castle = 2;
-    uint32 match_duration = 3;
-    uint32 reward_id = 4;
+    uint32 version = 1;
+    string name = 2 [(suntomi.pb.field_options).id = true];
+    uint32 num_castle = 3;
+    uint32 match_duration = 4;
+    uint32 reward_id = 5;
 
     option (suntomi.pb.message_options) = {
         source: Contract

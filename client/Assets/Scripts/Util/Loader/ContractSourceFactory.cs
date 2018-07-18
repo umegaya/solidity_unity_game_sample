@@ -3,11 +3,15 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 using UnityEngine;
 
+using BigInteger = System.Numerics.BigInteger;
+
 public class ContractSourceFactory : DataLoader.IDataSourceFactory {
+    public const int BATCH_QUERY_SIZE = 32;
     public class ConstractSource<RECORD> : DataLoader.IDataSource {
         int size_, pos_;
         RECORD[] records_;
@@ -27,6 +31,10 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
             //should be always ok (because RECORDS == R always)
             Debug.Assert(typeof(R) == typeof(RECORD));
             return (R)Convert.ChangeType(records_[pos_ - 1], typeof(R));
+        }
+
+        internal RECORD[] GetRecords() {
+            return records_;
         }
 
         internal void Add(RECORD r) {
@@ -64,7 +72,7 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
             loader.Error = eth.CallResponse.Error;
             yield break;
         }
-        uint[] ids = eth.CallResponse.As<uint[]>();
+        byte[][][] ids = eth.CallResponse.As<byte[][][]>();
 
         //load sizeof current R[] and plus ids.Length, then allocate source object array
         ConstractSource<R> s = new ConstractSource<R>(ids.Length);
@@ -72,14 +80,17 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
         //then load local objects into s first
 
         //then query updated records
-        yield return eth[contract].Call("getRecords", name, ids);
-        if (eth.CallResponse.Error != null) {
-            loader.Error = eth.CallResponse.Error;
-            yield break;
-        }
-        var rs = eth.CallResponse.AsArray<R>(parser);
-        foreach (var r in rs) {
-            s.Add(r);
+        for (int n_query = 0; n_query < ids.Length; n_query += BATCH_QUERY_SIZE) {
+            yield return eth[contract].Call("getRecords", name, 
+                ids.Skip(n_query).Take(BATCH_QUERY_SIZE).ToArray());
+            if (eth.CallResponse.Error != null) {
+                loader.Error = eth.CallResponse.Error;
+                yield break;
+            }
+            var rs = eth.CallResponse.AsArray<R>(parser);   
+            foreach (var r in rs) {
+                s.Add(r);
+            }
         }
         //save updated records into local storage
 
