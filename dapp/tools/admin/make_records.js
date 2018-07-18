@@ -10,8 +10,8 @@ const protobuf = require("../utils/pb")([
     __dirname + "/../../proto",
     __dirname + "/../../proto/options"
 ]);
-const DataContainer = artifacts.require("DataContainer");
-
+const ethers = require("ethers");
+const DataContainer = artifacts.require('DataContainer');
 
 const cnf = process.env.CONFIG_NAME || process.exit(1);
 
@@ -46,6 +46,32 @@ const toBuffer = (src) => {
     }
 }
 
+const toValue = (ft, val) => {
+    if (ft.startsWith('uint') || ft.startsWith('int') || ft == 'double' || ft == 'float') {
+        return Number(val);
+    } else if (ft == 'bool') {
+        return (val == 'true');
+    } else if (ft == 'bytes') {
+        return new Buffer(val, 'hex');
+    } else if (ft == 'string') {
+        return val;
+    } else {
+        throw new Error(`invalid type ${ft}`);
+    }  
+}
+
+const setValueByField = (obj, field, val) => {
+    if (val.length <= 0) {
+        return;
+    }
+    const ft = field.type;
+    if (field.rule == 'repeated') {
+        obj[field.name].push(toValue(ft, val));
+    } else {
+        obj[field.name] = toValue(ft, val);
+    }
+}
+
 var promises = csvs.map(async (csv) => {
     try {
         console.log(csv);
@@ -61,27 +87,41 @@ var promises = csvs.map(async (csv) => {
         var records = [], ids = [];
         raw_records.forEach((r) => {
             if (!columns) {
-                columns = r;
+                columns = r.map((c) => {
+                    return c.substring(0, 1).toLowerCase() + c.substring(1).replace(/([A-Z]+)/, (m, a1) => {
+                        return ("_" + a1.toLowerCase());
+                    });
+                });
                 RecordProto = pb.lookup(object_name);
                 id_column_name = getIdColumnName(RecordProto);
                 console.log('record', object_name, 'column_name', id_column_name);
             } else {
-                console.log(csv, 'record', r);
                 var obj = RecordProto.create();
+                console.log(csv, 'record', r, obj);
                 for (var i = 0; i < columns.length; i++) {
                     const c = columns[i];
-                    obj[c] = r[i];
+                    const f = RecordProto.fields[c];
+                    const ct = typeof(obj[c]);
+                    setValueByField(obj, f, r[i]);
                     if (c == id_column_name) {
                         ids.push(toBuffer(r[i]));
                     }
                 }
-                records.push(RecordProto.encode(obj).finish());
+                console.log('obj => ', obj);
+                var b = RecordProto.encode(obj).finish();
+                if (b.length <= 0) {
+                    throw new Error(`invalid object ${object_name} id = ${obj[id_column_name]}@${id_column_name}`);
+                }
+                records.push(b);
                 console.log(records[records.length - 1]);
             }
         });
         //call contract
-        const dc = await DataContainer.deployed();
-        console.log('addr', dc.address);
+        const tmpc = await DataContainer.deployed();
+        if (!web3.eth.provider) {
+            web3.eth.provider = web3.eth.currentProvider;
+        }
+        const dc = new ethers.Contract(tmpc.address, tmpc.abi, web3.eth);
         const ret = await dc.putRecords(object_name, ids, records);
         console.log(ret.logs);
         console.log(object_name, ids.length, "records are registered");

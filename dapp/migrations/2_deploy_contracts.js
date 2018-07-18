@@ -6,6 +6,7 @@ var World = artifacts.require("World");
 var History = artifacts.require("History");
 var Cards = artifacts.require("Cards");
 var DataContainer = artifacts.require("DataContainer");
+var Test = artifacts.require("Test");
 
 function deploy_pb(deployer) {
 	var PbRuntime = artifacts.require("_pb");
@@ -37,6 +38,8 @@ module.exports = function(deployer) {
   })//*/
   .then(function () {
     return deployer.deploy(Moritapo);
+  }).then(function () {
+    return deployer.deploy(Test);
   }).then(function () {
     return deployer.deploy(CalcUtil);
   }).then(function () {

@@ -86,8 +86,12 @@ contract DataContainer is StorageAccessor, Restrictable {
         uint a;
         uint b;
     }
-    function getHoges() public view returns (Hoge[]) {
+    function getHoges() public pure returns (Hoge[]) {
         Hoge[] memory hs = new Hoge[](3);
         return hs;
+    }
+
+    function countFuga(bytes[] hugas) public pure returns (uint) {
+        return 1;
     }
 }
