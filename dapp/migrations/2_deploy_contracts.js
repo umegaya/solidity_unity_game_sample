@@ -57,6 +57,10 @@ module.exports = function(deployer) {
       return instance.setPrivilege(Inventory.address, PRIV_WRITABLE);
     });
   }).then(function () {
+    return Storage.at(Storage.address).then(function (instance) {
+      return instance.setPrivilege(DataContainer.address, PRIV_WRITABLE);
+    });
+  }).then(function () {
     return Cards.at(Cards.address).then(function (instance) {
       return instance.setPrivilege(Inventory.address, PRIV_WRITABLE);
     })

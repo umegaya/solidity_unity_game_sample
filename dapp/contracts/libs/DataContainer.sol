@@ -9,7 +9,7 @@ contract DataContainer is StorageAccessor, Restrictable {
     uint public constant INITIAL_IDLIST_LENGTH = 256; 
 
     //event
-    event Error(string func, int code, int arg1, int arg2);
+    event Payload(uint index, uint idlen, uint datalen);
 
     //ctor
     constructor(address storageAddress) StorageAccessor(storageAddress) Restrictable() public {
@@ -35,11 +35,7 @@ contract DataContainer is StorageAccessor, Restrictable {
         return ret;
     }
     function putRecords(string typ, bytes[] ids, bytes[] data) public writer {
-        if (ids.length != data.length) {
-            emit Error(typ, 2, 0, 0);
-            return;
-        }
-        emit Error(typ, 999, 0, 0);
+        require (ids.length == data.length);
         History storage h = updateHistory_[typ];
         h.updated_by_gen[h.current_gen] = new bytes[](ids.length);
         for (uint i = 0; i < ids.length; i++) {
@@ -61,37 +57,28 @@ contract DataContainer is StorageAccessor, Restrictable {
                     }
                 }
                 h.all_ids[h.current_total++] = id;
-                h.idmaps[id] = true;
-            }
+                h.idmaps[id] = true;//*/
+            }//*/
         }//*/
         h.current_gen++;
     }
     function recordIdDiff(string typ, uint client_generation) public view returns (uint, bytes[][]) {
         History storage h = updateHistory_[typ];
         bytes[][] memory idlists;
+        uint i;
         if (client_generation == 0) { //first time.
             //returns all ids
             idlists = new bytes[][](1);
-            idlists[0] = h.all_ids;
+            idlists[0] = new bytes[](h.current_total);
+            for (i = 0; i < h.current_total; i++) {
+                idlists[0][i] = h.all_ids[i];
+            }
         } else if (client_generation < h.current_gen) { //otherwise returns update histories
             idlists = new bytes[][](h.current_gen - client_generation);
-            for (uint i = client_generation; i < h.current_gen; i++) {
+            for (i = client_generation; i < h.current_gen; i++) {
                 idlists[i - client_generation] = h.updated_by_gen[i];
             }
         }
         return (h.current_gen, idlists);
-    }
-
-    struct Hoge {
-        uint a;
-        uint b;
-    }
-    function getHoges() public pure returns (Hoge[]) {
-        Hoge[] memory hs = new Hoge[](3);
-        return hs;
-    }
-
-    function countFuga(bytes[] hugas) public pure returns (uint) {
-        return 1;
     }
 }
