@@ -15,13 +15,23 @@ public class Main : MonoBehaviour {
     static public UI.UIMgr UIMgr {
         get { return UI.UIMgr.instance; }
     }
-    static Engine.FiberManager instance_ = null;
+    static Engine.FiberManager fiber_manager_ = null;
     static public Engine.FiberManager FiberMgr {
         get { 
-            if (instance_ == null) {
-                instance_ = new Engine.FiberManager();
+            if (fiber_manager_ == null) {
+                fiber_manager_ = new Engine.FiberManager();
             }
-            return instance_;
+            return fiber_manager_;
+        }
+    }
+    static StorageManager storage_manager_ = null;
+    static public StorageManager StorageMgr {
+        get { 
+            if (storage_manager_ == null) {
+                storage_manager_ = new StorageManager();
+                storage_manager_.Load();
+            }
+            return storage_manager_;
         }
     }
 

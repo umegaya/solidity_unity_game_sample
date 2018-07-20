@@ -46,12 +46,10 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
         }
     }
 
-    public DataLoader.IDataSource Source { get; private set; }
+    public DataLoader.IDataSource Source { get; set; }
 
     public IEnumerator Load<R>(DataLoader.IResultReceiver loader, string path)
         where R : Google.Protobuf.IMessage<R> {
-        //load newest record timestamp of R[]
-
         //get message parser by reflection
         PropertyInfo propertyInfo;
         propertyInfo = typeof(R).GetProperty("Parser", BindingFlags.Public | BindingFlags.Static); 
@@ -59,43 +57,67 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
         Google.Protobuf.MessageParser<R> parser = 
             (Google.Protobuf.MessageParser<R>)propertyInfo.GetValue(null, null);
 
-        //parse path = https://{url}/{ContractName}
-        Regex rgx = new Regex(@"https://([^/]+)/([^/]+)");
-        Match m = rgx.Match(path);
+        //get record name by reflection
         var eth = Game.Main.RPCMgr.Eth;
-        string url = m.Groups[1].ToString(), contract = m.Groups[2].ToString();
+        string contract = path;
         string name = typeof(R).Name;
 
-        //first, get size of updated records
-        yield return eth[contract].Call("recordIdDiff", name);
+        //load local objects
+        int current_gen = 0;
+        var storage = Game.Main.StorageMgr;
+        var local_records = storage.LoadAllRecords(name, parser, out current_gen);
+
+        //get size of updated records
+        yield return eth[contract].Call("recordIdDiff", name, current_gen);
         if (eth.CallResponse.Error != null) {
             loader.Error = eth.CallResponse.Error;
             yield break;
         }
-        byte[][][] ids = eth.CallResponse.As<byte[][][]>();
+        int next_gen = eth.CallResponse.As<int>(1);
+        byte[][][] ids = eth.CallResponse.As<byte[][][]>(2);
 
-        //load sizeof current R[] and plus ids.Length, then allocate source object array
-        ConstractSource<R> s = new ConstractSource<R>(ids.Length);
+        //collection which stored update records
+        ConstractSource<R> s = new ConstractSource<R>(ids.Length + local_records.Count);
 
-        //then load local objects into s first
-
-        //then query updated records
-        for (int n_query = 0; n_query < ids.Length; n_query += BATCH_QUERY_SIZE) {
-            yield return eth[contract].Call("getRecords", name, 
-                ids.Skip(n_query).Take(BATCH_QUERY_SIZE).ToArray());
-            if (eth.CallResponse.Error != null) {
-                loader.Error = eth.CallResponse.Error;
-                yield break;
+        //if updated records found, retrieve it from contract
+        if (ids.Length > 0) {
+            HashSet<byte[]> hs = new HashSet<byte[]>();
+            //de-dupe duplicate record (update multiple time since last updated time)
+            for (int i = 0; i < ids.Length; i++) {
+                for (int j = 0; j < ids[i].Length; i++) {
+                    hs.Add(ids[i][j]);
+                }
             }
-            var rs = eth.CallResponse.AsArray<R>(parser);   
-            foreach (var r in rs) {
-                s.Add(r);
+            byte[][] updated_ids_distinct = hs.ToArray();
+            R[] updated_records = new R[updated_ids_distinct.Length];
+            
+            //load sizeof current R[] and plus ids.Length, then allocate source object array
+            s = new ConstractSource<R>(ids.Length + local_records.Count);
+
+            //then query updated records
+            for (int n_query = 0; n_query < updated_ids_distinct.Length; n_query += BATCH_QUERY_SIZE) {
+                var batch_ids = updated_ids_distinct.Skip(n_query).Take(BATCH_QUERY_SIZE).ToArray();
+                yield return eth[contract].Call("getRecords", name, batch_ids);
+                if (eth.CallResponse.Error != null) {
+                    loader.Error = eth.CallResponse.Error;
+                    yield break;
+                }
+                var rs = eth.CallResponse.AsArray<R>(parser);
+                for (int i = n_query; i < (n_query + batch_ids.Length); i++) {
+                    local_records[batch_ids[i - n_query]] = rs[i];
+                    updated_records[i] = rs[i];
+                }
             }
+
+            //save updated records into local storage
+            storage.SaveRecords(next_gen, name, updated_ids_distinct, updated_records);
         }
-        //save updated records into local storage
 
         //set source
         Source = s;
+        foreach (var kv in local_records) {
+            s.Add(kv.Value);
+        }
         yield break;
     }
 }

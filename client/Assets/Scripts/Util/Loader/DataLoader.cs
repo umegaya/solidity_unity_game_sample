@@ -13,7 +13,7 @@ public class DataLoader {
     }
     public interface IDataSourceFactory {
         IEnumerator Load<R>(IResultReceiver loader, string path) where R : Google.Protobuf.IMessage<R>;
-        IDataSource Source { get; }
+        IDataSource Source { get; set; }
     }
     static public IEnumerator Load<ID,R,DSF>(IResultReceiver loader, 
         string path, Dictionary<ID, R> map, System.Func<R,ID> idgetter) 
@@ -22,6 +22,7 @@ public class DataLoader {
         DSF f = new DSF();
         yield return f.Load<R>(loader, path);
         var s = f.Source;
+        f.Source = null; //source should gc'ed after data copied into map.
         R rec = default(R);
         while (s.Read()) {
             rec = s.GetRecord<R>();

@@ -577,10 +577,6 @@
       {
         "name": "level",
         "type": "uint32"
-      },
-      {
-        "name": "rarity",
-        "type": "uint32"
       }
     ],
     "name": "mintFixedCard",

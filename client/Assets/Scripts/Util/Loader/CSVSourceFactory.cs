@@ -8,7 +8,7 @@ public class CSVSourceFactory : DataLoader.IDataSourceFactory {
         public CSVSource(TextReader r) : base(r) {}
     }
 
-    public DataLoader.IDataSource Source { get; private set; }
+    public DataLoader.IDataSource Source { get; set; }
 
     public IEnumerator Load<R>(DataLoader.IResultReceiver loader, string path) 
         where R : Google.Protobuf.IMessage<R> {

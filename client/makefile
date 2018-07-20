@@ -2,7 +2,7 @@
 ABI_CONTAINER=realguess/jq
 ABI_IN=../dapp/build/contracts
 ABI_OUT=./Assets/Resources/Contracts
-ABI_SRCS=$(addprefix $(ABI_OUT)/,World.json Inventory.json Moritapo.json History.json)
+ABI_SRCS=$(addprefix $(ABI_OUT)/,World.json Inventory.json Moritapo.json History.json DataContainer.json)
 ADDR_IN=../dapp/build/addresses
 ADDR_OUT=./Assets/Resources/Contracts
 ADDR_SRCS=$(addprefix $(ADDR_OUT)/,dev.json)
