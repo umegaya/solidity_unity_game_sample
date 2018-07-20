@@ -29,7 +29,7 @@ const getWallet = async () => {
     }
 }
 
-const createContract = async (truffle_contract) => {
+const createContract = async (truffle_contract, web3) => {
     const tmpc = await truffle_contract.deployed();
     const wallet = await getWallet();
     wallet.provider = new ethers.providers.Web3Provider(web3.currentProvider);

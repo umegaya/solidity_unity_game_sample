@@ -77,8 +77,8 @@ const setValueByField = (obj, field, val) => {
     }
 }
 
-const initConnection = async () => {
-    ethers_connection.contract = await ethers_util.Contract(DataContainer);
+const initConnection = async (web3) => {
+    ethers_connection.contract = await ethers_util.Contract(DataContainer, web3);
 }
 
 const logging = false;
@@ -150,10 +150,10 @@ const registerCSV = async (csv) => {
 }
 
 module.exports = async function(finish) {
-    await initConnection();
+    await initConnection(web3);
     //await Promise.all(promises);
-    csvs.forEach(async (csv) => {
-        await registerCSV(csv);
-    });
+    for (var i = 0; i < csvs.length; i++) {
+        await registerCSV(csvs[i]);
+    }
 	finish();
 }

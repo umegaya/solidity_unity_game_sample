@@ -64,7 +64,7 @@ contract('DataContainer', async () => {
         const overrideOptions = {
             gasLimit: 32000000,
         };
-        const dc = await EthersContract(DataContainer);
+        const dc = await EthersContract(DataContainer, web3);
         const tx1 = await dc.putRecords("Test", ID_FIXTURE, DATA_FIXTURE, overrideOptions);
         await dc.provider.waitForTransaction(tx1.hash);
         const receipt1 = await dc.provider.getTransactionReceipt(tx1.hash);
