@@ -66,9 +66,15 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
         int current_gen = 0;
         var storage = Game.Main.StorageMgr;
         var local_records = storage.LoadAllRecords(name, parser, out current_gen);
+        if (current_gen < 0) {
+            loader.Error = new System.Exception("fail to load record");
+            yield break;
+        }
 
         //get size of updated records
+        Debug.Log("request to " + contract);
         yield return eth[contract].Call("recordIdDiff", name, current_gen);
+        Debug.Log("end request " + eth.CallResponse.Error.Message);
         if (eth.CallResponse.Error != null) {
             loader.Error = eth.CallResponse.Error;
             yield break;

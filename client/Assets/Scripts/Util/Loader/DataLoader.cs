@@ -21,6 +21,9 @@ public class DataLoader {
         where R : Google.Protobuf.IMessage<R> {
         DSF f = new DSF();
         yield return f.Load<R>(loader, path);
+        if (loader.Error != null) {
+            yield break;
+        }
         var s = f.Source;
         f.Source = null; //source should gc'ed after data copied into map.
         R rec = default(R);

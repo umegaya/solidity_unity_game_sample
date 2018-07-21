@@ -40,5 +40,6 @@ sysinfo.txt
 *.Loader.cs
 *.Loader.cs.meta
 Container.cs*
+nch.db
 
 .vscode/

@@ -28,7 +28,7 @@ public abstract class UnityLoader : MonoBehaviour, DataLoader.IResultReceiver {
         get {
             var r = new Dictionary<string, string>();
             foreach (var l in locations_) {
-                if (l.url_.StartsWith("http")) {
+                if (l.url_.StartsWith("http") || l.url_.IndexOf("/") == -1) {
                     r[l.name_] = l.url_;
                 } else if (l.url_.StartsWith("file://")) {
                     r[l.name_] = BasePath + "/" + l.url_.Substring(7);
