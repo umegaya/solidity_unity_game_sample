@@ -81,15 +81,16 @@ public class StorageManager {
                 using (var cmd = LocalDbm.CreateCommand()) {
                     cmd.CommandText = "INSERT INTO " + record_name + "(id,blob) VALUES (@Id,@Blob)";
                     for (int i = 0; i < ids.Length; i++) {
-                        cmd.Parameters["Id"] = new SqliteParameter(System.Data.DbType.Binary, ids[i]);
-                        cmd.Parameters["Blob"] = new SqliteParameter(System.Data.DbType.Binary, records[i].Encode());
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add(new SqliteParameter("Id", ids[i]));
+                        cmd.Parameters.Add(new SqliteParameter("Blob", records[i].Encode()));
                         cmd.ExecuteNonQuery();
                     }
                 }
                 using (var cmd = LocalDbm.CreateCommand()) {
                     cmd.CommandText = "UPDATE record_versions SET gen = @Gen WHERE name = @Name";
-                    cmd.Parameters["Name"] = new SqliteParameter(System.Data.DbType.String, record_name);
-                    cmd.Parameters["Gen"] = new SqliteParameter(System.Data.DbType.Int32, current_gen);
+                    cmd.Parameters.Add(new SqliteParameter("Name", record_name));
+                    cmd.Parameters.Add(new SqliteParameter("Gen", current_gen));
                     cmd.ExecuteNonQuery();
                 }
                 tran.Commit();

@@ -84,7 +84,7 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
         int next_gen;
         List<List<byte[]>> ids;
         try {
-            if (int.TryParse(eth.CallResponse.As<BigInteger>(0).ToString(), out next_gen)) {
+            if (int.TryParse(eth.CallResponse.As<BigInteger>(0).ToString(), out next_gen) && next_gen > 0) {
                 ids = eth.CallResponse.As<List<List<byte[]>>>(1);
             } else {
                 throw new System.Exception("gen number is too big or out of range:" + 
