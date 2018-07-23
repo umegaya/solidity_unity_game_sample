@@ -105,7 +105,7 @@ public class ViewModelMgr : MonoBehaviour {
                         yield return Raise("InititalizeTask(getSlotBytesAndId)", r.Error);
                     } else {
                         var id = (System.Numerics.BigInteger)r.Result[0].Result;
-                        var card = r.As<Ch.Card>(Ch.Card.Parser);
+                        var card = r.As<Ch.Card>(Ch.Card.Parser, 1);
                         Debug.Log("Inventory.getSlotBytes card[" + id.ToString() + "]:" + card.SpecId);
                         Inventory.AddCard(id, card);
                     }

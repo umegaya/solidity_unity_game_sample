@@ -31,10 +31,10 @@ public class Eth : MonoBehaviour {
             public List<ParameterOutput> Result { get; set; }
             public System.Exception Error { get; set; }
 
-            public M As<M>(Google.Protobuf.MessageParser<M> p, int startIndex = 1) where M : Google.Protobuf.IMessage<M> {
+            public M As<M>(Google.Protobuf.MessageParser<M> p, int startIndex) where M : Google.Protobuf.IMessage<M> {
                 return p.ParseFrom((byte[])Result[startIndex].Result);
             }
-            public M[] AsArray<M>(Google.Protobuf.MessageParser<M> p, int startIndex = 1) where M : Google.Protobuf.IMessage<M> {
+            public M[] AsArray<M>(Google.Protobuf.MessageParser<M> p, int startIndex) where M : Google.Protobuf.IMessage<M> {
                 var bs = (byte[][])Result[startIndex].Result;
                 M[] rets = new M[bs.Length];
                 for (int i = 0; i < bs.Length; i++) {
@@ -42,7 +42,7 @@ public class Eth : MonoBehaviour {
                 }
                 return rets;
             }
-            public T As<T>(int startIndex = 1) {
+            public T As<T>(int startIndex) {
                 return (T)Result[startIndex].Result;
             }
         }
@@ -102,8 +102,13 @@ public class Eth : MonoBehaviour {
                 r.Error = req.Exception;
                 r.Result = null;
             } else {
-                r.Error = null;
-                r.Result = fn.DecodeResponse(req.Result);
+                try {
+                    r.Result = fn.DecodeResponse(req.Result);
+                    r.Error = null;
+                } catch (System.Exception ex) {
+                    r.Error = ex;
+                    r.Result = null;
+                }
             }
         }
         public int ParseSendResponse(Function fn, UnityRequest<Dictionary<string, object>> req) {
@@ -131,6 +136,9 @@ public class Eth : MonoBehaviour {
                 }
             } catch (System.Exception ex) {
                 Debug.Log("parseSendResposne error:" + ex.StackTrace);
+                var r = owner_.send_resp_;
+                r.Error = ex;
+                r.Result = null;
                 return 0;
             }
         }

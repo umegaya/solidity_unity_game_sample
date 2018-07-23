@@ -1,5 +1,5 @@
-resource "google_compute_firewall" "neko-blockchain-fw" {
-  name    = "neko-blockchain-fw"
+resource "google_compute_firewall" "ha-blockchain-fw" {
+  name    = "ha-blockchain-fw"
   network = "default"
   project = "${var.project_id}"
 

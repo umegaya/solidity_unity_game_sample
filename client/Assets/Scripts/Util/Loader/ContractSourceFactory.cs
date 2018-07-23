@@ -72,34 +72,42 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
         }
 
         //get size of updated records
-        Debug.Log("request to " + contract);
+        if (eth[contract] == null) {
+            loader.Error = new System.Exception("contract not exists: name = " + contract);
+            yield break;
+        }
         yield return eth[contract].Call("recordIdDiff", name, current_gen);
-        Debug.Log("end request " + eth.CallResponse.Error.Message);
         if (eth.CallResponse.Error != null) {
             loader.Error = eth.CallResponse.Error;
             yield break;
         }
-        int next_gen = eth.CallResponse.As<int>(1);
-        byte[][][] ids = eth.CallResponse.As<byte[][][]>(2);
-
-        //collection which stored update records
-        ConstractSource<R> s = new ConstractSource<R>(ids.Length + local_records.Count);
+        int next_gen;
+        List<List<byte[]>> ids;
+        try {
+            if (int.TryParse(eth.CallResponse.As<BigInteger>(0).ToString(), out next_gen)) {
+                ids = eth.CallResponse.As<List<List<byte[]>>>(1);
+            } else {
+                throw new System.Exception("gen number is too big or out of range:" + 
+                    eth.CallResponse.As<BigInteger>(0).ToString());
+            }
+        } catch (System.Exception e) {
+            Debug.Log("recordIdDiff error:" + e.Message);
+            loader.Error = e;
+            yield break;
+        }
 
         //if updated records found, retrieve it from contract
-        if (ids.Length > 0) {
+        if (ids.Count > 0) {
             HashSet<byte[]> hs = new HashSet<byte[]>();
             //de-dupe duplicate record (update multiple time since last updated time)
-            for (int i = 0; i < ids.Length; i++) {
-                for (int j = 0; j < ids[i].Length; i++) {
+            for (int i = 0; i < ids.Count; i++) {
+                for (int j = 0; j < ids[i].Count; i++) {
                     hs.Add(ids[i][j]);
                 }
             }
             byte[][] updated_ids_distinct = hs.ToArray();
             R[] updated_records = new R[updated_ids_distinct.Length];
             
-            //load sizeof current R[] and plus ids.Length, then allocate source object array
-            s = new ConstractSource<R>(ids.Length + local_records.Count);
-
             //then query updated records
             for (int n_query = 0; n_query < updated_ids_distinct.Length; n_query += BATCH_QUERY_SIZE) {
                 var batch_ids = updated_ids_distinct.Skip(n_query).Take(BATCH_QUERY_SIZE).ToArray();
@@ -108,19 +116,29 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
                     loader.Error = eth.CallResponse.Error;
                     yield break;
                 }
-                var rs = eth.CallResponse.AsArray<R>(parser);
-                for (int i = n_query; i < (n_query + batch_ids.Length); i++) {
-                    local_records[batch_ids[i - n_query]] = rs[i];
-                    updated_records[i] = rs[i];
+                try {
+                    var rs = eth.CallResponse.AsArray<R>(parser, 0);
+                    for (int i = n_query; i < (n_query + batch_ids.Length); i++) {
+                        local_records[batch_ids[i - n_query]] = rs[i];
+                        updated_records[i] = rs[i];
+                    }
+                } catch (System.Exception e) {
+                    loader.Error = e;
+                    yield break;
                 }
             }
 
             //save updated records into local storage
-            storage.SaveRecords(next_gen, name, updated_ids_distinct, updated_records);
+            var err = storage.SaveRecords(next_gen, name, updated_ids_distinct, updated_records);
+            if (err != null) {
+                loader.Error = err;
+                yield break;
+            }
         }
 
         //set source
-        Source = s;
+        var s = new ConstractSource<R>(local_records.Count);   
+        Source = s;          
         foreach (var kv in local_records) {
             s.Add(kv.Value);
         }

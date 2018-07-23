@@ -12,7 +12,7 @@ S3_BUCKET=dokyogames-terraform-bucket
 
 WS=$(K8S_PLATFORM)
 PLAN=exec.tfplan
-OBJECT=kubernetes_daemonset.neko-blockchain-ds
+OBJECT=kubernetes_daemonset.ha-blockchain-ds
 
 PLATFORM=$(K8S_PLATFORM)
 ifeq ($(PLATFORM),dev)

@@ -1,7 +1,7 @@
-// persistent volumes
-resource "kubernetes_persistent_volume" "neko-blockchain-data-pv" {
+  // persistent volumes
+resource "kubernetes_persistent_volume" "ha-blockchain-data-pv" {
   metadata {
-    name = "neko-blockchain-data-pv"
+    name = "ha-blockchain-data-pv"
   }
   spec {
     capacity {
@@ -18,9 +18,9 @@ resource "kubernetes_persistent_volume" "neko-blockchain-data-pv" {
   }
 }
 
-resource "kubernetes_persistent_volume" "neko-blockchain-etc-pv" {
+resource "kubernetes_persistent_volume" "ha-blockchain-etc-pv" {
   metadata {
-    name = "neko-blockchain-etc-pv"
+    name = "ha-blockchain-etc-pv"
   }
   spec {
     capacity {
@@ -39,10 +39,10 @@ resource "kubernetes_persistent_volume" "neko-blockchain-etc-pv" {
 
 
 // persistent volume claims
-resource "kubernetes_persistent_volume_claim" "neko-blockchain-data-pvc" {
+resource "kubernetes_persistent_volume_claim" "ha-blockchain-data-pvc" {
   metadata {
-    name = "neko-blockchain-data-pvc"
-    namespace = "neko"
+    name = "ha-blockchain-data-pvc"
+    namespace = "habc"
   }
   spec {
     access_modes = ["ReadWriteOnce"]
@@ -51,14 +51,14 @@ resource "kubernetes_persistent_volume_claim" "neko-blockchain-data-pvc" {
         storage = "2Gi"
       }
     }
-    volume_name = "${kubernetes_persistent_volume.neko-blockchain-data-pv.metadata.0.name}"
+    volume_name = "${kubernetes_persistent_volume.ha-blockchain-data-pv.metadata.0.name}"
   }
 }
 
-resource "kubernetes_persistent_volume_claim" "neko-blockchain-etc-pvc" {
+resource "kubernetes_persistent_volume_claim" "ha-blockchain-etc-pvc" {
   metadata {
-    name = "neko-blockchain-etc-pvc"
-    namespace = "neko"
+    name = "ha-blockchain-etc-pvc"
+    namespace = "habc"
   }
   spec {
     access_modes = ["ReadOnlyMany"]
@@ -67,6 +67,6 @@ resource "kubernetes_persistent_volume_claim" "neko-blockchain-etc-pvc" {
         storage = "1Gi"
       }
     }
-    volume_name = "${kubernetes_persistent_volume.neko-blockchain-etc-pv.metadata.0.name}"
+    volume_name = "${kubernetes_persistent_volume.ha-blockchain-etc-pv.metadata.0.name}"
   }
 }

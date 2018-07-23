@@ -20,7 +20,7 @@ BACKEND_VARS=$(K8S_VARS) $(SPEC_VARS) -backend-config='access_key=$(ACCOUNT)' -b
 # variables for execution of this container
 MOUNT=/tf
 TFROOT=/tf/src
-STORAGE_VOLUME=/var
+STORAGE_VOLUME=$(shell bash $(ROOT)/tools/decide_storage_path.sh)
 CONFIG_VOLUME=$(MOUNT)/volume/config
 SECRET_VOLUME=$(MOUNT)/volume/secret/$(K8S_PLATFORM)
 WS=dev

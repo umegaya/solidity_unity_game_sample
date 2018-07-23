@@ -74,7 +74,7 @@ public class StorageManager {
         }        
         return dict;
     }
-    public void SaveRecords<R>(int current_gen, string record_name, byte[][] ids, R[] records) 
+    public System.Exception SaveRecords<R>(int current_gen, string record_name, byte[][] ids, R[] records) 
         where R : Google.Protobuf.IMessage<R> {
         try {
             using (var tran = LocalDbm.BeginTransaction()) {
@@ -94,8 +94,10 @@ public class StorageManager {
                 }
                 tran.Commit();
             }
+            return null;
         } catch(System.Exception exception) {
             Debug.LogError(exception.Message + "@" + exception.StackTrace);
+            return exception;
         }
     }
 

@@ -63,7 +63,7 @@ public partial class FiberManager {
                 } else if (cur is System.Exception) {
                     c.error_ = (cur as System.Exception);
                     finishes_.Add(kv.Key);
-                    Logger("fiber raise error:" + c.error_.Message);
+                    Logger("fiber raise error:" + c.error_.Message + "@" + c.error_.StackTrace);
                 } else if (cur != null) {
                     c.yield_op_ = TryYieldable(cur);
                     if (c.yield_op_ == null) { 
