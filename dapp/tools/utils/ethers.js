@@ -39,4 +39,7 @@ const createContract = async (truffle_contract, web3) => {
 module.exports = {
     getWallet: getWallet,
     Contract: createContract,
+    overrideOptions: {
+        gasLimit: 32000000,
+    }
 }

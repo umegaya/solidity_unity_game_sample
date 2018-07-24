@@ -9,7 +9,7 @@ LOCAL_PROTO_DST_DIR=./contracts/libs/pb
 PROTO_SRC=$(notdir $(shell ls $(LOCAL_PROTO_SRC_DIR)/*.proto))
 PROTO_TEMPLATE_SRC=$(notdir $(shell ls $(LOCAL_PROTO_SRC_DIR)/templates/*.proto))
 PROTO_SOL=$(addprefix $(LOCAL_PROTO_DST_DIR)/,$(PROTO_SRC:%.proto=%_pb.sol))
-PROTO_TEMPLATE_SOL=$(addprefix $(LOCAL_PROTO_DST_DIR)/templates/,$(PROTO_TEMPLATE_SRC:%.proto=%_pb.sol))
+PROTO_TEMPLATE_SOL=$(addprefix $(LOCAL_PROTO_DST_DIR)/,$(PROTO_TEMPLATE_SRC:%.proto=%_pb.sol))
 
 K8S_PLATFORM?=
 
@@ -22,7 +22,10 @@ $(LOCAL_PROTO_DST_DIR)/runtime.sol: $(LOCAL_PROTO_SRC_DIR)/User.proto
 	$(call soliditize,$(INPUT_DIR)/$(subst $(LOCAL_PROTO_SRC_DIR),,./$<),gen_runtime=True:$(OUTPUT_DIR)/$(dir $(subst $(LOCAL_PROTO_DST_DIR),,./$@)))
 
 $(LOCAL_PROTO_DST_DIR)/%_pb.sol: $(LOCAL_PROTO_SRC_DIR)/%.proto
-	$(call soliditize,$(INPUT_DIR)/$(subst $(LOCAL_PROTO_SRC_DIR),,./$<),gen_runtime=False:$(OUTPUT_DIR)/$(dir $(subst $(LOCAL_PROTO_DST_DIR),,./$@)))
+	$(call soliditize,$(INPUT_DIR)/$(subst $(LOCAL_PROTO_SRC_DIR),,./$<),gen_runtime=False:$(OUTPUT_DIR))
+
+$(LOCAL_PROTO_DST_DIR)/%_pb.sol: $(LOCAL_PROTO_SRC_DIR)/templates/%.proto
+	$(call soliditize,$(INPUT_DIR)/$(subst $(LOCAL_PROTO_SRC_DIR),,./$<),gen_runtime=False:$(OUTPUT_DIR))
 
 .PHONY: proto
 proto: $(LOCAL_PROTO_DST_DIR)/runtime.sol $(PROTO_SOL) $(PROTO_TEMPLATE_SOL)

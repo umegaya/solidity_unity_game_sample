@@ -100,7 +100,7 @@ contract('World', (as) => {
         }).then((ret) => {
             pgrs.step();
             var tpl = cardCheck(ret, proto, {
-                spec_id: 1001,
+                spec_id: 1,
                 visual_flags: 0,
                 level: 1,
                 rarity: 4,
@@ -145,7 +145,7 @@ contract('World', (as) => {
         }).then((ret) => {
             pgrs.step();
             var tpl = cardCheck(ret, proto, {
-                spec_id: 1001,
+                spec_id: 1,
                 visual_flags: 0,
                 level: 1,
                 rarity: 4,

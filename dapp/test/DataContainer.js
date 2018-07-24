@@ -89,7 +89,6 @@ contract('DataContainer', async () => {
         expected0[10] = DATA_FIXTURE2[2]; 
 
         const gen0_diff_result = await dc.recordIdDiff("Test", 0);
-        //console.log(gen0_diff_result);
         assert.equal(gen0_diff_result[0].toNumber(), 2, "gen0 curgen wrong");
         assert.equal(gen0_diff_result[1][0].length, 11, "gen0 idlist length wrong");
         const gen0_get_records = await dc.getRecords("Test", gen0_diff_result[1][0]);

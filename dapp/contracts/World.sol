@@ -67,13 +67,13 @@ contract World is Restrictable, Constants {
     //give cat according to sel_idx
     if (sel_idx == 0) {
       //hp type
-      inventory_.mintFixedCard(target, 1001, 0, 1);
+      inventory_.mintFixedCard(target, 1, 0, 1);
     } else if (sel_idx == 1) {
       //attack type
-      inventory_.mintFixedCard(target, 1002, 0, 1);
+      inventory_.mintFixedCard(target, 2, 0, 1);
     } else if (sel_idx == 2) {
       //defense type
-      inventory_.mintFixedCard(target, 1003, 0, 1);
+      inventory_.mintFixedCard(target, 3, 0, 1);
     }//*/
     //give initial token with current rate
     uint amount = payment_unit / currentRateForPU();

@@ -49,8 +49,10 @@ public class StorageManager {
                 byte[] kbs = new byte[256], vbs = new byte[256];
                 while (r.Read()) {
                     var krlen = r.GetBytes(0, 0, kbs, 0, kbs.Length);
-                    var vrlen = r.GetBytes(0, 0, vbs, 0, vbs.Length);
-                    dict[kbs.Take((int)krlen).ToArray()] = parser.ParseFrom(vbs.Take((int)vrlen).ToArray());
+                    var vrlen = r.GetBytes(1, 0, vbs, 0, vbs.Length);
+                    var key = kbs.Take((int)krlen).ToArray();
+                    dict[key] = parser.ParseFrom(vbs.Take((int)vrlen).ToArray());
+                    Debug.Log(record_name + "[0x" + key.ToHex() + "]=local:" + dict[key].ToString());
                 }
             }
             using (var cmd = LocalDbm.CreateCommand()) {
@@ -85,6 +87,7 @@ public class StorageManager {
                         cmd.Parameters.Add(new SqliteParameter("Id", ids[i]));
                         cmd.Parameters.Add(new SqliteParameter("Blob", records[i].Encode()));
                         cmd.ExecuteNonQuery();
+                        Debug.Log(record_name + "[0x" + ids[i].ToHex() + "]=downloaded:" + records[i].ToString() + "(" + records[i].Encode().Length + ")");
                     }
                 }
                 using (var cmd = LocalDbm.CreateCommand()) {

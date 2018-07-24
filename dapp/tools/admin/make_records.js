@@ -10,9 +10,10 @@ const protobuf = require("../utils/pb")([
     __dirname + "/../../proto",
     __dirname + "/../../proto/options"
 ]);
-const ethers = require("ethers");
 const ethers_util = require("../utils/ethers");
+const helper = require("../utils/helper");
 const DataContainer = artifacts.require('DataContainer');
+console.log("DataContainer address:" + DataContainer.address);
 
 const ethers_connection = {
     contract: false
@@ -41,7 +42,7 @@ const toBuffer = (src) => {
     if (t == 'string') {
         return Buffer.from(src, 'utf8');
     } else if (t == 'number') {
-        return Buffer.from(src.toString(16), 'hex');
+        return helper.numToBytes(src);
     } else if (t instanceof Buffer) {
         return src;
     } else {
@@ -113,7 +114,6 @@ const registerCSV = async (csv) => {
                 });
                 RecordProto = pb.lookup(object_name);
                 id_column_name = getIdColumnName(RecordProto);
-                console.log('record', object_name, 'column_name', id_column_name);
             } else {
                 var obj = RecordProto.create();
                 log(csv, 'record', r, obj);
@@ -127,13 +127,18 @@ const registerCSV = async (csv) => {
                     }
                     setValueByField(obj, f, r[i]);
                     if (c == id_column_name) {
-                        ids.push(toBuffer(r[i]));
+                        var bs = toBuffer(toValue(f.type, r[i]));
+                        if (bs.length <= 0) {
+                            throw new Error(`invalid id for ${object_name} id = ${r[i]}`);
+                        }
+                        ids.push(bs);
                     }
                 }
-                log('obj => ', obj);
                 var b = RecordProto.encode(obj).finish();
                 if (b.length <= 0) {
                     throw new Error(`invalid object ${object_name} id = ${obj[id_column_name]}@${id_column_name}`);
+                } else {
+                    log("obj", obj, "encoded length", b.length);
                 }
                 records.push(b);
                 log(records[records.length - 1]);
@@ -141,8 +146,22 @@ const registerCSV = async (csv) => {
         });
         //call contract
         const conn = ethers_connection.contract;
-        const ret = await conn.putRecords(object_name, ids, records);
-        log(ret);
+        const tx = await conn.putRecords(object_name, ids, records, ethers_util.overrideOptions);
+        log(tx);
+        await conn.provider.waitForTransaction(tx.hash);
+        const receipt = await conn.provider.getTransactionReceipt(tx.hash);    
+        if (receipt.status == 0) {
+            console.log(receipt);
+            throw new Error(`transaction fails ${receipt.status}`);
+        }
+        /*const ret = await conn.recordIdDiff(object_name, 0);
+        if (ret[1][0].length != ids.length) {
+            throw new Error(`record length invalid ${ret[1][0].length} vs ${ids.length}`)
+        }   
+        const ret = await conn.getRecords(object_name, ids);
+        for (var i = 0; i < ret.length; i++) {
+            log('getRecords', i, RecordProto.decode(helper.toBytes(ret[i])));
+        }*/
         console.log(object_name, ids.length, "records are registered");
     } catch (e) {
         console.log("process csv columns error", e);

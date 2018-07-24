@@ -40,7 +40,7 @@ CLIENT_PROTO_SRCS=$(addprefix $(CLIENT_PROTO_OUT)/,$(CLIENT_PROTO_FILES:%.proto=
 CSV_PROTO_IN=../dapp/proto
 CSV_PROTO_OUT=./Assets/Scripts/Proto/Client/Templates
 CSV_PROTO_FILES=$(shell cd $(CSV_PROTO_IN)/templates/ && ls *.proto)
-CSV_PROTO_SRCS=$(addprefix $(CSV_PROTO_OUT)/,$(CSV_PROTO_FILES:%.proto=%.Loader.cs))
+CSV_LOADER_SRCS=$(addprefix $(CSV_PROTO_OUT)/,$(CSV_PROTO_FILES:%.proto=%.Loader.cs))
 CSV_PLUGIN=./generators/gen_loader.py
 
 CSV_CONTAINER_IN=../dapp/proto
@@ -83,7 +83,7 @@ endef
 $(CLIENT_PROTO_OUT)/%.g.cs: $(CLIENT_PROTO_IN)/%.proto
 	$(call client_proto_out,--csharp_out=/out --csharp_opt=file_extension=.g.cs $(notdir $<))
 
-$(CSV_PROTO_OUT)/%.CSVLoader.cs: $(CSV_PROTO_IN)/templates/%.proto
+$(CSV_PROTO_OUT)/%.Loader.cs: $(CSV_PROTO_IN)/templates/%.proto
 	$(call csv_proto_out,--custom_out=/out --plugin=protoc-gen-custom=${CSV_PLUGIN} templates/$(notdir $<))
 	$(call csv_proto_out,--csharp_out=/out --csharp_opt=file_extension=.g.cs templates/$(notdir $<))
 
@@ -104,7 +104,7 @@ $(CSV_CONTAINER_SRCS): $(CSV_CONTAINER_FILES)
 
 proto: $(PROTO_OUT)/Solidity.g.cs $(PROTO_SRCS) $(CLIENT_PROTO_SRCS)
 
-csv: $(CSV_PROTO_SRCS) $(CSV_CONTAINER_SRCS)
+csv: $(CSV_LOADER_SRCS) $(CSV_CONTAINER_SRCS)
 
 ext: $(EXT_PROTO_SRCS) $(EXT_PY_SRCS)
 

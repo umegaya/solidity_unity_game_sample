@@ -48,6 +48,15 @@ var toBytes = (hexdump) => {
     return buff;
 }
 
+var numToBytes = (num) => {
+    var buff = [];
+    while (num != 0) {
+        buff.push(num & 0xFF);
+        num >>= 8;
+    }
+    return new Buffer(buff);
+}
+
 var getDockerHost = () => {
     if (process.env.DOCKER_HOST) {
         //docker machine
@@ -90,6 +99,7 @@ var estReclaimValue = (card) => {
 module.exports = {
     chop: chop,
     toBytes: toBytes,
+    numToBytes: numToBytes,
     Progress: Progress,
     getDockerHost: getDockerHost,
     getMinikubeHost: getMinikubeHost,

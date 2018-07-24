@@ -86,8 +86,9 @@ public class ViewModelMgr : MonoBehaviour {
     public IEnumerator InititalizeTask() {
         yield return UpdateBalance();
         var myaddr = RPCMgr.Account.address_;
-        yield return RPCMgr.Eth["Inventory"].Call("getSlotSize", myaddr);
-        var r = RPCMgr.Eth.CallResponse;
+        var call = RPCMgr.Eth["Inventory"].Call();
+        yield return call.Exec("getSlotSize", myaddr);
+        var r = call;
         if (r.Error != null) {
             yield return Raise("InititalizeTask(getSlotSize)", r.Error);
         } else {
@@ -99,8 +100,9 @@ public class ViewModelMgr : MonoBehaviour {
             } else {
                 Debug.Log("Inventory getSlotSize:" + slot_size);
                 for (int i = 0; i < slot_size; i++) {
-                    yield return RPCMgr.Eth["Inventory"].Call("getSlotBytesAndId", myaddr, i);
-                    r = RPCMgr.Eth.CallResponse;
+                    call = RPCMgr.Eth["Inventory"].Call();
+                    yield return call.Exec("getSlotBytesAndId", myaddr, i);
+                    r = call;
                     if (r.Error != null) {
                         yield return Raise("InititalizeTask(getSlotBytesAndId)", r.Error);
                     } else {
@@ -130,8 +132,9 @@ public class ViewModelMgr : MonoBehaviour {
                 new System.Exception("fail to parse as biginteger:" + (string)json["balance"]));
         }
         Balance = bi;
-        yield return RPCMgr.Eth["Moritapo"].Call("balanceOf", RPCMgr.Account.address_);
-        TokenBalance = (BigInteger)RPCMgr.Eth.CallResponse.Result[0].Result;
+        var call = RPCMgr.Eth["Moritapo"].Call();
+        yield return call.Exec("balanceOf", RPCMgr.Account.address_);
+        TokenBalance = (BigInteger)call.Result[0].Result;
         Debug.Log("new balance:" + TokenBalance + "(" + Balance + ")");
     }
     IEnumerator CreateInitialDeck(uint selected_idx = 0) {

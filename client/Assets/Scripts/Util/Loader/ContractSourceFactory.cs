@@ -44,6 +44,8 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
                 Debug.Assert(false);
             }
         }
+
+        internal void Rewind() { pos_ = 0; }
     }
 
     public DataLoader.IDataSource Source { get; set; }
@@ -76,19 +78,20 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
             loader.Error = new System.Exception("contract not exists: name = " + contract);
             yield break;
         }
-        yield return eth[contract].Call("recordIdDiff", name, current_gen);
-        if (eth.CallResponse.Error != null) {
-            loader.Error = eth.CallResponse.Error;
+        var call = eth[contract].Call();
+        yield return call.Exec("recordIdDiff", name, current_gen);
+        if (call.Error != null) {
+            loader.Error = call.Error;
             yield break;
         }
         int next_gen;
         List<List<byte[]>> ids;
         try {
-            if (int.TryParse(eth.CallResponse.As<BigInteger>(0).ToString(), out next_gen) && next_gen > 0) {
-                ids = eth.CallResponse.As<List<List<byte[]>>>(1);
+            if (int.TryParse(call.As<BigInteger>(0).ToString(), out next_gen) && next_gen > 0) {
+                ids = call.As<List<List<byte[]>>>(1);
             } else {
-                throw new System.Exception("gen number is too big or out of range:" + 
-                    eth.CallResponse.As<BigInteger>(0).ToString());
+                throw new System.Exception(name + ":gen number is too big or out of range:" + 
+                    call.As<BigInteger>(0).ToString());
             }
         } catch (System.Exception e) {
             Debug.Log("recordIdDiff error:" + e.Message);
@@ -101,7 +104,7 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
             HashSet<byte[]> hs = new HashSet<byte[]>();
             //de-dupe duplicate record (update multiple time since last updated time)
             for (int i = 0; i < ids.Count; i++) {
-                for (int j = 0; j < ids[i].Count; i++) {
+                for (int j = 0; j < ids[i].Count; j++) {
                     hs.Add(ids[i][j]);
                 }
             }
@@ -111,13 +114,15 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
             //then query updated records
             for (int n_query = 0; n_query < updated_ids_distinct.Length; n_query += BATCH_QUERY_SIZE) {
                 var batch_ids = updated_ids_distinct.Skip(n_query).Take(BATCH_QUERY_SIZE).ToArray();
-                yield return eth[contract].Call("getRecords", name, batch_ids);
-                if (eth.CallResponse.Error != null) {
-                    loader.Error = eth.CallResponse.Error;
+                Debug.Log(name + ": n_query = " + n_query + " and " + batch_ids.Length);
+                call = eth[contract].Call();
+                yield return call.Exec("getRecords", name, batch_ids);
+                if (call.Error != null) {
+                    loader.Error = call.Error;
                     yield break;
                 }
                 try {
-                    var rs = eth.CallResponse.AsArray<R>(parser, 0);
+                    var rs = call.AsArray<R>(parser, 0);
                     for (int i = n_query; i < (n_query + batch_ids.Length); i++) {
                         local_records[batch_ids[i - n_query]] = rs[i];
                         updated_records[i] = rs[i];
@@ -134,6 +139,8 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
                 loader.Error = err;
                 yield break;
             }
+        } else {
+            Debug.Log(name + ": no update since last access:" + local_records.Count);
         }
 
         //set source
@@ -142,6 +149,7 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
         foreach (var kv in local_records) {
             s.Add(kv.Value);
         }
+        s.Rewind();
         yield break;
     }
 }
