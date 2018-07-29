@@ -43,4 +43,15 @@ library CalcUtil {
     bytes memory bs = sa.loadBytes(hash);
     cs = pb_ch_CardSpec.decode(bs);
   }
+
+  function getCard(StorageAccessor sa, uint id) internal view returns (pb_ch_Card.Data cat, bool found) {
+    bytes memory c = sa.loadBytes(id);
+    if (c.length > 0) {
+      cat = pb_ch_Card.decode(c);
+      found = true;
+    } else {
+      found = false;
+    }
+  }
+
 }

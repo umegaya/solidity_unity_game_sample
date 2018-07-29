@@ -86,8 +86,8 @@ public class ViewModelMgr : MonoBehaviour {
     public IEnumerator InititalizeTask() {
         yield return UpdateBalance();
         var myaddr = RPCMgr.Account.address_;
-        var call = RPCMgr.Eth["Inventory"].Call();
-        yield return call.Exec("getSlotSize", myaddr);
+        var call = RPCMgr.Eth["Inventory"].Call("getSlotSize");
+        yield return call.Exec(myaddr);
         var r = call;
         if (r.Error != null) {
             yield return Raise("InititalizeTask(getSlotSize)", r.Error);
@@ -100,14 +100,14 @@ public class ViewModelMgr : MonoBehaviour {
             } else {
                 Debug.Log("Inventory getSlotSize:" + slot_size);
                 for (int i = 0; i < slot_size; i++) {
-                    call = RPCMgr.Eth["Inventory"].Call();
-                    yield return call.Exec("getSlotBytesAndId", myaddr, i);
+                    call = RPCMgr.Eth["Inventory"].Call("getSlotBytesAndId");
+                    yield return call.Exec(myaddr, i);
                     r = call;
                     if (r.Error != null) {
                         yield return Raise("InititalizeTask(getSlotBytesAndId)", r.Error);
                     } else {
                         var id = (System.Numerics.BigInteger)r.Result[0].Result;
-                        var card = r.As<Ch.Card>(Ch.Card.Parser, 1);
+                        var card = r.AsMsg<Ch.Card>(Ch.Card.Parser, 1);
                         Debug.Log("Inventory.getSlotBytes card[" + id.ToString() + "]:" + card.SpecId);
                         Inventory.AddCard(id, card);
                     }
@@ -132,9 +132,9 @@ public class ViewModelMgr : MonoBehaviour {
                 new System.Exception("fail to parse as biginteger:" + (string)json["balance"]));
         }
         Balance = bi;
-        var call = RPCMgr.Eth["Moritapo"].Call();
-        yield return call.Exec("balanceOf", RPCMgr.Account.address_);
-        TokenBalance = (BigInteger)call.Result[0].Result;
+        var call = RPCMgr.Eth["Moritapo"].Call("balanceOf");
+        yield return call.Exec(RPCMgr.Account.address_);
+        TokenBalance = call.As<BigInteger>(0);
         Debug.Log("new balance:" + TokenBalance + "(" + Balance + ")");
     }
     IEnumerator CreateInitialDeck(uint selected_idx = 0) {

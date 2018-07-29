@@ -2,9 +2,10 @@ pragma solidity ^0.4.24;
 
 import './libs/math/SafeMath.sol';
 import "./libs/token/ERC721/ERC721Token.sol";
-import './Constants.sol';
 import './libs/Restrictable.sol';
+import './Constants.sol';
 
+//this contract cannot be upgradable easily, so please do not add complex features in this contract.
 contract Cards is ERC721Token, Restrictable, Constants {
 
   string public constant NAME= "Caravan Heroes Cards";
@@ -27,8 +28,7 @@ contract Cards is ERC721Token, Restrictable, Constants {
     super.transferFrom(from, to, card_id);
   }
 
-  function merged(address user, uint target_card_id) public writer {
-    //burn merged card
+  function burn(address user, uint target_card_id) public writer {
     _burn(user, target_card_id);
   }
 

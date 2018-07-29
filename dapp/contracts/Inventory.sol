@@ -64,15 +64,6 @@ contract Inventory is StorageAccessor, Restrictable {
   function getPrice(uint id) public view returns (uint) {
     return prices_[id];
   }
-  function getCard(uint id) internal view returns (pb_ch_Card.Data cat, bool found) {
-      bytes memory c = loadBytes(id);
-      if (c.length > 0) {
-        cat = pb_ch_Card.decode(c);
-        found = true;
-      } else {
-        found = false;
-      }
-  }
   function canReleaseCard(address user) public view returns (bool) {
     //cannot be the 'no card' status
     return cards_.balanceOf(user) > 1;
@@ -87,11 +78,11 @@ contract Inventory is StorageAccessor, Restrictable {
     require(target_card_id != merged_card_id);
     bool tmp;
     pb_ch_Card.Data memory ca;
-    (ca, tmp) = getCard(target_card_id);
+    (ca, tmp) = CalcUtil.getCard(this, target_card_id);
     require(tmp);
 
     pb_ch_Card.Data memory cb;
-    (cb, tmp) = getCard(merged_card_id);
+    (cb, tmp) = CalcUtil.getCard(this, merged_card_id);
     require(tmp); //*/
 
     require(ca.spec_id == cb.spec_id);
@@ -155,7 +146,7 @@ contract Inventory is StorageAccessor, Restrictable {
     //issue events
     emit Merge(user, source_card_id, target_card_id, bs);
     //burn merged card
-    cards_.merged(user, target_card_id);
+    cards_.burn(user, target_card_id);
     return bs;
   }
   function mintCard(address user) public writer returns (uint) {

@@ -5,16 +5,32 @@ package ch;
 import "LoaderSchema.proto";
 
 message CardSpec {
+    enum Rarity {
+        Invalid = 0;    //appearance ratio when Mythical=1
+        Common = 1;     //5000
+        Uncommon = 2;   //2250
+        Rare = 3;       //250  
+        //above means 30 cards will contain 1 rare, 9 uncommon, 20 common
+        Legendary = 4;  //50
+        Epic = 5;       //5
+        Mythical = 6;   //1
+    }
+    enum Kind {
+        None = 0;
+        Creature = 1;
+        Spell = 2;
+        Building = 3;
+    }
     uint32 version = 1;
     uint32 id = 2 [(suntomi.pb.field_options).id = true];
-    uint32 issuance = 3;
+    Kind kind = 3;
     string name = 4;
     uint32 hp = 5;
     uint32 attack = 6;
     uint32 defense = 7;
     uint32 speed = 8;
     uint32 flags = 9;
-    uint32 rarity = 10;
+    Rarity rarity = 10;
     repeated uint32 skill = 11;
 
     option (suntomi.pb.message_options) = {

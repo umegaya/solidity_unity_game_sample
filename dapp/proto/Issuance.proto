@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package ch;
+
+message Issuance {
+    message Stat {
+        uint32 limit = 1;
+        uint32 current = 2;    
+    }
+    uint32 version = 1;
+    //limit/current number of issued card for each regular/insert version (insert_flags is key)
+    //no entry means no card of that type, is issued. 
+    //limit = 0 means no limit for the issuance of the card.
+    map<uint32, Stat> stats = 3;  
+}

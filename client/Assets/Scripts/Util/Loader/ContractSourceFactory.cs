@@ -6,6 +6,8 @@ using System.Reflection;
 using System.Linq;
 using System.Text.RegularExpressions;
 
+using Nethereum.ABI.FunctionEncoding.Attributes;
+
 using UnityEngine;
 
 using BigInteger = System.Numerics.BigInteger;
@@ -50,6 +52,15 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
 
     public DataLoader.IDataSource Source { get; set; }
 
+    [FunctionOutput]
+    public class RecordIdDiffOutput {
+        [Parameter("uint", 1)]
+        public BigInteger NextGen { get; set; }
+        
+        [Parameter("bytes[][]", 2)]
+        public List<List<byte[]>> IdChunks { get; set; }
+    }
+
     public IEnumerator Load<R>(DataLoader.IResultReceiver loader, string path)
         where R : Google.Protobuf.IMessage<R> {
         //get message parser by reflection
@@ -78,8 +89,9 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
             loader.Error = new System.Exception("contract not exists: name = " + contract);
             yield break;
         }
-        var call = eth[contract].Call();
-        yield return call.Exec("recordIdDiff", name, current_gen);
+        var call = eth[contract].Call("recordIdDiff");
+        Debug.Log("curent_gen:" + current_gen);
+        yield return call.Exec(name, current_gen);
         if (call.Error != null) {
             loader.Error = call.Error;
             yield break;
@@ -87,14 +99,15 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
         int next_gen;
         List<List<byte[]>> ids;
         try {
-            if (int.TryParse(call.As<BigInteger>(0).ToString(), out next_gen) && next_gen > 0) {
-                ids = call.As<List<List<byte[]>>>(1);
+            var dto = call.AsDTO<RecordIdDiffOutput>();
+            if (int.TryParse(dto.NextGen.ToString(), out next_gen) && next_gen > 0) {
+                ids = dto.IdChunks;
             } else {
                 throw new System.Exception(name + ":gen number is too big or out of range:" + 
-                    call.As<BigInteger>(0).ToString());
+                    dto.NextGen.ToString());
             }
         } catch (System.Exception e) {
-            Debug.Log("recordIdDiff error:" + e.Message);
+            Debug.Log("recordIdDiff error:" + e.Message + " at " + e.StackTrace);
             loader.Error = e;
             yield break;
         }
@@ -115,14 +128,14 @@ public class ContractSourceFactory : DataLoader.IDataSourceFactory {
             for (int n_query = 0; n_query < updated_ids_distinct.Length; n_query += BATCH_QUERY_SIZE) {
                 var batch_ids = updated_ids_distinct.Skip(n_query).Take(BATCH_QUERY_SIZE).ToArray();
                 Debug.Log(name + ": n_query = " + n_query + " and " + batch_ids.Length);
-                call = eth[contract].Call();
-                yield return call.Exec("getRecords", name, batch_ids);
+                call = eth[contract].Call("getRecords");
+                yield return call.Exec(name, batch_ids);
                 if (call.Error != null) {
                     loader.Error = call.Error;
                     yield break;
                 }
                 try {
-                    var rs = call.AsArray<R>(parser, 0);
+                    var rs = call.AsMsgs<R>(parser, 0);
                     for (int i = n_query; i < (n_query + batch_ids.Length); i++) {
                         local_records[batch_ids[i - n_query]] = rs[i];
                         updated_records[i] = rs[i];

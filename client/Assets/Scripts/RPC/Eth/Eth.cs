@@ -29,135 +29,93 @@ public class Eth : MonoBehaviour {
     }
     public class ContractWrapper {
         public class BaseRequest {
-            public BaseRequest(ContractWrapper c) { cw_ = c; }
+            public BaseRequest(ContractWrapper c, string func) { 
+                cw_ = c; 
+                Function = Contract.GetFunction(func);
+            }
             private ContractWrapper cw_;
             public Contract Contract { get { return cw_.c_; } }
             public Eth Owner { get { return cw_.owner_; } }
             public double DefaultGas { get { return Owner.default_gas_; }}
             public System.Exception Error { get; set; }
+            public Function Function { get; set; }
         }
         public class CallRequest : BaseRequest {
             EthCallUnityRequest req_;
-            public List<ParameterOutput> Result { get; set; }
+            public List<ParameterOutput> Result { 
+                get {
+                    if (ResultCache_ == null) {
+                        ResultCache_ = Function.DecodeResponse(req_.Result);
+                    }
+                    return ResultCache_;
+                }
+            }
+            protected List<ParameterOutput> ResultCache_;
 
-            public CallRequest(ContractWrapper cw) : base(cw) {
+            public CallRequest(ContractWrapper cw, string func) : base(cw, func) {
                 req_ = new EthCallUnityRequest(RPCMgr.instance.Account.chain_url_);
             }
 
-            public M As<M>(Google.Protobuf.MessageParser<M> p, int startIndex) where M : Google.Protobuf.IMessage<M> {
-                return p.ParseFrom((byte[])Result[startIndex].Result);
+            public M AsMsg<M>(Google.Protobuf.MessageParser<M> p, int at) where M : Google.Protobuf.IMessage<M> {
+                return p.ParseFrom((byte[])Result[at].Result);
             }
-            public M[] AsArray<M>(Google.Protobuf.MessageParser<M> p, int startIndex) where M : Google.Protobuf.IMessage<M> {
-                var bs = (List<byte[]>)Result[startIndex].Result;
+            public M[] AsMsgs<M>(Google.Protobuf.MessageParser<M> p, int at) where M : Google.Protobuf.IMessage<M> {
+                var bs = (List<byte[]>)Result[at].Result;
                 M[] rets = new M[bs.Count];
                 for (int i = 0; i < bs.Count; i++) {
                     rets[i] = p.ParseFrom(bs[i]);
                 }
                 return rets;
             }
-            public T As<T>(int startIndex) {
-                return (T)Result[startIndex].Result;
+            public T As<T>(int at) {
+                return (T)Result[at].Result;
+            }
+            public T AsDTO<T>() where T : new() {
+                return Function.DecodeDTOTypeOutput<T>(req_.Result);
             }
 
-            public IEnumerator Exec(string func, params object[] args) { 
-                return Exec3(func, DefaultGas, 0, args); }
-            public IEnumerator Exec2(string func, double value_wei, params object[] args) { 
-                return Exec3(func, DefaultGas, value_wei, args); }
-            public IEnumerator Exec3(string func, double gas, double value_wei, params object[] args) {
-                var fn = Contract.GetFunction(func);
+            public IEnumerator Exec(params object[] args) { 
+                return Exec3(DefaultGas, 0, args); }
+            public IEnumerator Exec2(double value_wei, params object[] args) { 
+                return Exec3(DefaultGas, value_wei, args); }
+            public IEnumerator Exec3(double gas, double value_wei, params object[] args) {
                 yield return req_.SendRequest(
-                    fn.CreateCallInput(RPCMgr.instance.Account.address_,
+                    Function.CreateCallInput(RPCMgr.instance.Account.address_,
                         new HexBigInteger(new BigInteger(gas)), 
                         new HexBigInteger(new BigInteger(value_wei)), 
                         args), 
                     Nethereum.RPC.Eth.DTOs.BlockParameter.CreateLatest());
-                ParseResponse(fn, req_);
-            }
-            protected void ParseResponse(Function fn, UnityRequest<string> req) {
-                var r = this;
-                if (req.Exception != null) {
-                    r.Error = req.Exception;
-                    r.Result = null;
-                } else {
-                    try {
-                        r.Result = fn.DecodeResponse(req.Result);
-                        r.Error = null;
-                    } catch (System.Exception ex) {
-                        r.Error = ex;
-                        r.Result = null;
-                    }
-                }
             }
         }
 
         public class SendRequest : BaseRequest {
             TransactionSignedUnityRequest req_;
-            public Receipt Result { get; set; }
+            public Nethereum.RPC.Eth.DTOs.TransactionReceipt Result { get; set; }
 
-            public SendRequest(ContractWrapper cw) : base(cw) {
+            public SendRequest(ContractWrapper cw, string func) : base(cw, func) {
                 req_ = new TransactionSignedUnityRequest(RPCMgr.instance.Account.chain_url_,
                     RPCMgr.instance.Account.PrivateKey,
                     RPCMgr.instance.Account.address_);
             }
-            public IEnumerator Exec(string func, params object[] args) { 
-                return Exec3(func, DefaultGas, 0, args); 
+            public IEnumerator Exec(params object[] args) { 
+                return Exec3(DefaultGas, 0, args); 
             }
-            public IEnumerator Exec2(string func, double value_wei, params object[] args) { 
-                return Exec3(func, DefaultGas, value_wei, args); 
+            public IEnumerator Exec2(double value_wei, params object[] args) { 
+                return Exec3(DefaultGas, value_wei, args); 
             }
-            public IEnumerator Exec3(string func, double gas, double value_wei, params object[] args) {
+            public IEnumerator Exec3(double gas, double value_wei, params object[] args) {
                 Debug.Log("gas/value = " + gas + "|" + value_wei);
-                var fn = Contract.GetFunction(func);
                 yield return req_.SignAndSendTransaction(
-                    fn.CreateTransactionInput(RPCMgr.instance.Account.address_, 
+                    Function.CreateTransactionInput(RPCMgr.instance.Account.address_, 
                         new HexBigInteger(new BigInteger(gas)), 
                         new HexBigInteger(new BigInteger(value_wei)), args));
-                var get_receipt = new GetTransactionReceiptRequest(RPCMgr.instance.Account.chain_url_);
-                int retry = 0;
-                do {
-                    if (retry > 0) {
-                        if (retry > 100) {
-                            break;
-                        }
-                        Debug.Log("retry get receipt:" + retry);
-                        yield return new Engine.FiberManager.Sleep(0.5f);
-                    }
-                    yield return get_receipt.SendRequest(
-                        req_.Result
-                    );
-                    retry++;
-                } while (ParseResponse(fn, get_receipt) == 0);
-            }
-            public int ParseResponse(Function fn, UnityRequest<Dictionary<string, object>> req) {
-                try {
-                    var r = this;
-                    if (req.Exception != null) {
-                        r.Error = req.Exception;
-                        r.Result = null;
-                        Debug.Log("parseSendResposne request error:" + r.Error.Message);
-                        return -1;
-                    } else if (req.Result == null) {
-                        Debug.Log("tx not returns");
-                        return 0;
-                    } else {
-                        var txr = new Receipt(req.Result, Contract);
-                        txr.Dump();
-                        r.Error = null;
-                        r.Result = txr;
-                        for (int i = 0; i < txr.Logs.Count; i++) {
-                            Owner.subject_.OnNext(
-                                new Event{ Type = EventType.TxLog, Log = new Receipt.Log(txr.Logs[i], Contract) }
-                            );
-                        }
-                        return 1;
-                    }
-                } catch (System.Exception ex) {
-                    Debug.Log("parseSendResposne error:" + ex.StackTrace);
-                    var r = this;
-                    r.Error = ex;
-                    r.Result = null;
-                    return 0;
+                var receipt_waiter = new TransactionReceiptPollingRequest(RPCMgr.instance.Account.chain_url_);
+                yield return receipt_waiter.PollForReceipt(req_.Result, 60);
+                if (receipt_waiter.Exception != null) {
+                    Error = receipt_waiter.Exception;
+                    yield break;
                 }
+                Result = receipt_waiter.Result;
             }
         }
 
@@ -169,8 +127,8 @@ public class Eth : MonoBehaviour {
             owner_ = owner;
             c_ = new Contract(null, abi, addr);
         }
-        public CallRequest Call() { return new CallRequest(this); }
-        public SendRequest Send() { return new SendRequest(this); }
+        public CallRequest Call(string fn) { return new CallRequest(this, fn); }
+        public SendRequest Send(string fn) { return new SendRequest(this, fn); }
 
     }
     [System.Serializable] public struct ContractEntry {

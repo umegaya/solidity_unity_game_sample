@@ -34,7 +34,7 @@ def generate_code(dir):
     output.append(I+"public override IEnumerator Load(Dictionary<string, string> locs) {")
     for p in ps:
         output.append(I+I+(
-            "yield return {0}.Load(loader, basepath + \"{0}.csv\");" + 
+            "yield return {0}.Load(this, locs[\"{0}\"]);" + 
             "if (Error != null) {{ yield break; }}"
         ).format(p))
     output.append(I+"}")

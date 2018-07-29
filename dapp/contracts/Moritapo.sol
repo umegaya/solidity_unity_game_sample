@@ -8,6 +8,7 @@ import './libs/token/ERC20/StandardToken.sol';
 import './Constants.sol';
 import './libs/Restrictable.sol';
 
+//this contract cannot be upgradable easily, so please do not add complex features in this contract.
 contract Moritapo is StandardToken, Restrictable, Constants {
 
   string public constant name = "Moritapo";

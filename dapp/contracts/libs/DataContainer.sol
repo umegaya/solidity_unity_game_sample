@@ -16,6 +16,8 @@ contract DataContainer is StorageAccessor, Restrictable {
     } 
 
     //data name => (modification generation => modified ids)
+    //TODO: should be protobuf, bytes cannot be a key of map in protobuf,
+    //so idmaps regenerate after other data recover from storage
     struct History {
         uint current_gen;
         mapping(uint => bytes[]) updated_by_gen;

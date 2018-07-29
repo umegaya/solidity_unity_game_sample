@@ -3,8 +3,13 @@ syntax = "proto3";
 package ch;
 
 message Card {
+    enum InsertFlags {
+        None = 0;
+        Aura = 1;       //particle effect
+        Shiny = 2;      //holographic effect (using Accelerometer. possible?)
+        Signature = 4;  //signature of artist (overlayed)
+    }
     uint32 spec_id = 1;       //card's spec (cost/hp/atk/def/speed...)
-    uint32 visual_flags = 2;  //special effect, different graphic, for same card. 
-    uint32 level = 3;         //stack level. like CoC. 
-    bytes  bs = 4;            //byte values. b1: card rarity. 
+    uint32 insert_flags = 2;  //special effect, different graphic, for same card. 
+    uint32 stack = 3;         //card stack level. calculate card level from this value, like CR. 
 }
