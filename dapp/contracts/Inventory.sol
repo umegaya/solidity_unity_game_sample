@@ -10,6 +10,7 @@ import "./libs/math/Math.sol";
 import "./CalcUtil.sol";
 import "./Constants.sol";
 import "./Cards.sol";
+import "./Issuance.sol";
 
 //TODO: make it ERC721 compatible
 contract Inventory is StorageAccessor, Restrictable {
@@ -24,6 +25,7 @@ contract Inventory is StorageAccessor, Restrictable {
   uint idSeed_;
   mapping(uint => uint) prices_;
   Cards cards_;
+  Issuance issuances_;
 
 
   //events
@@ -34,12 +36,20 @@ contract Inventory is StorageAccessor, Restrictable {
 
 
   //ctor
-  constructor(address storageAddress, address cardsAddress)  
+  constructor(address storageAddress, address cardsAddress, address issuancesAddress)  
     StorageAccessor(storageAddress) 
     Restrictable() public {
+    issuances_ = Issuance(issuancesAddress);
     cards_ = Cards(cardsAddress);
     idSeed_ = 1;
   } 
+
+  function setCard(address cardsAddress) public writer {
+    cards_ = Cards(cardsAddress);
+  }
+  function setIssuances(address issuancesAddress) public writer {
+    issuances_ = Issuance(issuancesAddress);
+  }
 
 
   //reader
@@ -74,7 +84,7 @@ contract Inventory is StorageAccessor, Restrictable {
     return CalcUtil.evaluate(new_card, this);
   }
   function createMergedCard(
-    uint target_card_id, uint merged_card_id) internal view returns (pb_ch_Card.Data card) {
+    uint target_card_id, uint merged_card_id) internal view returns (pb_ch_Card.Data memory card) {
     require(target_card_id != merged_card_id);
     bool tmp;
     pb_ch_Card.Data memory ca;
@@ -88,10 +98,8 @@ contract Inventory is StorageAccessor, Restrictable {
     require(ca.spec_id == cb.spec_id);
 
     card.spec_id = ca.spec_id;
-    card.bs = new bytes(4);
-    card.bs[0] = ca.bs[0];
-    card.level = ca.level + 1;
-    card.visual_flags = ca.visual_flags;
+    card.stack = ca.stack + 1;
+    card.insert_flags = ca.insert_flags;
   }
 
 
@@ -152,16 +160,15 @@ contract Inventory is StorageAccessor, Restrictable {
   function mintCard(address user) public writer returns (uint) {
     PRNG.Data memory rnd;
     return mintFixedCard(user, 
-      uint32(rnd.gen2(1, 10000)), CalcUtil.RandomVisualFlag(), 1);
+      uint32(rnd.gen2(1, 10000)), CalcUtil.RandomInsertFlag(), 1);
   }
   function mintFixedCard(address user, 
-                      uint32 spec_id, uint32 visual_flags, uint32 level) 
+                      uint32 spec_id, uint32 insert_flags, uint32 stack) 
                       public writer returns (uint) {
     pb_ch_Card.Data memory c;
     c.spec_id = spec_id;
-    c.visual_flags = visual_flags;
-    c.level = level;
-    c.bs = new bytes(4);
+    c.insert_flags = insert_flags;
+    c.stack = stack;
     return mintFixedCard(user, c); //*/
   }
   function mintFixedCard(address user, pb_ch_Card.Data card) internal writer returns (uint) {

@@ -12,4 +12,13 @@ contract Constants {
 
   //token price doubled for every 10 million token sold
   uint256 public constant TOKEN_DOUBLED_AMOUNT_THRESHOULD = 10**7; 
+
+  //how many card packed in starter pack?
+  uint256 public constant STARTER_PACK_CARD_COUNT = 12;
+
+  //max shop entry
+  uint256 public constant MAX_SHOP_ENTRY = 3;
+
+  //shop sale duration
+  uint256 public constant SHOP_SALE_DURATION_IN_SEC = 86400; //24h
 }

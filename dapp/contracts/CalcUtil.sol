@@ -11,12 +11,12 @@ library CalcUtil {
   using pb_ch_CardSpec for pb_ch_CardSpec.Data;
 
   function evaluate(pb_ch_Card.Data c, StorageAccessor sa) internal view returns (uint price) {
-    uint rarity = Rarity(c, sa);
+    int rarity = Rarity(c, sa);
     uint one = 1;
-    price = (one << c.level) * (1 + NumberOfSetBits(c.visual_flags)) * (1 << rarity) * 100;
+    price = (one << c.stack) * (1 + NumberOfSetBits(c.insert_flags)) * (1 << uint(rarity)) * 100;
   }
 
-  function Rarity(pb_ch_Card.Data c, StorageAccessor sa) internal view returns (uint) {
+  function Rarity(pb_ch_Card.Data c, StorageAccessor sa) internal view returns (int) {
     pb_ch_CardSpec.Data memory cs = getCardSpec(sa, c.spec_id);
     return cs.rarity;
   }
@@ -32,7 +32,7 @@ library CalcUtil {
     else { return 0; }
   }
 
-  function RandomVisualFlag() public view returns (uint32) {
+  function RandomInsertFlag() public view returns (uint32) {
     PRNG.Data memory rnd;
     return uint32(rnd.gen2(0, 7));
   }

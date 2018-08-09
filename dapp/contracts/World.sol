@@ -2,13 +2,13 @@ pragma solidity ^0.4.24;
 
 import "./Inventory.sol";
 import "./Moritapo.sol";
+import "./User.sol";
 import "./Constants.sol";
 import "./libs/Restrictable.sol";
 import "./libs/pb/Card_pb.sol";
 import "./libs/PRNG.sol";
 import "./CalcUtil.sol";
 
-//TODO: make this ERC721 token
 contract World is Restrictable, Constants {
   //defs
   using PRNG for PRNG.Data;
@@ -17,6 +17,7 @@ contract World is Restrictable, Constants {
   //variables
   Moritapo token_;
   Inventory inventory_;
+  User users_;
   uint tokenSold_;
   uint clock_; //current world date time. updated with minutes frequency from authorized host
 
@@ -31,14 +32,24 @@ contract World is Restrictable, Constants {
   event Error(address sender, uint require, uint allowance);
 
   //ctor
-  constructor(address tokenAddress, address inventoryAddress) Restrictable() public {
+  constructor(address tokenAddress, address inventoryAddress, address userAddress) Restrictable() public {
     token_ = Moritapo(tokenAddress); 
     //msg.sender should be initial owner of all token
     require(token_.balanceOf(msg.sender) > 0);
     inventory_ = Inventory(inventoryAddress);
+    users_ = User(userAddress);
     tokenSold_ = 0;
   }
 
+  function setInventory(address inventoryAddress) public writer {
+    inventory_ = Inventory(inventoryAddress);
+  }
+  function setToken(address tokenAddress) public writer {
+    token_ = Moritapo(tokenAddress);
+  }
+  function setUsers(address userAddress) public writer {
+    users_ = User(userAddress);
+  }
 
   //reader
   function getTokenBalance() public view returns (uint256) {
@@ -149,4 +160,27 @@ contract World is Restrictable, Constants {
     uint base_price = CalcUtil.evaluate(card, inventory_);
     return mergeFeeFromCardValue(base_price);
   }
+
+  function starterPack(address target, uint32[] spec_ids, uint32[] prns) public writer {
+    if (inventory_.getSlotSize(target) != 0) {
+      return;
+    }
+    require(spec_ids.length == STARTER_PACK_CARD_COUNT);
+    require(prns.length == STARTER_PACK_CARD_COUNT);
+    for (uint i = 0; i < STARTER_PACK_CARD_COUNT; i++) {
+      inventory_.mintFixedCard(target, spec_ids[i], prns[i] & 7, 0);
+    }
+  } 
+
+  /*function updateShopList(address target) public writer {
+
+  }
+
+  function spawnTreasureBox(address target) public writer {
+
+  }
+
+  function hasBoxSlots(address target) public view returns (bool) {
+    return true;
+  }*/
 }
