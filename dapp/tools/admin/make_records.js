@@ -53,12 +53,15 @@ const toBuffer = (src) => {
 }
 
 const toValue = (ft, val) => {
-    if (ft.startsWith('uint') || ft.startsWith('int') || ft == 'double' || ft == 'float') {
+    if (typeof(ft) == 'object') {
+        //should be enum (message cannot be in csv column)
+        return ft.values[val];
+    } else if (ft.startsWith('uint') || ft.startsWith('int') || ft == 'double' || ft == 'float') {
         return Number(val);
     } else if (ft == 'bool') {
         return (val == 'true');
     } else if (ft == 'bytes') {
-        return new Buffer(val, 'hex');
+        return Buffer.from(val, 'hex');
     } else if (ft == 'string') {
         return val;
     } else {
@@ -70,7 +73,10 @@ const setValueByField = (obj, field, val) => {
     if (val.length <= 0) {
         return;
     }
-    const ft = field.type;
+    var ft = field.type;
+    if (field.resolvedType) {
+        ft = field.resolvedType;
+    }
     if (field.rule == 'repeated') {
         obj[field.name].push(toValue(ft, val));
     } else {

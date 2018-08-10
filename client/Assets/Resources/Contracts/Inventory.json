@@ -144,6 +144,10 @@
       {
         "name": "cardsAddress",
         "type": "address"
+      },
+      {
+        "name": "issuanceAddress",
+        "type": "address"
       }
     ],
     "payable": false,
@@ -237,6 +241,34 @@
     ],
     "name": "ConsumeTx",
     "type": "event"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "cardsAddress",
+        "type": "address"
+      }
+    ],
+    "name": "setCard",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "issuanceAddress",
+        "type": "address"
+      }
+    ],
+    "name": "setIssuances",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
     "constant": true,
@@ -571,11 +603,11 @@
         "type": "uint32"
       },
       {
-        "name": "visual_flags",
+        "name": "insert_flags",
         "type": "uint32"
       },
       {
-        "name": "level",
+        "name": "stack",
         "type": "uint32"
       }
     ],

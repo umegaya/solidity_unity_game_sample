@@ -8,7 +8,7 @@ import "./libs/pb/User_pb.sol";
 contract User is Restrictable, StorageAccessor {
   using pb_ch_User for pb_ch_User.Data;
 
-  constructor() Restrictable() public {
+  constructor(address storageAddress) Restrictable() StorageAccessor(storageAddress) public {
 
   }
 }

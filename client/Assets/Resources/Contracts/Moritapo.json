@@ -2,6 +2,20 @@
   {
     "constant": true,
     "inputs": [],
+    "name": "MAX_SHOP_ENTRY",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
     "name": "name",
     "outputs": [
       {
@@ -95,6 +109,20 @@
     "constant": true,
     "inputs": [],
     "name": "TOKEN_DOUBLED_AMOUNT_THRESHOULD",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "STARTER_PACK_CARD_COUNT",
     "outputs": [
       {
         "name": "",
@@ -272,6 +300,20 @@
       {
         "name": "",
         "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "SHOP_SALE_DURATION_IN_SEC",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
       }
     ],
     "payable": false,

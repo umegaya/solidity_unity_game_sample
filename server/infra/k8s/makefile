@@ -9,7 +9,7 @@ endef
 
 gcp_setup:
 	docker inspect gcloud-config || docker run -ti --name gcloud-config --entrypoint=gcloud umegaya/terraform auth application-default login
-	$(call gcloud,config set container/use_v1_api false)
+	#$(call gcloud,config set container/use_v1_api false)
 	$(call gcloud,config set project $(PROJECT_ID))
 
 gcp:

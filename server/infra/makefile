@@ -2,7 +2,7 @@
 # docker related
 # ----------------------------------------------------------------------------------
 image:
-	@docker build -t umegaya/terraform docker
+	@cd docker && docker build -t umegaya/terraform .
 
 
 # ----------------------------------------------------------------------------------
@@ -86,10 +86,6 @@ chain_spec:
 	@bash ./tools/create_mesh.sh
 	@bash ./tools/make_account.sh $(KUBEHOST)
 	@bash ./tools/make_chain_spec.sh
-
-
-
-
 
 
 

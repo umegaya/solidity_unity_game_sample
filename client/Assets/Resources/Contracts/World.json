@@ -2,7 +2,35 @@
   {
     "constant": true,
     "inputs": [],
+    "name": "MAX_SHOP_ENTRY",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
     "name": "TOKEN_DOUBLED_AMOUNT_THRESHOULD",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "STARTER_PACK_CARD_COUNT",
     "outputs": [
       {
         "name": "",
@@ -110,6 +138,20 @@
   {
     "constant": true,
     "inputs": [],
+    "name": "SHOP_SALE_DURATION_IN_SEC",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
     "name": "MRT_INITIAL_SUPPLY",
     "outputs": [
       {
@@ -166,6 +208,10 @@
       },
       {
         "name": "inventoryAddress",
+        "type": "address"
+      },
+      {
+        "name": "userAddress",
         "type": "address"
       }
     ],
@@ -319,6 +365,48 @@
     ],
     "name": "Error",
     "type": "event"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "inventoryAddress",
+        "type": "address"
+      }
+    ],
+    "name": "setInventory",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokenAddress",
+        "type": "address"
+      }
+    ],
+    "name": "setToken",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "userAddress",
+        "type": "address"
+      }
+    ],
+    "name": "setUsers",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
     "constant": true,
@@ -557,6 +645,28 @@
     ],
     "payable": false,
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "target",
+        "type": "address"
+      },
+      {
+        "name": "spec_ids",
+        "type": "uint32[]"
+      },
+      {
+        "name": "prns",
+        "type": "uint32[]"
+      }
+    ],
+    "name": "starterPack",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ]

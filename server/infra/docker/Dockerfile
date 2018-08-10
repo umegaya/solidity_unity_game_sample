@@ -1,6 +1,6 @@
 FROM hashicorp/terraform:light
 
-RUN apk add python
+RUN apk update && apk add python
 
 # Install the Google Cloud SDK. 
 ENV HOME / 

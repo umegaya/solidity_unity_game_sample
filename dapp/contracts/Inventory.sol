@@ -25,7 +25,7 @@ contract Inventory is StorageAccessor, Restrictable {
   uint idSeed_;
   mapping(uint => uint) prices_;
   Cards cards_;
-  Issuance issuances_;
+  Issuance issuance_;
 
 
   //events
@@ -36,10 +36,10 @@ contract Inventory is StorageAccessor, Restrictable {
 
 
   //ctor
-  constructor(address storageAddress, address cardsAddress, address issuancesAddress)  
+  constructor(address storageAddress, address cardsAddress, address issuanceAddress)  
     StorageAccessor(storageAddress) 
     Restrictable() public {
-    issuances_ = Issuance(issuancesAddress);
+    issuance_ = Issuance(issuanceAddress);
     cards_ = Cards(cardsAddress);
     idSeed_ = 1;
   } 
@@ -47,8 +47,8 @@ contract Inventory is StorageAccessor, Restrictable {
   function setCard(address cardsAddress) public writer {
     cards_ = Cards(cardsAddress);
   }
-  function setIssuances(address issuancesAddress) public writer {
-    issuances_ = Issuance(issuancesAddress);
+  function setIssuances(address issuanceAddress) public writer {
+    issuance_ = Issuance(issuanceAddress);
   }
 
 

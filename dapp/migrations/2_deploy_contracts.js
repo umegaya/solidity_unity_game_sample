@@ -3,6 +3,8 @@ var CalcUtil = artifacts.require("CalcUtil");
 var Moritapo = artifacts.require("Moritapo");
 var Inventory = artifacts.require("Inventory");
 var World = artifacts.require("World");
+var Issuance = artifacts.require("Issuance");
+var User = artifacts.require("User");
 var History = artifacts.require("History");
 var Cards = artifacts.require("Cards");
 var DataContainer = artifacts.require("DataContainer");
@@ -47,11 +49,15 @@ module.exports = function(deployer) {
   }).then(function () {
     return deployer.deploy(DataContainer, Storage.address);
   }).then(function () {
+    return deployer.deploy(Issuance, Storage.address);
+  }).then(function () {
+    return deployer.deploy(User, Storage.address);
+  }).then(function () {
     Inventory.link(CalcUtil);
-    return deployer.deploy(Inventory, Storage.address, Cards.address);
+    return deployer.deploy(Inventory, Storage.address, Cards.address, Issuance.address);
   }).then(function () {
     World.link(CalcUtil);
-    return deployer.deploy(World, Moritapo.address, Inventory.address);
+    return deployer.deploy(World, Moritapo.address, Inventory.address, User.address);
   }).then(function () {
     return Storage.at(Storage.address).then(function (instance) {
       return instance.setPrivilege(Inventory.address, PRIV_WRITABLE);
