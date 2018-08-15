@@ -1,24 +1,23 @@
 pragma solidity ^0.4.24;
 
-import "./Inventory.sol";
-import "./Moritapo.sol";
-import "./User.sol";
-import "./Constants.sol";
 import "./libs/Restrictable.sol";
-import "./libs/pb/Card_pb.sol";
 import "./libs/PRNG.sol";
-import "./CalcUtil.sol";
+import "./libs/if/ICurrency.sol";
+import "./libs/if/IAsset.sol";
+import "./libs/if/IMinter.sol";
+import "./libs/if/IUser.sol";
 
-contract World is Restrictable, Constants {
+
+contract IWorld is Restrictable {
   //defs
   using PRNG for PRNG.Data;
 
 
   //variables
-  Moritapo token_;
-  Inventory inventory_;
-  User users_;
-  uint tokenSold_;
+  ICurrency currency_;
+  IMinter minter_;
+  IUser users_;
+  IAsset assets_;
   uint clock_; //current world date time. updated with minutes frequency from authorized host
 
 
@@ -29,84 +28,62 @@ contract World is Restrictable, Constants {
   event Transfer(address indexed from, address indexed to, uint256 value); //from ERC20.sol
   event Merge(address indexed user_a, address indexed user_b, uint id_a, uint id_b, uint new_id);
 
-  event Error(address sender, uint require, uint allowance);
+  event Error(address sender, uint require, uint allowance); //debug event
 
   //ctor
-  constructor(address tokenAddress, address inventoryAddress, address userAddress) Restrictable() public {
+  constructor(
+    address currencyAddress, 
+    address minterAddress, 
+    address userAddress
+    address assetAddress) Restrictable() public {
     token_ = Moritapo(tokenAddress); 
     //msg.sender should be initial owner of all token
-    require(token_.balanceOf(msg.sender) > 0);
-    inventory_ = Inventory(inventoryAddress);
-    users_ = User(userAddress);
-    tokenSold_ = 0;
+    require(currency_.balanceOf(msg.sender) > 0);
+    currency_ = ICurrency(currencyAddress);
+    minter_ = IMinter(minterAddress);
+    users_ = IUser(userAddress);
+    assets_ = IAsset(assetAddress);
+    clock_ = 0;
   }
 
-  function setInventory(address inventoryAddress) public writer {
-    inventory_ = Inventory(inventoryAddress);
+  //administraction
+  function setCurrency(address a) public admin {
+    currency_ = ICurrency(a);
   }
-  function setToken(address tokenAddress) public writer {
-    token_ = Moritapo(tokenAddress);
+  function setMinter(address a) public admin {
+    minter_ = IMinter(a);
   }
-  function setUsers(address userAddress) public writer {
-    users_ = User(userAddress);
+  function setUsers(address a) public admin {
+    users_ = IUser(a);
   }
-
-  //reader
-  function getTokenBalance() public view returns (uint256) {
-    return token_.balanceOf(msg.sender);
+  function setAssets(address a) public admin {
+    assets_ = IAsset(a);
   }
-  //estimate merge fee
-  function estimateMergeFee(uint card_id, uint target_card_id) public view returns (uint) {
-    return mergeFeeFromCardValue(inventory_.estimateResultValue(card_id, target_card_id));
-  }
-  function estimateReclaimToken(uint card_id) public view returns (uint256) {
-    bytes memory c = inventory_.getSlotBytesById(card_id);
-    pb_ch_Card.Data memory card = pb_ch_Card.decode(c);
-    return mergeFeeFromCardValue(CalcUtil.evaluate(card, inventory_));
+  function setClock(uint c) public admin {
+    clock_ = c;
   }
 
 
   //writer
-  //get fixed parameter initial cat according to sel_idx, also give some token
-  function createInitialDeck(
-    address target, string tx_id, uint payment_unit, uint sel_idx) 
-    public writer returns (bool) {
+  function createUserAssets(address target, bytes payload) public writer returns (bool);
+  function createUser(address target, string tx_id, uint payment_amount, bytes payload) public writer returns (bool) {
     //world should have write access to inventory
-    require(inventory_.checkWritableFrom(this));
-    require(inventory_.getSlotSize(target) <= 0); //only once
-    require(inventory_.recordPayment(target, tx_id));
-    //give cat according to sel_idx
-    if (sel_idx == 0) {
-      //hp type
-      inventory_.mintFixedCard(target, 1, 0, 1);
-    } else if (sel_idx == 1) {
-      //attack type
-      inventory_.mintFixedCard(target, 2, 0, 1);
-    } else if (sel_idx == 2) {
-      //defense type
-      inventory_.mintFixedCard(target, 3, 0, 1);
-    }//*/
-    //give initial token with current rate
-    uint amount = payment_unit / currentRateForPU();
-    require(token_.privilegedTransfer(target, amount));
-    emit Exchange(payment_unit, currentRateForPU(), tokenSold_, amount);
-    tokenSold_ += amount;
+    require(minter_.checkWritableFrom(this));
+    require(currency_.checkWritableFrom(this));
+    require(users_.checkWritableFrom(this));
+    require(assets_.balanceOf(target) <= 0); //only once
+    //exchange payment amount with currency
+    require(currency_.recordPayment(target, tx_id));
+    uint exchanged = currency_.privilegedTransfer(target, payment_amount);
+    require(exchanged > 0);
+    require(createUserAssets(target, payload));
     return true;
   }
-  function payForInitialCard(uint sel_idx) public payable {
-    createInitialDeck(msg.sender, "hoge", 10000, sel_idx);
-  }
-  function updateClock(uint current_clock) public admin {
-    clock_ = current_clock;
-  }
   //just buy token with sent ether (where to have conversion rate?)
-  function buyToken(address target, string tx_id, uint payment_unit) public writer {
-    //give initial token with current rate
-    uint amount = payment_unit / currentRateForPU();
-    require(inventory_.recordPayment(target, tx_id));
-    require(token_.privilegedTransfer(target, amount));
-    emit Exchange(payment_unit, currentRateForPU(), tokenSold_, amount);
-    tokenSold_ += amount;
+  function buyToken(address target, string tx_id, uint payment_amount) public writer {
+    require(currency_.recordPayment(target, tx_id));
+    uint exchanged = currency_.privilegedTransfer(target, payment_amount);
+    require(exchanged > 0);
   }
   //buy cat with set token price
   //sender have to approve from to spend 'price' token.

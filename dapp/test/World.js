@@ -2,18 +2,19 @@ var World = artifacts.require('World');
 var Storage = artifacts.require('Storage');
 var Moritapo = artifacts.require('Moritapo');
 var Inventory = artifacts.require('Inventory');
+var DataContainer = artifacts.require('DataContainer');
 
 var soltype = require("soltype-pb");
 var protobuf = soltype.importProtoFile(require("protobufjs"));
 
 var helper = require(__dirname + "/../tools/utils/helper");
+var GameDataCache = require(__dirname + "/../tools/utils/gamedata").Cache;
 
 var TX_ID_1 = "3cb3bd52650132d76c1445926c864e4d808c7db3";
 var TX_ID_2 = "dee73cec26ff5678d7e2adc5c41bd22352a27e3f";
 var TX_ID_3 = "41bdd8edd2e507b0b30d4a381691284f213a87cc";
-var SPEC_ID = 5678;
+var SPEC_ID = 2;
 var VISUAL_FLAG = 5;
-var RARITY = 4;
 var cardCheck = (ret, proto, opts) => {
     var log;
     //search MintCard log
@@ -27,9 +28,8 @@ var cardCheck = (ret, proto, opts) => {
     var card = CardProto.decode(bs);
     opts = opts || {}
     assert.equal(card.specId, opts.spec_id || SPEC_ID, "spec_id should be correct");
-    assert.equal(card.visualFlags, typeof(opts.visual_flags) == 'number' ? opts.visual_flags : VISUAL_FLAG, "visual_flags should be correct:" + JSON.stringify(opts));
-    assert.equal(card.level, opts.level || 2, "level should be correct");
-    assert.equal(Number(card.bs[0]), opts.rarity || RARITY, "rarity should be correct");
+    assert.equal(card.insertFlags, typeof(opts.insert_flags) == 'number' ? opts.insert_flags : VISUAL_FLAG, "insert_flags should be correct:" + JSON.stringify(opts));
+    assert.equal(card.stack, opts.stack || 2, "stack should be correct");
     return [log.args.id.toNumber(), card];
 }
 var checkSpent = (ret, from, to) => {
@@ -61,6 +61,7 @@ contract('World', (as) => {
     var main_card_id, sub_card_id, sub_card_id2;
     var inventory_instance;
     var main_card, sub_card, sub_card2;
+    var gdc;
     it("can create and load card", () => {
         var c, sc, tc, proto;
         var est_merge_fee, reclaim_token;
@@ -79,6 +80,7 @@ contract('World', (as) => {
                     if (err) { reject(err); }
                     else { 
                         soltype.importTypes(p);
+                        gdc = new GameDataCache(web3, DataContainer, p);
                         resolve(p); 
                     }
                 });
@@ -101,8 +103,8 @@ contract('World', (as) => {
             pgrs.step();
             var tpl = cardCheck(ret, proto, {
                 spec_id: 1,
-                visual_flags: 0,
-                level: 1,
+                insert_flags: 0,
+                stack: 1,
                 rarity: 4,
             });
             main_card_id = tpl[0];
@@ -146,8 +148,8 @@ contract('World', (as) => {
             pgrs.step();
             var tpl = cardCheck(ret, proto, {
                 spec_id: 1,
-                visual_flags: 0,
-                level: 1,
+                insert_flags: 0,
+                stack: 1,
                 rarity: 4,
             });
             sub_card_id = tpl[0];
@@ -178,7 +180,7 @@ contract('World', (as) => {
         }).then(async (ret) => {
             pgrs.step();
             est_merge_fee = ret.toNumber();
-            assert.equal(est_merge_fee, helper.estMergeFee(main_card), "merge fee should be correct");
+            assert.equal(est_merge_fee, await helper.estMergeFee(main_card, gdc), "merge fee should be correct");
             //allow possible maximum spent
             await tc.approve(World.address, est_merge_fee, {from: sub_account});
             return c.mergeCard(main_card_id, sub_card_id, {from: sub_account});
@@ -203,7 +205,7 @@ contract('World', (as) => {
         }).then((ret) => {
             pgrs.step();
             reclaim_token = ret.toNumber();
-            assert.equal(reclaim_token, helper.estReclaimValue(sub_card2), "reclaim fee should be correct");
+            assert.equal(reclaim_token, await helper.estReclaimValue(sub_card2, gdc), "reclaim fee should be correct");
             return c.reclaimToken(sub_card_id2, { from: sub_account });
         }).then((ret) => {
             pgrs.step();

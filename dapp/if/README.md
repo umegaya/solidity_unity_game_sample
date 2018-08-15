@@ -1,0 +1,26 @@
+- World
+  - フロントエンド
+  - キャラクター作成
+    - IUser.createUser
+    - createUserAssets
+  - 貨幣販売
+    - ICurrency.privilegeTransfer
+  - キャラクターデータ更新
+    - IUsers.Update
+  - そのほかゲーム固有のコマンドはIWorldを継承したコントラクトが行う
+- Currency
+  - 貨幣の残高管理
+  - ERC20
+- Registry
+  - 貨幣以外のユーザーの財産の所有権を管理する
+  - 生成されたAssetの実際のデータを返す
+  - ERC721
+- Minter
+  - Assetを生成する
+- User
+  - ユーザーのデータを管理する
+- Audit
+  - MinterがAssetを生成できるかを決定する
+  - Minter,Assetからイベントを受け取るOnIssue, OnPurchase
+- Storage
+  - 全てのデータをbytes似て管理

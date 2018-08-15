@@ -1,4 +1,4 @@
-var cp = require('child_process');
+const cp = require('child_process');
 
 class Progress {
     constructor() {
@@ -77,23 +77,31 @@ var numberOfSetBits = (i) => {
     return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
 }
 
-var estPrice = (card, after_merge) => {
+const createEthersContract = async (truffle_contract, web3) => {
+    const tmpc = await truffle_contract.deployed();
+    const wallet = await getWallet();
+    wallet.provider = new ethers.providers.Web3Provider(web3.currentProvider);
+    return new ethers.Contract(tmpc.address, tmpc.abi, wallet);
+}
+
+var estPrice = async (card, gdc, after_merge) => {
     if (after_merge) {
-        card.level++;
+        card.stack++;
     }
-    var est = 100 * (1 << Number(card.bs[0])) * (1 << card.level) * (1 + numberOfSetBits(card.visualFlags));
+    var spec = await gdc.getData("CardSpec", card.specId);
+    var est = 100 * (1 << Number(spec.rarity)) * (1 << card.stack) * (1 + numberOfSetBits(card.insertFlags));
     if (after_merge) {
-        card.level--;
+        card.stack--;
     }
     return est;
 }
 
-var estMergeFee = (card) => {
-    return estPrice(card, true) / 100;
+var estMergeFee = async (card, gdc) => {
+    return await estPrice(card, gdc, true) / 100;
 }
 
-var estReclaimValue = (card) => {
-    return estPrice(card, false) / 100;
+var estReclaimValue = async (card, gdc) => {
+    return await estPrice(card, gdc, false) / 100;
 }
 
 module.exports = {
@@ -104,6 +112,7 @@ module.exports = {
     getDockerHost: getDockerHost,
     getMinikubeHost: getMinikubeHost,
     numberOfSetBits: numberOfSetBits,
+    createEthersContract: createEthersContract,
     estPrice: estPrice,
     estMergeFee: estMergeFee,
     estReclaimValue: estReclaimValue,

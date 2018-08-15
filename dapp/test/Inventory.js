@@ -2,26 +2,28 @@ var Inventory = artifacts.require('Inventory');
 var World = artifacts.require('World');
 var Moritapo = artifacts.require('Moritapo');
 var Storage = artifacts.require('Storage');
+var DataContainer = artifacts.require('DataContainer');
 
-var soltype = require("soltype-pb");
-var protobuf = soltype.importProtoFile(require("protobufjs"));
+const protobuf = require('../tools/utils/pb')([
+    "proto/options"
+]);
 
 var helper = require(__dirname + "/../tools/utils/helper");
+var GameDataCache = require(__dirname + "/../tools/utils/gamedata").Cache;
 
 var TX_ID_1 = "7ce7d7a5c855b3ede91b37bda8d460e1c77ec4a1";
 var TX_ID_2 = "0abbbed04b081b5c22517e2216d3cf8cfce00a97";
-var SPEC_ID = 1234;
-var VISUAL_FLAG = 5;
-var VISUAL_FLAG2 = 4;
+var SPEC_ID = 1;
+var INSERT_FLAG = 5;
+var INSERT_FLAG2 = 4;
 var RARITY = 3;
 var cardCheck = (card, opts) => {
     opts = opts || {}
     assert.equal(card.specId, opts.spec_id || SPEC_ID, "spec_id should be correct");
-    if (opts.visual_flags !== false) {
-        assert.equal(card.visualFlags, opts.visual_flags || VISUAL_FLAG, "visual_flags should be correct");
+    if (opts.insert_flags !== false) {
+        assert.equal(card.insertFlags, opts.insert_flags || INSERT_FLAG, "insert_flags should be correct");
     }
-    assert.equal(card.level, opts.level || 1, "level should be correct");
-    assert.equal(card.bs[0], opts.rarity || RARITY, "rarity should be correct");
+    assert.equal(card.stack, opts.stack || 0, "level should be correct");
 }
 var consumeCheck = (ret) => {
     //search ConsumeTx log
@@ -35,29 +37,26 @@ var consumeCheck = (ret) => {
 }
 
 var pgrs = new helper.Progress();
-//pgrs.verbose = true;
+pgrs.verbose = true;
 
 contract('Inventory', () => {
+    var gdc;
     var accounts = Inventory.currentProvider.addresses_;
     writer = accounts[0];
     var base_card_id, card_tmp, remain_card_id;
 
     it("can create and load card", () => {
-        var c, sc, proto;
+        var c, sc, dc, proto;
+        gdc = new GameDataCache(web3, DataContainer, protobuf);
         return Storage.deployed().then((instance) => {
             sc = instance;
             return Inventory.deployed();
         }).then((instance) => {
             c = instance;
-            return new Promise((resolve, reject) => {
-                protobuf.load("proto/Card.proto", (err, p) => {
-                    if (err) { reject(err); }
-                    else { 
-                        soltype.importTypes(p);
-                        resolve(p); 
-                    }
-                });
-            });
+            return DataContainer.deployed();
+        }).then((instance) => {
+            dc = instance;
+            return protobuf.load("proto/Card.proto");
         //store / load card data
         }).then((p) => {
             pgrs.step();
@@ -67,7 +66,7 @@ contract('Inventory', () => {
         }).then((ret) => {
             pgrs.step();
             assert.equal(ret, 0, "account0 should not have any card");
-            return c.mintFixedCard(accounts[0], SPEC_ID, VISUAL_FLAG, 1, RARITY, {from: writer});
+            return c.mintFixedCard(accounts[0], SPEC_ID, INSERT_FLAG, 0, {from: writer});
         }).then((ret) => {
             pgrs.step();
             assert.equal(ret.logs.length, 1, "should happen 1 log");
@@ -80,7 +79,7 @@ contract('Inventory', () => {
             var card = CardProto.decode(bs);
             //console.log("card", card);
             cardCheck(card);
-            return c.mintFixedCard(accounts[0], SPEC_ID, VISUAL_FLAG, 1, RARITY, {from: writer});
+            return c.mintFixedCard(accounts[0], SPEC_ID, INSERT_FLAG, 0, {from: writer});   
         }).then((ret) => {
             pgrs.step();
             var log = ret.logs[0];
@@ -145,7 +144,7 @@ contract('Inventory', () => {
         //merge card
         }).then((ret) => {
             pgrs.step();
-            return c.mintFixedCard(accounts[1], SPEC_ID, VISUAL_FLAG2, 1, RARITY, {from: writer});
+            return c.mintFixedCard(accounts[1], SPEC_ID, INSERT_FLAG2, 1, {from: writer});
         }).then((ret) => {
             pgrs.step();
             var log = ret.logs[0];
@@ -156,9 +155,9 @@ contract('Inventory', () => {
             remain_card_id = base_card_id + 2;
             assert.equal(log.args.id, remain_card_id, "card id should be correct");
             return c.estimateResultValue.call(remain_card_id, base_card_id);
-        }).then((ret) => {
+        }).then(async (ret) => {
             pgrs.step();
-            var est_price = helper.estPrice(card_tmp, true);
+            var est_price = await helper.estPrice(card_tmp, gdc, true);
             assert.equal(ret.toNumber(), est_price, "value should be correct");
             return c.merge(accounts[1], remain_card_id, base_card_id, 0, {from: writer});
         }).then((ret) => {
@@ -170,7 +169,7 @@ contract('Inventory', () => {
             //console.log("card2", card);
             assert.equal(log.args.remain_card_id, remain_card_id, "remain card id should be correct");
             assert.equal(log.args.merged_card_id, base_card_id, "merged card id should be correct");
-            cardCheck(card, { visual_flags: false, level: 2 });
+            cardCheck(card, { insert_flags: false, stack: 2 });
             return c.getSlotSize.call(accounts[1]);
         }).then((ret) => {
             pgrs.step();

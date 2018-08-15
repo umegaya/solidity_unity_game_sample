@@ -31,7 +31,7 @@ $(LOCAL_PROTO_DST_DIR)/%_pb.sol: $(LOCAL_PROTO_SRC_DIR)/templates/%.proto
 proto: $(LOCAL_PROTO_DST_DIR)/runtime.sol $(PROTO_SOL) $(PROTO_TEMPLATE_SOL)
 
 test: proto
-	truffle develop --log
+	truffle develop --log &
 	truffle test
 
 compile_if_not: proto

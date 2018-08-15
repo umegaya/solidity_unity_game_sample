@@ -17,8 +17,8 @@ library CalcUtil {
   }
 
   function Rarity(pb_ch_Card.Data c, StorageAccessor sa) internal view returns (int) {
-    pb_ch_CardSpec.Data memory cs = getCardSpec(sa, c.spec_id);
-    return cs.rarity;
+    (pb_ch_CardSpec.Data memory cs, bool found) = getCardSpec(sa, c.spec_id);
+    return found ? cs.rarity : 0;
   }
 
   function NumberOfSetBits(uint i) internal pure returns (uint) {
@@ -38,10 +38,15 @@ library CalcUtil {
   }
 
   //internal helper
-  function getCardSpec(StorageAccessor sa, uint id) internal view returns (pb_ch_CardSpec.Data cs) {
+  function getCardSpec(StorageAccessor sa, uint id) internal view returns (pb_ch_CardSpec.Data cs, bool found) {
     uint hash = uint(keccak256(abi.encodePacked("CardSpec", id)));
     bytes memory bs = sa.loadBytes(hash);
-    cs = pb_ch_CardSpec.decode(bs);
+    if (bs.length > 0) {
+      cs = pb_ch_CardSpec.decode(bs);
+      found = true;
+    } else {
+      found = false;
+    }
   }
 
   function getCard(StorageAccessor sa, uint id) internal view returns (pb_ch_Card.Data cat, bool found) {
