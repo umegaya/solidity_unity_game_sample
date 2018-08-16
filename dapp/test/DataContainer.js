@@ -3,7 +3,7 @@ const EthersContract = require("../tools/utils/ethers").Contract;
 const DataContainer = artifacts.require('DataContainer');
 
 const numToBuffer = (n) => {
-    var b = new Buffer([n]);
+    var b = Buffer.from([n]);
     return b;
 }
 
@@ -19,20 +19,20 @@ const ID_FIXTURE = [
     numToBuffer(9),
 ];
 const DATA_FIXTURE = [
-    new Buffer('abc1', 'utf8'),
-    new Buffer('def22', 'utf8'),
-    new Buffer('ghi333', 'utf8'),
-    new Buffer('jkl4444', 'utf8'),
-    new Buffer('mno55555', 'utf8'),
-    new Buffer('pqr666666', 'utf8'),
-    new Buffer('stu7777777', 'utf8'),
-    new Buffer('vwx88888888', 'utf8'),
-    new Buffer('yz_999999999', 'utf8'),
+    Buffer.from('abc1', 'utf8'),
+    Buffer.from('def22', 'utf8'),
+    Buffer.from('ghi333', 'utf8'),
+    Buffer.from('jkl4444', 'utf8'),
+    Buffer.from('mno55555', 'utf8'),
+    Buffer.from('pqr666666', 'utf8'),
+    Buffer.from('stu7777777', 'utf8'),
+    Buffer.from('vwx88888888', 'utf8'),
+    Buffer.from('yz_999999999', 'utf8'),
 ];
 const DATA_FIXTURE2 = [
-    new Buffer('cba1', 'utf8'),
-    new Buffer('fed22', 'utf8'),
-    new Buffer('ihg333', 'utf8'),
+    Buffer.from('cba1', 'utf8'),
+    Buffer.from('fed22', 'utf8'),
+    Buffer.from('ihg333', 'utf8'),
 ];
 
 const parseLogs = (receipt, events) => {

@@ -4,7 +4,7 @@ import "./libs/Restrictable.sol";
 import "./libs/PRNG.sol";
 import "./libs/if/ICurrency.sol";
 import "./libs/if/IAsset.sol";
-import "./libs/if/IMinter.sol";
+import "./libs/if/IMint.sol";
 import "./libs/if/IUser.sol";
 
 
@@ -15,7 +15,7 @@ contract IWorld is Restrictable {
 
   //variables
   ICurrency currency_;
-  IMinter minter_;
+  IMint mint_;
   IUser users_;
   IAsset assets_;
   uint clock_; //current world date time. updated with minutes frequency from authorized host
@@ -40,7 +40,7 @@ contract IWorld is Restrictable {
     //msg.sender should be initial owner of all token
     require(currency_.balanceOf(msg.sender) > 0);
     currency_ = ICurrency(currencyAddress);
-    minter_ = IMinter(minterAddress);
+    mint_ = IMint(minterAddress);
     users_ = IUser(userAddress);
     assets_ = IAsset(assetAddress);
     clock_ = 0;
@@ -50,8 +50,8 @@ contract IWorld is Restrictable {
   function setCurrency(address a) public admin {
     currency_ = ICurrency(a);
   }
-  function setMinter(address a) public admin {
-    minter_ = IMinter(a);
+  function setMint(address a) public admin {
+    mint_ = IMint(a);
   }
   function setUsers(address a) public admin {
     users_ = IUser(a);
@@ -68,7 +68,7 @@ contract IWorld is Restrictable {
   function createUserAssets(address target, bytes payload) public writer returns (bool);
   function createUser(address target, string tx_id, uint payment_amount, bytes payload) public writer returns (bool) {
     //world should have write access to inventory
-    require(minter_.checkWritableFrom(this));
+    require(mint_.checkWritableFrom(this));
     require(currency_.checkWritableFrom(this));
     require(users_.checkWritableFrom(this));
     require(assets_.balanceOf(target) <= 0); //only once

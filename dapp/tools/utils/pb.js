@@ -10,7 +10,7 @@ module.exports = function (paths) {
     });
     const origload = protobuf.load;
     protobuf.load = function () {
-        var pb = origload(arguments);
+        var pb = origload(...arguments);
         if (typeof(pb) == 'object' && typeof(pb.then) == 'function') {
             pb.then((loaded) => {
                 soltype.importTypes(loaded);

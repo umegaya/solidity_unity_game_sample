@@ -37,7 +37,7 @@ var consumeCheck = (ret) => {
 }
 
 var pgrs = new helper.Progress();
-pgrs.verbose = true;
+//pgrs.verbose = true;
 
 contract('Inventory', () => {
     var gdc;
@@ -144,7 +144,7 @@ contract('Inventory', () => {
         //merge card
         }).then((ret) => {
             pgrs.step();
-            return c.mintFixedCard(accounts[1], SPEC_ID, INSERT_FLAG2, 1, {from: writer});
+            return c.mintFixedCard(accounts[1], SPEC_ID, INSERT_FLAG2, 0, {from: writer});
         }).then((ret) => {
             pgrs.step();
             var log = ret.logs[0];
@@ -169,7 +169,7 @@ contract('Inventory', () => {
             //console.log("card2", card);
             assert.equal(log.args.remain_card_id, remain_card_id, "remain card id should be correct");
             assert.equal(log.args.merged_card_id, base_card_id, "merged card id should be correct");
-            cardCheck(card, { insert_flags: false, stack: 2 });
+            cardCheck(card, { insert_flags: false, stack: 1 });
             return c.getSlotSize.call(accounts[1]);
         }).then((ret) => {
             pgrs.step();

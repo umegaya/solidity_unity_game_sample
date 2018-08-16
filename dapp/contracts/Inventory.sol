@@ -29,11 +29,10 @@ contract Inventory is StorageAccessor, Restrictable {
 
 
   //events
-  event MintCard(address indexed user, uint id, bytes created);
+  event MintCard(address indexed user, uint id, bytes created, uint insert_flags);
   event UpdateCard(address indexed user, uint id, bytes created);
   event Merge(address indexed user, uint remain_card_id, uint merged_card_id, bytes created);
   event ConsumeTx(address indexed user, string tx_id);
-
 
   //ctor
   constructor(address storageAddress, address cardsAddress, address issuanceAddress)  
@@ -160,7 +159,7 @@ contract Inventory is StorageAccessor, Restrictable {
   function mintCard(address user) public writer returns (uint) {
     PRNG.Data memory rnd;
     return mintFixedCard(user, 
-      uint32(rnd.gen2(1, 10000)), CalcUtil.RandomInsertFlag(), 1);
+      uint32(rnd.gen2(1, 10000)), CalcUtil.RandomInsertFlag(), 0);
   }
   function mintFixedCard(address user, 
                       uint32 spec_id, uint32 insert_flags, uint32 stack) 
@@ -176,7 +175,7 @@ contract Inventory is StorageAccessor, Restrictable {
     bytes memory bs = card.encode();
     saveBytes(id, bs);
 
-    emit MintCard(user, id, bs);
+    emit MintCard(user, id, bs, card.insert_flags);
     cards_.mint(user, id);
     return id;  
   }

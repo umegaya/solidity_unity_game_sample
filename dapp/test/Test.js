@@ -6,7 +6,7 @@ contract('Test', async () => {
         const tmpc = await Test.deployed();
         const dc = new ethers.Contract(tmpc.address, tmpc.abi, 
             new ethers.providers.Web3Provider(web3.currentProvider));
-        var bs = [new Buffer('abc', 'utf8'), new Buffer('def', 'utf8')];
+        var bs = [Buffer.from('abc', 'utf8'), Buffer.from('def', 'utf8')];
         const ret = await dc.foo(bs);
         assert (ret.toNumber() == 2);
         const ret2 = await dc.foo([]);

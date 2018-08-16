@@ -54,7 +54,7 @@ var numToBytes = (num) => {
         buff.push(num & 0xFF);
         num >>= 8;
     }
-    return new Buffer(buff);
+    return Buffer.from(buff);
 }
 
 var getDockerHost = () => {

@@ -24,7 +24,7 @@ contract World is Restrictable, Constants {
 
   //event
   event Exchange(uint value, uint rate, uint tokenSold, uint result);
-  event MintCard(address indexed user, uint id, bytes created);
+  event MintCard(address indexed user, uint id, bytes created, uint insert_flags);
   event Approval(address indexed owner, address indexed spender, uint256 value); //from ERC20.sol
   event Transfer(address indexed from, address indexed to, uint256 value); //from ERC20.sol
   event Merge(address indexed user_a, address indexed user_b, uint id_a, uint id_b, uint new_id);
@@ -69,23 +69,13 @@ contract World is Restrictable, Constants {
   //writer
   //get fixed parameter initial cat according to sel_idx, also give some token
   function createInitialDeck(
-    address target, string tx_id, uint payment_unit, uint sel_idx) 
-    public writer returns (bool) {
+    address target, string tx_id, uint payment_unit, 
+    uint32[] spec_ids, uint32[] prns) public writer returns (bool) {
     //world should have write access to inventory
     require(inventory_.checkWritableFrom(this));
     require(inventory_.getSlotSize(target) <= 0); //only once
     require(inventory_.recordPayment(target, tx_id));
-    //give cat according to sel_idx
-    if (sel_idx == 0) {
-      //hp type
-      inventory_.mintFixedCard(target, 1, 0, 1);
-    } else if (sel_idx == 1) {
-      //attack type
-      inventory_.mintFixedCard(target, 2, 0, 1);
-    } else if (sel_idx == 2) {
-      //defense type
-      inventory_.mintFixedCard(target, 3, 0, 1);
-    }//*/
+    giveStarterPack(target, spec_ids, prns);
     //give initial token with current rate
     uint amount = payment_unit / currentRateForPU();
     require(token_.privilegedTransfer(target, amount));
@@ -93,8 +83,8 @@ contract World is Restrictable, Constants {
     tokenSold_ += amount;
     return true;
   }
-  function payForInitialCard(uint sel_idx) public payable {
-    createInitialDeck(msg.sender, "hoge", 10000, sel_idx);
+  function payForInitialCard(uint32[] spec_ids, uint32[] prns) public payable {
+    createInitialDeck(msg.sender, "hoge", 10000, spec_ids, prns);
   }
   function updateClock(uint current_clock) public admin {
     clock_ = current_clock;
@@ -161,14 +151,14 @@ contract World is Restrictable, Constants {
     return mergeFeeFromCardValue(base_price);
   }
 
-  function starterPack(address target, uint32[] spec_ids, uint32[] prns) public writer {
+  function giveStarterPack(address target, uint32[] spec_ids, uint32[] prns) internal writer {
     if (inventory_.getSlotSize(target) != 0) {
       return;
     }
-    require(spec_ids.length == STARTER_PACK_CARD_COUNT);
-    require(prns.length == STARTER_PACK_CARD_COUNT);
-    for (uint i = 0; i < STARTER_PACK_CARD_COUNT; i++) {
-      inventory_.mintFixedCard(target, spec_ids[i], prns[i] & 7, 0);
+    require(spec_ids.length <= STARTER_PACK_CARD_COUNT);
+    require(prns.length == spec_ids.length);
+    for (uint i = 0; i < spec_ids.length; i++) {
+      inventory_.mintFixedCard(target, spec_ids[i], prns[i], 0);
     }
   } 
 
